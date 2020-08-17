@@ -13,7 +13,7 @@ import { User } from './users/entities/user.entity';
     UsersModule,
     GraphQLModule.forRoot({
       debug: true,
-      playground: true,
+      playground: false,
       autoSchemaFile: true,
     }),
     TypeOrmModule.forRoot({
@@ -32,4 +32,4 @@ import { User } from './users/entities/user.entity';
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule {}
+export class AppModule { }
