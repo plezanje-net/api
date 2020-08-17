@@ -18,8 +18,20 @@ export class UsersService {
         return this.usersRepository.find();
     }
 
+    findOneById(id: string): Promise<User> {
+        return this.usersRepository.findOne(id)
+    }
+
+    findOneByEmail(email: string): Promise<User> {
+        return this.usersRepository.findOne({
+            where: {
+                email
+            }
+        })
+    }
+
     async register(data: RegisterInput): Promise<Boolean> {
-        let user = new User
+        const user = new User
 
         this.usersRepository.merge(user, data);
 
@@ -31,7 +43,7 @@ export class UsersService {
 
     async confirm(data: ConfirmInput): Promise<Boolean> {
 
-        let user = await this.usersRepository.findOne(data.id)
+        const user = await this.usersRepository.findOne(data.id)
 
         if (user == undefined) {
             throw new NotFoundException;
@@ -46,5 +58,4 @@ export class UsersService {
 
         return this.usersRepository.save(user).then(() => true)
     }
-
 }
