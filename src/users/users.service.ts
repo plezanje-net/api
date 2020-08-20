@@ -6,12 +6,15 @@ import { RegisterInput } from './inputs/register.input';
 import { ConfirmInput } from './inputs/confirm.input';
 import { randomBytes } from 'crypto';
 import * as bcrypt from 'bcrypt';
+import { Role } from './entities/role.entity';
 
 @Injectable()
 export class UsersService {
     constructor(
         @InjectRepository(User)
-        private usersRepository: Repository<User>
+        private usersRepository: Repository<User>,
+        @InjectRepository(Role)
+        private rolesRepository: Repository<Role>
     ) { }
 
     findAll(): Promise<User[]> {
@@ -28,6 +31,14 @@ export class UsersService {
                 email
             }
         })
+    }
+
+    findRoles(user: string): Promise<Role[]> {
+        return this.rolesRepository.find({
+            where: {
+                user
+            }
+        });
     }
 
     async register(data: RegisterInput): Promise<Boolean> {

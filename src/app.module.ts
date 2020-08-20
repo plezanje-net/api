@@ -8,6 +8,7 @@ import { ConfigModule } from '@nestjs/config';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { User } from './users/entities/user.entity';
+import { Role } from './users/entities/role.entity';
 
 @Module({
   imports: [
@@ -25,7 +26,7 @@ import { User } from './users/entities/user.entity';
       username: 'plezanjenet',
       password: 'plezanjenet',
       database: 'plezanjenet',
-      entities: [User],
+      entities: [User, Role],
       synchronize: true
     }),
     UsersModule,

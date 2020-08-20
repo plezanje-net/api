@@ -1,5 +1,6 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, BaseEntity } from "typeorm";
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, BaseEntity, OneToMany } from "typeorm";
 import { ObjectType, Field } from "@nestjs/graphql";
+import { Role } from "./role.entity";
 
 
 @Entity()
@@ -30,6 +31,10 @@ export class User extends BaseEntity {
 
     @Column({ nullable: true })
     picture: string;
+
+    @OneToMany(type => Role, role => role.user)
+    @Field(type => [Role])
+    roles: Role[];
 
     @Column({ nullable: true })
     password: string;

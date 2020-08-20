@@ -1,4 +1,4 @@
-import { Resolver, Query, Mutation, Args } from '@nestjs/graphql';
+import { Resolver, Query, Mutation, Args, ResolveField, Parent } from '@nestjs/graphql';
 import { User } from './entities/user.entity';
 import { UsersService } from './users.service';
 import { RegisterInput } from './inputs/register.input';
@@ -10,8 +10,9 @@ import { CurrentUser } from 'src/auth/decorators/current-user.decorator';
 import { LoginInput } from './inputs/login.input';
 import { AuthService } from 'src/auth/auth.service';
 import { TokenResponse } from './interfaces/token-response.class';
+import { Role } from './entities/role.entity';
 
-@Resolver('User')
+@Resolver(of => User)
 export class UsersResolver {
 
     constructor(
@@ -44,6 +45,11 @@ export class UsersResolver {
     @Mutation(returns => TokenResponse)
     async login(@Args('input', { type: () => LoginInput }) input: LoginInput) {
         return this.authService.login(input)
+    }
+
+    @ResolveField('roles', returns => [String])
+    async getRoles(@Parent() user: User) {
+        return (await this.usersService.findRoles(user.id)).map((role: Role) => role.role);
     }
 
 }
