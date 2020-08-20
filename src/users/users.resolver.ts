@@ -5,12 +5,13 @@ import { RegisterInput } from './inputs/register.input';
 import { ConfirmInput } from './inputs/confirm.input';
 import { QueryFailedError } from 'typeorm';
 import { Catch, UseGuards } from '@nestjs/common';
-import { GqlAuthGuard } from 'src/auth/gql-auth.guard';
 import { CurrentUser } from 'src/auth/decorators/current-user.decorator';
 import { LoginInput } from './inputs/login.input';
 import { AuthService } from 'src/auth/auth.service';
 import { TokenResponse } from './interfaces/token-response.class';
 import { Role } from './entities/role.entity';
+import { GqlAuthGuard } from 'src/auth/guards/gql-auth.guard';
+import { Roles } from 'src/auth/decorators/roles.decorator';
 
 @Resolver(of => User)
 export class UsersResolver {
@@ -20,13 +21,13 @@ export class UsersResolver {
         private authService: AuthService
     ) { }
 
-    @UseGuards(GqlAuthGuard)
+    @Roles('admin')
     @Query(returns => User)
     profile(@CurrentUser() user: User) {
         return this.usersService.findOneById(user.id);
     }
 
-    @UseGuards(GqlAuthGuard)
+    @Roles('admin')
     @Query(returns => [User])
     async users() {
         return this.usersService.findAll();

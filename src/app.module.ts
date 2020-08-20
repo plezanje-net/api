@@ -9,6 +9,8 @@ import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { User } from './users/entities/user.entity';
 import { Role } from './users/entities/role.entity';
+import { CountriesModule } from './countries/countries.module';
+import { Country } from './countries/entries/country.entity';
 
 @Module({
   imports: [
@@ -26,10 +28,11 @@ import { Role } from './users/entities/role.entity';
       username: 'plezanjenet',
       password: 'plezanjenet',
       database: 'plezanjenet',
-      entities: [User, Role],
+      entities: [User, Role, Country],
       synchronize: true
     }),
     UsersModule,
+    CountriesModule,
   ],
   controllers: [AppController],
   providers: [AppService],
