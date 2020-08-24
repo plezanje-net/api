@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable, UnauthorizedException, Scope } from '@nestjs/common';
 import { UsersService } from 'src/users/users.service';
 import * as bcrypt from 'bcrypt';
 
@@ -18,6 +18,7 @@ export class AuthService {
         private usersRepository: Repository<User>,
         private jwtService: JwtService,
     ) { }
+
 
     async validateUser(email: string, pass: string): Promise<any> {
         const user = await this.usersRepository.findOne({
@@ -48,4 +49,6 @@ export class AuthService {
             };
         })
     }
+
+
 }

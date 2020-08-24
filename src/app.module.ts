@@ -10,7 +10,13 @@ import { UsersModule } from './users/users.module';
 import { User } from './users/entities/user.entity';
 import { Role } from './users/entities/role.entity';
 import { CountriesModule } from './countries/countries.module';
-import { Country } from './countries/entries/country.entity';
+import { Country } from './countries/entities/country.entity';
+import { CragsModule } from './crags/crags.module';
+import { Crag } from './crags/entities/crag.entity';
+import { AuditModule } from './audit/audit.module';
+import { Audit } from './audit/entities/audit.entity';
+import { AuditSubscriber } from './audit/audit.subscriber';
+import { AuditService } from './audit/audit.service';
 
 @Module({
   imports: [
@@ -28,11 +34,13 @@ import { Country } from './countries/entries/country.entity';
       username: 'plezanjenet',
       password: 'plezanjenet',
       database: 'plezanjenet',
-      entities: [User, Role, Country],
+      entities: [User, Role, Country, Crag, Audit],
       synchronize: true
     }),
     UsersModule,
     CountriesModule,
+    CragsModule,
+    AuditModule,
   ],
   controllers: [AppController],
   providers: [AppService],
