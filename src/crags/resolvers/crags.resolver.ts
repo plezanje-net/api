@@ -1,13 +1,14 @@
 import { Resolver, Mutation, Args, Query, ResolveField, Parent } from '@nestjs/graphql';
+import { UseInterceptors } from '@nestjs/common';
+
 import { Roles } from 'src/auth/decorators/roles.decorator';
-import { Crag } from './entities/crag.entity';
-import { CreateCragInput } from './inputs/create-crag.input';
-import { UpdateCragInput } from './inputs/update-crag.input';
-import { CragsService } from './crags.service';
-import { UseInterceptors, forwardRef, Inject } from '@nestjs/common';
+import { Crag } from '../entities/crag.entity';
+import { CreateCragInput } from '../inputs/create-crag.input';
+import { UpdateCragInput } from '../inputs/update-crag.input';
+import { CragsService } from '../services/crags.service';
 import { AuditInterceptor } from 'src/audit/audit.interceptor';
-import { Country } from 'src/countries/entities/country.entity';
-import { CountriesService } from 'src/countries/countries.service';
+import { Country } from '../entities/country.entity';
+import { CountriesService } from '../services/countries.service';
 
 @Resolver(of => Crag)
 export class CragsResolver {

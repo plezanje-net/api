@@ -1,9 +1,9 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Country } from './entities/country.entity';
+import { Country } from '../entities/country.entity';
 import { Repository } from 'typeorm';
-import { CreateCountryInput } from './inputs/create-country.input';
-import { UpdateCountryInput } from './inputs/update-country.input';
+import { CreateCountryInput } from '../inputs/create-country.input';
+import { UpdateCountryInput } from '../inputs/update-country.input';
 
 @Injectable()
 export class CountriesService {

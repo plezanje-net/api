@@ -1,6 +1,4 @@
 import { InputType, Field } from "@nestjs/graphql";
-import { Country } from "src/countries/entities/country.entity";
-
 @InputType()
 export class UpdateCragInput {
     @Field()

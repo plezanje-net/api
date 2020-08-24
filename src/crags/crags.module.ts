@@ -1,16 +1,17 @@
-import { Module, forwardRef } from '@nestjs/common';
-import { CragsResolver } from './crags.resolver';
-import { CragsService } from './crags.service';
-import { Crag } from './entities/crag.entity';
-
+import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuditModule } from 'src/audit/audit.module';
-import { Country } from 'src/countries/entities/country.entity';
-import { CountriesModule } from 'src/countries/countries.module';
+
+import { CountriesResolver } from './resolvers/countries.resolver';
+import { CountriesService } from './services/countries.service';
+import { Country } from 'src/crags/entities/country.entity';
+
+import { CragsResolver } from './resolvers/crags.resolver';
+import { CragsService } from './services/crags.service';
+import { Crag } from './entities/crag.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Crag, Country]), AuditModule, forwardRef(() => CountriesModule)],
-  providers: [CragsResolver, CragsService],
-  exports: [CragsService]
+  imports: [TypeOrmModule.forFeature([Crag, Country]), AuditModule],
+  providers: [CragsResolver, CragsService, CountriesResolver, CountriesService],
 })
-export class CragsModule {}
+export class CragsModule { }

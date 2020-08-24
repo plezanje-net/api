@@ -1,14 +1,14 @@
 import { Resolver, Mutation, Args, Query, ResolveField, Parent } from '@nestjs/graphql';
-import { Country } from './entities/country.entity';
-import { CreateCountryInput } from './inputs/create-country.input';
-import { CountriesService } from './countries.service';
-import { UpdateCountryInput } from './inputs/update-country.input';
+import { Country } from '../entities/country.entity';
+import { CreateCountryInput } from '../inputs/create-country.input';
+import { CountriesService } from '../services/countries.service';
+import { UpdateCountryInput } from '../inputs/update-country.input';
 import { Roles } from 'src/auth/decorators/roles.decorator';
 import { AuditService } from 'src/audit/audit.service';
 import { UseInterceptors, forwardRef, Inject } from '@nestjs/common';
 import { AuditInterceptor } from 'src/audit/audit.interceptor';
 import { Crag } from 'src/crags/entities/crag.entity';
-import { CragsService } from 'src/crags/crags.service';
+import { CragsService } from 'src/crags/services/crags.service';
 
 @Resolver(of => Country)
 export class CountriesResolver {

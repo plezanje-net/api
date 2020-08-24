@@ -1,10 +1,10 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { CreateCragInput } from './inputs/create-crag.input';
-import { Crag } from './entities/crag.entity';
+import { CreateCragInput } from '../inputs/create-crag.input';
+import { Crag } from '../entities/crag.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { UpdateCragInput } from './inputs/update-crag.input';
-import { Country } from 'src/countries/entities/country.entity';
+import { UpdateCragInput } from '../inputs/update-crag.input';
+import { Country } from 'src/crags/entities/country.entity';
 
 @Injectable()
 export class CragsService {
