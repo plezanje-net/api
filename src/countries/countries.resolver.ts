@@ -1,19 +1,22 @@
-import { Resolver, Mutation, Args, Query } from '@nestjs/graphql';
+import { Resolver, Mutation, Args, Query, ResolveField, Parent } from '@nestjs/graphql';
 import { Country } from './entities/country.entity';
 import { CreateCountryInput } from './inputs/create-country.input';
 import { CountriesService } from './countries.service';
 import { UpdateCountryInput } from './inputs/update-country.input';
 import { Roles } from 'src/auth/decorators/roles.decorator';
 import { AuditService } from 'src/audit/audit.service';
-import { CurrentUser } from 'src/auth/decorators/current-user.decorator';
-import { User } from 'src/users/entities/user.entity';
-import { UseInterceptors } from '@nestjs/common';
+import { UseInterceptors, forwardRef, Inject } from '@nestjs/common';
 import { AuditInterceptor } from 'src/audit/audit.interceptor';
+import { Crag } from 'src/crags/entities/crag.entity';
+import { CragsService } from 'src/crags/crags.service';
 
 @Resolver(of => Country)
 export class CountriesResolver {
 
-    constructor(private countriesService: CountriesService, private auditService: AuditService) { }
+    constructor(
+        private countriesService: CountriesService,
+        private cragsService: CragsService
+    ) { }
 
     @Query(returns => [Country])
     countries() {
@@ -30,7 +33,7 @@ export class CountriesResolver {
     @Roles('admin')
     @UseInterceptors(AuditInterceptor)
     @Mutation(returns => Country)
-    async updateCountry(@CurrentUser() user: User, @Args('input', { type: () => UpdateCountryInput }) input: UpdateCountryInput) {
+    async updateCountry(@Args('input', { type: () => UpdateCountryInput }) input: UpdateCountryInput) {
         return this.countriesService.update(input);
     }
 
@@ -40,4 +43,10 @@ export class CountriesResolver {
     async deleteCountry(@Args('id') id: string) {
         return this.countriesService.delete(id)
     }
+
+    @ResolveField('crags', returns => [Crag])
+    async getRoles(@Parent() country: Country) {
+        return this.cragsService.find({ country: country.id })
+    }
 }
+//@Inject(forwardRef(() => CatsService))

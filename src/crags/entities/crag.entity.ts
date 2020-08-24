@@ -1,5 +1,6 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, BaseEntity, ManyToOne, BeforeInsert } from "typeorm";
 import { ObjectType, Field, Int, Float } from "@nestjs/graphql";
+import { Country } from "src/countries/entities/country.entity";
 
 @Entity()
 @ObjectType()
@@ -36,4 +37,8 @@ export class Crag extends BaseEntity {
 
     @Column({ nullable: true })
     legacy: string;
+
+    @ManyToOne(type => Country, country => country.crags)
+    @Field(type => Country)
+    country: Country;
 }

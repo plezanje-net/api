@@ -12,6 +12,10 @@ export class CountriesService {
         private countriesRepository: Repository<Country>
     ) { }
 
+    get(params: any): Promise<Country> {
+        return this.countriesRepository.findOne(params);
+    }
+
     findAll(): Promise<Country[]> {
         return this.countriesRepository.find();
     }
