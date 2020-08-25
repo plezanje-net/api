@@ -10,15 +10,15 @@ import { AuditInterceptor } from 'src/audit/interceptors/audit.interceptor';
 import { Country } from '../entities/country.entity';
 import { CountriesService } from '../services/countries.service';
 
-@Resolver(of => Crag)
+@Resolver(() => Crag)
 export class CragsResolver {
     constructor(
         private cragsService: CragsService,
         private countriesService: CountriesService
     ) { }
 
-    @Query(returns => [Crag])
-    crags(@Args('country', { nullable: true }) country?: string) {
+    @Query(() => [Crag])
+    crags(@Args('country', { nullable: true }) country?: string): Promise<Crag[]> {
 
         const params: any = {};
 
@@ -31,27 +31,27 @@ export class CragsResolver {
 
     @Roles('admin')
     @UseInterceptors(AuditInterceptor)
-    @Mutation(returns => Crag)
-    async createCrag(@Args('input', { type: () => CreateCragInput }) input: CreateCragInput) {
+    @Mutation(() => Crag)
+    async createCrag(@Args('input', { type: () => CreateCragInput }) input: CreateCragInput): Promise<Crag> {
         return this.cragsService.create(input);
     }
 
     @Roles('admin')
     @UseInterceptors(AuditInterceptor)
-    @Mutation(returns => Crag)
-    async updateCrag(@Args('input', { type: () => UpdateCragInput }) input: UpdateCragInput) {
+    @Mutation(() => Crag)
+    async updateCrag(@Args('input', { type: () => UpdateCragInput }) input: UpdateCragInput): Promise<Crag> {
         return this.cragsService.update(input);
     }
 
     @Roles('admin')
     @UseInterceptors(AuditInterceptor)
-    @Mutation(returns => Boolean)
-    async deleteCrag(@Args('id') id: string) {
+    @Mutation(() => Boolean)
+    async deleteCrag(@Args('id') id: string): Promise<boolean> {
         return this.cragsService.delete(id)
     }
 
-    @ResolveField('country', returns => Country)
-    async getRoles(@Parent() crag: Crag) {
-        return this.countriesService.get(crag.country)
+    @ResolveField('country', () => Country)
+    async getRoles(@Parent() crag: Crag): Promise<Country> {
+        return this.countriesService.get(crag.country.id)
     }
 }

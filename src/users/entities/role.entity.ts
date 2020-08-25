@@ -2,7 +2,6 @@ import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateCol
 import { ObjectType, Field } from "@nestjs/graphql";
 import { User } from "./user.entity";
 
-
 @Entity()
 @ObjectType()
 export class Role extends BaseEntity {
@@ -22,6 +21,6 @@ export class Role extends BaseEntity {
     @Column({ nullable: true })
     legacy: string;
 
-    @ManyToOne(type => User, user => user.roles, {nullable: false})
+    @ManyToOne(() => User, user => user.roles, { nullable: false })
     user: User;
 }

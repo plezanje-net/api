@@ -15,7 +15,7 @@ export class CragsService {
         private countryRepository: Repository<Country>
     ) { }
 
-    find(params: any): Promise<Crag[]> {
+    find(params: { country?: any }): Promise<Crag[]> {
         return this.cragsRepository.find(params);
     }
 
@@ -41,7 +41,7 @@ export class CragsService {
         return this.cragsRepository.save(crag)
     }
 
-    async delete(id: string) {
+    async delete(id: string): Promise<boolean> {
         const crag = await this.cragsRepository.findOne(id);
 
         if (crag == undefined) {

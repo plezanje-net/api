@@ -12,7 +12,7 @@ export class CountriesService {
         private countriesRepository: Repository<Country>
     ) { }
 
-    get(params: any): Promise<Country> {
+    get(params: string): Promise<Country> {
         return this.countriesRepository.findOne(params);
     }
 
@@ -40,7 +40,7 @@ export class CountriesService {
         return this.countriesRepository.save(country)
     }
 
-    async delete(id: string) {
+    async delete(id: string): Promise<boolean> {
         const country = await this.countriesRepository.findOne(id);
 
         if (country == undefined) {

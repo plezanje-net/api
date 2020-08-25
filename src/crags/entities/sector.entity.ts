@@ -1,5 +1,5 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, BaseEntity, ManyToOne, BeforeInsert } from "typeorm";
-import { ObjectType, Field, Int, Float } from "@nestjs/graphql";
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, BaseEntity, ManyToOne } from "typeorm";
+import { ObjectType, Field, Int } from "@nestjs/graphql";
 import { Crag } from "src/crags/entities/crag.entity";
 
 @Entity()
@@ -21,7 +21,7 @@ export class Sector extends BaseEntity {
     position: number;
 
     @Column()
-    @Field(type => Int)
+    @Field(() => Int)
     status: number;
 
     @CreateDateColumn()
@@ -33,7 +33,7 @@ export class Sector extends BaseEntity {
     @Column({ nullable: true })
     legacy: string;
 
-    @ManyToOne(type => Crag, crag => crag.sectors)
-    @Field(type => Crag)
+    @ManyToOne(() => Crag, crag => crag.sectors)
+    @Field(() => Crag)
     crag: Crag;
 }

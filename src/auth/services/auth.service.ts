@@ -1,5 +1,4 @@
-import { Injectable, UnauthorizedException, Scope } from '@nestjs/common';
-import { UsersService } from 'src/users/users.service';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 
 import { JwtService } from "@nestjs/jwt";
@@ -8,7 +7,6 @@ import { LoginInput } from 'src/users/inputs/login.input';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Role } from 'src/users/entities/role.entity';
-import { idText } from 'typescript';
 
 @Injectable()
 export class AuthService {
@@ -29,14 +27,14 @@ export class AuthService {
         })
 
         if (user && user.isActive && await bcrypt.compare(pass, user.password)) {
-            const { password, ...result } = user;
+            const result = user;
             return result;
         }
 
         throw new UnauthorizedException(401)
     }
 
-    async login(input: LoginInput) {
+    async login(input: LoginInput): Promise<any> {
         return this.validateUser(input.email, input.password).then(user => {
             const payload = {
                 sub: user.id,

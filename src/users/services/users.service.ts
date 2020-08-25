@@ -1,12 +1,12 @@
-import { Injectable, Catch, NotFoundException, NotAcceptableException } from '@nestjs/common';
+import { Injectable, NotFoundException, NotAcceptableException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { User } from './entities/user.entity';
-import { Repository, QueryFailedError } from 'typeorm';
-import { RegisterInput } from './inputs/register.input';
-import { ConfirmInput } from './inputs/confirm.input';
+import { User } from '../entities/user.entity';
+import { Repository } from 'typeorm';
+import { RegisterInput } from '../inputs/register.input';
+import { ConfirmInput } from '../inputs/confirm.input';
 import { randomBytes } from 'crypto';
 import * as bcrypt from 'bcrypt';
-import { Role } from './entities/role.entity';
+import { Role } from '../entities/role.entity';
 
 @Injectable()
 export class UsersService {
