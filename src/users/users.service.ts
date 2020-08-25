@@ -41,7 +41,7 @@ export class UsersService {
         });
     }
 
-    async register(data: RegisterInput): Promise<Boolean> {
+    async register(data: RegisterInput): Promise<boolean> {
         const user = new User
 
         this.usersRepository.merge(user, data);
@@ -52,7 +52,7 @@ export class UsersService {
         return this.usersRepository.save(user).then(() => true)
     }
 
-    async confirm(data: ConfirmInput): Promise<Boolean> {
+    async confirm(data: ConfirmInput): Promise<boolean> {
 
         const user = await this.usersRepository.findOne(data.id)
 

@@ -1,6 +1,5 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, BaseEntity, ManyToOne, BeforeInsert, OneToOne } from "typeorm";
-import { ObjectType, Field } from "@nestjs/graphql";
-import { User } from "src/users/entities/user.entity";
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, BaseEntity } from "typeorm";
+import { ObjectType } from "@nestjs/graphql";
 
 @Entity()
 @ObjectType()
@@ -10,14 +9,14 @@ export class Audit extends BaseEntity {
 
     // Mutation log
 
-    @Column( { nullable: true })
+    @Column({ nullable: true })
     handler: string;
 
-    @Column( { type: 'json', nullable: true })
+    @Column({ type: 'json', nullable: true })
     input: any;
 
-    @ManyToOne(type => User, { nullable: true })
-    user: User;
+    @Column({ nullable: true })
+    user: string;
 
     // Database log
 

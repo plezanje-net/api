@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, BaseEntity, ManyToOne, BeforeInsert, OneToMany } from "typeorm";
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, BaseEntity, ManyToOne, OneToMany } from "typeorm";
 import { ObjectType, Field, Int, Float } from "@nestjs/graphql";
 import { Country } from "./country.entity";
 import { Sector } from "./sector.entity";
@@ -19,15 +19,15 @@ export class Crag extends BaseEntity {
     slug: string;
 
     @Column()
-    @Field(type => Int)
+    @Field(() => Int)
     status: number;
 
     @Column({ type: 'float' })
-    @Field(type => Float, { nullable: true })
+    @Field(() => Float, { nullable: true })
     lat: number;
 
     @Column({ type: 'float' })
-    @Field(type => Float, { nullable: true })
+    @Field(() => Float, { nullable: true })
     lang: number;
 
     @CreateDateColumn()
@@ -39,11 +39,11 @@ export class Crag extends BaseEntity {
     @Column({ nullable: true })
     legacy: string;
 
-    @ManyToOne(type => Country, country => country.crags)
-    @Field(type => Country)
+    @ManyToOne(() => Country, country => country.crags)
+    @Field(() => Country)
     country: Country;
 
-    @OneToMany(type => Sector, sector => sector.crag, { nullable: true })
-    @Field(type => [Sector])
+    @OneToMany(() => Sector, sector => sector.crag, { nullable: true })
+    @Field(() => [Sector])
     sectors: Sector[];
 }

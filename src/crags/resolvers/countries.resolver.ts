@@ -4,9 +4,9 @@ import { CreateCountryInput } from '../inputs/create-country.input';
 import { CountriesService } from '../services/countries.service';
 import { UpdateCountryInput } from '../inputs/update-country.input';
 import { Roles } from 'src/auth/decorators/roles.decorator';
-import { AuditService } from 'src/audit/audit.service';
+import { AuditService } from 'src/audit/services/audit.service';
 import { UseInterceptors, forwardRef, Inject } from '@nestjs/common';
-import { AuditInterceptor } from 'src/audit/audit.interceptor';
+import { AuditInterceptor } from 'src/audit/interceptors/audit.interceptor';
 import { Crag } from 'src/crags/entities/crag.entity';
 import { CragsService } from 'src/crags/services/crags.service';
 

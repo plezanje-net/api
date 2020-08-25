@@ -6,7 +6,7 @@ import { Crag } from '../entities/crag.entity';
 import { CreateCragInput } from '../inputs/create-crag.input';
 import { UpdateCragInput } from '../inputs/update-crag.input';
 import { CragsService } from '../services/crags.service';
-import { AuditInterceptor } from 'src/audit/audit.interceptor';
+import { AuditInterceptor } from 'src/audit/interceptors/audit.interceptor';
 import { Country } from '../entities/country.entity';
 import { CountriesService } from '../services/countries.service';
 
@@ -20,7 +20,7 @@ export class CragsResolver {
     @Query(returns => [Crag])
     crags(@Args('country', { nullable: true }) country?: string) {
 
-        let params: any = {};
+        const params: any = {};
 
         if (country != null) {
             params.country = country;
