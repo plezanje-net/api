@@ -2,8 +2,8 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Country } from '../entities/country.entity';
 import { Repository } from 'typeorm';
-import { CreateCountryInput } from '../inputs/create-country.input';
-import { UpdateCountryInput } from '../inputs/update-country.input';
+import { CreateCountryInput } from '../dtos/create-country.input';
+import { UpdateCountryInput } from '../dtos/update-country.input';
 
 @Injectable()
 export class CountriesService {
@@ -12,11 +12,11 @@ export class CountriesService {
         private countriesRepository: Repository<Country>
     ) { }
 
-    get(params: string): Promise<Country> {
-        return this.countriesRepository.findOne(params);
+    findOneById(id: string): Promise<Country> {
+        return this.countriesRepository.findOne(id);
     }
 
-    findAll(): Promise<Country[]> {
+    find(): Promise<Country[]> {
         return this.countriesRepository.find();
     }
 
@@ -29,11 +29,7 @@ export class CountriesService {
     }
 
     async update(data: UpdateCountryInput): Promise<Country> {
-        const country = await this.countriesRepository.findOne(data.id);
-
-        if (country == undefined) {
-            throw NotFoundException
-        }
+        const country = await this.countriesRepository.findOneOrFail(data.id);
 
         this.countriesRepository.merge(country, data);
 
@@ -41,11 +37,7 @@ export class CountriesService {
     }
 
     async delete(id: string): Promise<boolean> {
-        const country = await this.countriesRepository.findOne(id);
-
-        if (country == undefined) {
-            throw NotFoundException
-        }
+        const country = await this.countriesRepository.findOneOrFail(id);
 
         return this.countriesRepository.remove(country).then(() => true)
     }

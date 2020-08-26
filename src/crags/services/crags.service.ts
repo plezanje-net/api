@@ -1,9 +1,9 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { CreateCragInput } from '../inputs/create-crag.input';
+import { Injectable } from '@nestjs/common';
+import { CreateCragInput } from '../dtos/create-crag.input';
 import { Crag } from '../entities/crag.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { UpdateCragInput } from '../inputs/update-crag.input';
+import { UpdateCragInput } from '../dtos/update-crag.input';
 import { Country } from 'src/crags/entities/country.entity';
 
 @Injectable()
@@ -15,6 +15,10 @@ export class CragsService {
         private countryRepository: Repository<Country>
     ) { }
 
+    findOneById(id: string): Promise<Crag> {
+        return this.cragsRepository.findOneOrFail(id);
+    }
+
     find(params: { country?: any }): Promise<Crag[]> {
         return this.cragsRepository.find(params);
     }
@@ -24,17 +28,13 @@ export class CragsService {
 
         this.cragsRepository.merge(crag, data);
 
-        crag.country = await this.countryRepository.findOne(data.countryId)
+        crag.country = await this.countryRepository.findOneOrFail(data.countryId)
 
         return this.cragsRepository.save(crag)
     }
 
     async update(data: UpdateCragInput): Promise<Crag> {
-        const crag = await this.cragsRepository.findOne(data.id);
-
-        if (crag == undefined) {
-            throw NotFoundException
-        }
+        const crag = await this.cragsRepository.findOneOrFail(data.id);
 
         this.cragsRepository.merge(crag, data);
 
@@ -42,11 +42,7 @@ export class CragsService {
     }
 
     async delete(id: string): Promise<boolean> {
-        const crag = await this.cragsRepository.findOne(id);
-
-        if (crag == undefined) {
-            throw NotFoundException
-        }
+        const crag = await this.cragsRepository.findOneOrFail(id);
 
         return this.cragsRepository.remove(crag).then(() => true)
     }

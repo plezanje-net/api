@@ -3,19 +3,27 @@ import { UseInterceptors } from '@nestjs/common';
 
 import { Roles } from 'src/auth/decorators/roles.decorator';
 import { Crag } from '../entities/crag.entity';
-import { CreateCragInput } from '../inputs/create-crag.input';
-import { UpdateCragInput } from '../inputs/update-crag.input';
+import { CreateCragInput } from '../dtos/create-crag.input';
+import { UpdateCragInput } from '../dtos/update-crag.input';
 import { CragsService } from '../services/crags.service';
 import { AuditInterceptor } from 'src/audit/interceptors/audit.interceptor';
 import { Country } from '../entities/country.entity';
 import { CountriesService } from '../services/countries.service';
+import { SectorsService } from '../services/sectors.service';
+import { Sector } from '../entities/sector.entity';
 
 @Resolver(() => Crag)
 export class CragsResolver {
     constructor(
         private cragsService: CragsService,
-        private countriesService: CountriesService
+        private countriesService: CountriesService,
+        private sectorsService: SectorsService
     ) { }
+
+    @Query(() => Crag)
+    crag(@Args('id') id: string): Promise<Crag> {
+        return this.cragsService.findOneById(id);
+    }
 
     @Query(() => [Crag])
     crags(@Args('country', { nullable: true }) country?: string): Promise<Crag[]> {
@@ -51,7 +59,12 @@ export class CragsResolver {
     }
 
     @ResolveField('country', () => Country)
-    async getRoles(@Parent() crag: Crag): Promise<Country> {
-        return this.countriesService.get(crag.country.id)
+    async getCountry(@Parent() crag: Crag): Promise<Country> {
+        return this.countriesService.findOneById(crag.country.id)
+    }
+
+    @ResolveField('sectors', () => [Sector])
+    async getSectors(@Parent() crag: Crag): Promise<Sector[]> {
+        return this.sectorsService.findByCrag(crag.id)
     }
 }
