@@ -24,7 +24,7 @@ export class SectorsService {
 
         this.sectorsRepository.merge(sector, data);
 
-        sector.crag = await this.cragsRepository.findOneOrFail(data.cragId)
+        sector.crag = this.cragsRepository.findOneOrFail(data.cragId)
 
         return this.sectorsRepository.save(sector)
     }

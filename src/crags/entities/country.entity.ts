@@ -32,5 +32,5 @@ export class Country extends BaseEntity {
 
     @OneToMany(() => Crag, crag => crag.country, { nullable: true })
     @Field(() => [Crag])
-    crags: Crag[];
+    crags: Promise<Crag[]>;
 }

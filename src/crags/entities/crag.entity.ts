@@ -41,9 +41,9 @@ export class Crag extends BaseEntity {
 
     @ManyToOne(() => Country, country => country.crags)
     @Field(() => Country)
-    country: Country;
+    country: Promise<Country>;
 
     @OneToMany(() => Sector, sector => sector.crag, { nullable: true })
     @Field(() => [Sector])
-    sectors: Sector[];
+    sectors: Promise<Sector[]>;
 }

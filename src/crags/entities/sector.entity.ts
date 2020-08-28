@@ -35,5 +35,5 @@ export class Sector extends BaseEntity {
 
     @ManyToOne(() => Crag, crag => crag.sectors)
     @Field(() => Crag)
-    crag: Crag;
+    crag: Promise<Crag>;
 }

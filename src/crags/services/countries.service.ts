@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Country } from '../entities/country.entity';
 import { Repository } from 'typeorm';
@@ -17,7 +17,7 @@ export class CountriesService {
     }
 
     find(): Promise<Country[]> {
-        return this.countriesRepository.find();
+        return this.countriesRepository.find({ order: { name: 'ASC' } });
     }
 
     create(data: CreateCountryInput): Promise<Country> {

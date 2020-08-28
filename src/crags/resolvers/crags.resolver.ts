@@ -1,4 +1,4 @@
-import { Resolver, Mutation, Args, Query, ResolveField, Parent } from '@nestjs/graphql';
+import { Resolver, Mutation, Args, Query } from '@nestjs/graphql';
 import { UseInterceptors } from '@nestjs/common';
 
 import { Roles } from 'src/auth/decorators/roles.decorator';
@@ -7,17 +7,11 @@ import { CreateCragInput } from '../dtos/create-crag.input';
 import { UpdateCragInput } from '../dtos/update-crag.input';
 import { CragsService } from '../services/crags.service';
 import { AuditInterceptor } from 'src/audit/interceptors/audit.interceptor';
-import { Country } from '../entities/country.entity';
-import { CountriesService } from '../services/countries.service';
-import { SectorsService } from '../services/sectors.service';
-import { Sector } from '../entities/sector.entity';
 
 @Resolver(() => Crag)
 export class CragsResolver {
     constructor(
-        private cragsService: CragsService,
-        private countriesService: CountriesService,
-        private sectorsService: SectorsService
+        private cragsService: CragsService
     ) { }
 
     @Query(() => Crag)
@@ -56,15 +50,5 @@ export class CragsResolver {
     @Mutation(() => Boolean)
     async deleteCrag(@Args('id') id: string): Promise<boolean> {
         return this.cragsService.delete(id)
-    }
-
-    @ResolveField('country', () => Country)
-    async getCountry(@Parent() crag: Crag): Promise<Country> {
-        return this.countriesService.findOneById(crag.country.id)
-    }
-
-    @ResolveField('sectors', () => [Sector])
-    async getSectors(@Parent() crag: Crag): Promise<Sector[]> {
-        return this.sectorsService.findByCrag(crag.id)
     }
 }

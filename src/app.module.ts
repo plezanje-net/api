@@ -31,7 +31,8 @@ import { User } from './users/entities/user.entity';
       password: 'plezanjenet',
       database: 'plezanjenet',
       entities: [Audit, Country, Crag, Role, Sector, User],
-      synchronize: true
+      synchronize: true,
+      // logging: ["query", "error"]
     }),
     UsersModule,
     CragsModule,

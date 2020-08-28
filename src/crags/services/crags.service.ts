@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { CreateCragInput } from '../dtos/create-crag.input';
 import { Crag } from '../entities/crag.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, FindManyOptions } from 'typeorm';
 import { UpdateCragInput } from '../dtos/update-crag.input';
 import { Country } from 'src/crags/entities/country.entity';
 
@@ -20,7 +20,20 @@ export class CragsService {
     }
 
     find(params: { country?: any }): Promise<Crag[]> {
-        return this.cragsRepository.find(params);
+
+        const options: FindManyOptions = {
+            order: {
+                name: 'ASC'
+            }
+        }
+
+        if (params.country != null) {
+            options.where = {
+                country: params.country
+            }
+        }
+
+        return this.cragsRepository.find(options);
     }
 
     async create(data: CreateCragInput): Promise<Crag> {
@@ -28,7 +41,7 @@ export class CragsService {
 
         this.cragsRepository.merge(crag, data);
 
-        crag.country = await this.countryRepository.findOneOrFail(data.countryId)
+        crag.country = this.countryRepository.findOneOrFail(data.countryId)
 
         return this.cragsRepository.save(crag)
     }
