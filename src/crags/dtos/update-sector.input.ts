@@ -21,8 +21,4 @@ export class UpdateSectorInput {
     @Field({ nullable: true })
     @IsOptional()
     status: number;
-
-    @Field({ nullable: true })
-    @IsOptional()
-    cragId: string;
 }

@@ -12,8 +12,12 @@ export class CountriesService {
         private countriesRepository: Repository<Country>
     ) { }
 
+    findOneBySlug(slug: string): Promise<Country> {
+        return this.countriesRepository.findOneOrFail({ slug: slug });
+    }
+
     findOneById(id: string): Promise<Country> {
-        return this.countriesRepository.findOne(id);
+        return this.countriesRepository.findOneOrFail(id);
     }
 
     find(): Promise<Country[]> {

@@ -1,7 +1,8 @@
 import { InputType, Field } from "@nestjs/graphql";
 import { IsOptional } from "class-validator";
+
 @InputType()
-export class UpdateCragInput {
+export class UpdateRouteInput {
     @Field()
     id: string;
 
@@ -11,7 +12,19 @@ export class UpdateCragInput {
 
     @Field({ nullable: true })
     @IsOptional()
-    slug: string;
+    grade: string;
+
+    @Field({ nullable: true })
+    @IsOptional()
+    author: string;
+
+    @Field({ nullable: true })
+    @IsOptional()
+    label: string;
+
+    @Field({ nullable: true })
+    @IsOptional()
+    position: number;
 
     @Field({ nullable: true })
     @IsOptional()
@@ -19,13 +32,5 @@ export class UpdateCragInput {
 
     @Field({ nullable: true })
     @IsOptional()
-    lat: number;
-
-    @Field({ nullable: true })
-    @IsOptional()
-    lang: number;
-
-    @Field({ nullable: true })
-    @IsOptional()
-    areaId: string;
+    sectorId: string;
 }

@@ -4,7 +4,7 @@ import { InputType, Field } from "@nestjs/graphql";
 export class CreateCragInput {
     @Field()
     name: string;
-  
+
     @Field()
     slug: string;
 
@@ -19,4 +19,7 @@ export class CreateCragInput {
 
     @Field()
     countryId: string;
+
+    @Field({ nullable: true })
+    areaId: string;
 }

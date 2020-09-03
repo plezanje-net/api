@@ -1,4 +1,4 @@
-import { Resolver, Mutation, Args, Query } from '@nestjs/graphql';
+import { Resolver, Mutation, Args, Query, ResolveField, Int, Parent } from '@nestjs/graphql';
 import { UseInterceptors } from '@nestjs/common';
 
 import { Roles } from 'src/auth/decorators/roles.decorator';
@@ -50,5 +50,20 @@ export class CragsResolver {
     @Mutation(() => Boolean)
     async deleteCrag(@Args('id') id: string): Promise<boolean> {
         return this.cragsService.delete(id)
+    }
+
+    @ResolveField('nrRoutes', () => Int)
+    async getNrRoutes(@Parent() crag: Crag): Promise<number> {
+        return this.cragsService.getNumberOfRoutes(crag);
+    }
+
+    @ResolveField('minGrade', () => String)
+    async getMinGrade(@Parent() crag: Crag): Promise<string> {
+        return this.cragsService.getMinGrade(crag);
+    }
+
+    @ResolveField('maxGrade', () => String)
+    async getMaxGrade(@Parent() crag: Crag): Promise<string> {
+        return this.cragsService.getMaxGrade(crag);
     }
 }

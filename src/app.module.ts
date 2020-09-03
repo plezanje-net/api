@@ -13,6 +13,8 @@ import { Crag } from './crags/entities/crag.entity';
 import { Role } from './users/entities/role.entity';
 import { Sector } from './crags/entities/sector.entity';
 import { User } from './users/entities/user.entity';
+import { Route } from './crags/entities/route.entity';
+import { Area } from './crags/entities/area.entity';
 
 @Module({
   imports: [
@@ -30,7 +32,7 @@ import { User } from './users/entities/user.entity';
       username: 'plezanjenet',
       password: 'plezanjenet',
       database: 'plezanjenet',
-      entities: [Audit, Country, Crag, Role, Sector, User],
+      entities: [Area, Audit, Country, Crag, Role, Sector, User, Route],
       synchronize: true,
       // logging: ["query", "error"]
     }),

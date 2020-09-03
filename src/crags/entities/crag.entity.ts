@@ -2,6 +2,7 @@ import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateCol
 import { ObjectType, Field, Int, Float } from "@nestjs/graphql";
 import { Country } from "./country.entity";
 import { Sector } from "./sector.entity";
+import { Area } from "./area.entity";
 
 @Entity()
 @ObjectType()
@@ -39,6 +40,10 @@ export class Crag extends BaseEntity {
     @Column({ nullable: true })
     legacy: string;
 
+    @ManyToOne(() => Area, area => area.crags, { nullable: true })
+    @Field(() => Area)
+    area: Promise<Area>;
+
     @ManyToOne(() => Country, country => country.crags)
     @Field(() => Country)
     country: Promise<Country>;
@@ -46,4 +51,13 @@ export class Crag extends BaseEntity {
     @OneToMany(() => Sector, sector => sector.crag, { nullable: true })
     @Field(() => [Sector])
     sectors: Promise<Sector[]>;
+
+    @Field(() => Int)
+    nrRoutes: number;
+
+    @Field(() => String)
+    minGrade: string;
+
+    @Field(() => String)
+    maxGrade: string;
 }
