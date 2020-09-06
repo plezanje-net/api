@@ -1,4 +1,4 @@
-import { Resolver, Mutation, Args, Query } from '@nestjs/graphql';
+import { Resolver, Mutation, Args, Query, ResolveField, Parent } from '@nestjs/graphql';
 import { Country } from '../entities/country.entity';
 import { CreateCountryInput } from '../dtos/create-country.input';
 import { CountriesService } from '../services/countries.service';
@@ -8,20 +8,21 @@ import { UseInterceptors, UseFilters } from '@nestjs/common';
 import { AuditInterceptor } from 'src/audit/interceptors/audit.interceptor';
 import { ConflictFilter } from '../filters/conflict.filter';
 import { NotFoundFilter } from '../filters/not-found.filter';
+import { Crag } from '../entities/crag.entity';
+import { CragsService } from '../services/crags.service';
 
 @Resolver(() => Country)
 export class CountriesResolver {
 
     constructor(
         private countriesService: CountriesService,
+        private cragsService: CragsService
     ) { }
 
     @Query(() => Country)
     @UseFilters(NotFoundFilter)
     async countryBySlug(@Args('slug') slug: string): Promise<Country> {
-
         // await new Promise(resolve => setTimeout(resolve, 2000));
-
         return this.countriesService.findOneBySlug(slug);
     }
 
@@ -53,5 +54,13 @@ export class CountriesResolver {
     @UseFilters(NotFoundFilter)
     async deleteCountry(@Args('id') id: string): Promise<boolean> {
         return this.countriesService.delete(id)
+    }
+
+    @ResolveField('crags', () => [Crag])
+    async getCrags(@Parent() country: Country, @Args('area', { nullable: true }) area?: string): Promise<Crag[]> {
+        if (area != null) {
+            return this.cragsService.find({ area: area });
+        }
+        return country.crags;
     }
 }

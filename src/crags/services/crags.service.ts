@@ -25,7 +25,7 @@ export class CragsService {
         return this.cragsRepository.findOneOrFail(id);
     }
 
-    find(params: { country?: any }): Promise<Crag[]> {
+    find(params: { country?: string, area?: string }): Promise<Crag[]> {
 
         const options: FindManyOptions = {
             order: {
@@ -36,6 +36,12 @@ export class CragsService {
         if (params.country != null) {
             options.where = {
                 country: params.country
+            }
+        }
+
+        if (params.area != null) {
+            options.where = {
+                area: params.area
             }
         }
 
