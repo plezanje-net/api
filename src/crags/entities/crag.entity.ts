@@ -1,8 +1,9 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, BaseEntity, ManyToOne, OneToMany } from "typeorm";
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, BaseEntity, ManyToOne, OneToMany, ManyToMany, JoinTable } from "typeorm";
 import { ObjectType, Field, Int, Float } from "@nestjs/graphql";
 import { Country } from "./country.entity";
 import { Sector } from "./sector.entity";
 import { Area } from "./area.entity";
+import { Book } from "./book.entity";
 
 @Entity()
 @ObjectType()
@@ -19,17 +20,29 @@ export class Crag extends BaseEntity {
     @Field()
     slug: string;
 
-    @Column()
+    @Column({ type: "int" })
     @Field(() => Int)
     status: number;
 
-    @Column({ type: 'float' })
+    @Column({ type: 'float', nullable: true })
     @Field(() => Float, { nullable: true })
     lat: number;
 
-    @Column({ type: 'float' })
+    @Column({ type: 'float', nullable: true })
     @Field(() => Float, { nullable: true })
     lang: number;
+
+    @Column({ nullable: true })
+    @Field()
+    orientation: string;
+
+    @Column({ nullable: true })
+    @Field()
+    access: string;
+
+    @Column({ nullable: true })
+    @Field()
+    description: string;
 
     @CreateDateColumn()
     created: Date;
@@ -60,4 +73,8 @@ export class Crag extends BaseEntity {
 
     @Field(() => String)
     maxGrade: string;
+
+    @ManyToMany(() => Book)
+    @JoinTable()
+    books: Book[];
 }

@@ -53,10 +53,10 @@ export class Route extends BaseEntity {
     @Field()
     grade: string;
 
-    @Column({ nullable: true })
+    @Column({ type: "int", nullable: true })
     gradeNum: number;
 
-    @Column({ nullable: true })
+    @Column({ type: "int", nullable: true })
     @Field()
     length: string;
 
@@ -64,10 +64,10 @@ export class Route extends BaseEntity {
     @Field()
     author: string;
 
-    @Column()
+    @Column({ type: "int" })
     position: number;
 
-    @Column()
+    @Column({ type: "int" })
     @Field(() => Int)
     status: number;
 

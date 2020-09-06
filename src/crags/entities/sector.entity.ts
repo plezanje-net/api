@@ -18,10 +18,10 @@ export class Sector extends BaseEntity {
     @Field()
     label: string;
 
-    @Column()
+    @Column({ type: "int" })
     position: number;
 
-    @Column()
+    @Column({ type: "int" })
     @Field(() => Int)
     status: number;
 
