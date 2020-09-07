@@ -7,7 +7,7 @@ import { MockType, repositoryMockFactory } from '../../../test/unit/helpers';
 import { Crag } from '../entities/crag.entity';
 import { CreateSectorInput } from '../dtos/create-sector.input';
 
-describe.only('SectorsService', () => {
+describe('SectorsService', () => {
   let service: SectorsService
   let sectorsRepositoryMock: MockType<Repository<Sector>>
   let cragsRepositoryMock: MockType<Repository<Crag>>
