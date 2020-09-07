@@ -15,12 +15,12 @@ export class SectorsService {
         private cragsRepository: Repository<Crag>,
     ) { }
 
-    findByCrag(cragId: string): Promise<Sector[]> {
+    async findByCrag(cragId: string): Promise<Sector[]> {
         return this.sectorsRepository.find({ where: { crag: cragId } });
     }
 
     async create(data: CreateSectorInput): Promise<Sector> {
-        const sector = new Sector
+        const sector = new Sector();
 
         this.sectorsRepository.merge(sector, data);
 

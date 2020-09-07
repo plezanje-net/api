@@ -1,10 +1,10 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { AuditModule } from 'src/audit/audit.module';
+import { AuditModule } from '../audit/audit.module';
 
 import { CountriesResolver } from './resolvers/countries.resolver';
 import { CountriesService } from './services/countries.service';
-import { Country } from 'src/crags/entities/country.entity';
+import { Country } from '../crags/entities/country.entity';
 
 import { CragsResolver } from './resolvers/crags.resolver';
 import { CragsService } from './services/crags.service';

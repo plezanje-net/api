@@ -4,7 +4,7 @@ import { Crag } from '../entities/crag.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, FindManyOptions } from 'typeorm';
 import { UpdateCragInput } from '../dtos/update-crag.input';
-import { Country } from 'src/crags/entities/country.entity';
+import { Country } from '../../crags/entities/country.entity';
 import { Route } from '../entities/route.entity';
 import { Area } from '../entities/area.entity';
 
@@ -21,11 +21,11 @@ export class CragsService {
         private areasRepository: Repository<Area>
     ) { }
 
-    findOneById(id: string): Promise<Crag> {
+    async findOneById(id: string): Promise<Crag> {
         return this.cragsRepository.findOneOrFail(id);
     }
 
-    find(params: { country?: string, area?: string }): Promise<Crag[]> {
+    async find(params: { country?: string, area?: string }): Promise<Crag[]> {
 
         const options: FindManyOptions = {
             order: {

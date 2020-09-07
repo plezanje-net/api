@@ -3,12 +3,12 @@ import { User } from '../entities/user.entity';
 import { UsersService } from '../services/users.service';
 import { RegisterInput } from '../inputs/register.input';
 import { ConfirmInput } from '../inputs/confirm.input';
-import { CurrentUser } from 'src/auth/decorators/current-user.decorator';
+import { CurrentUser } from '../../auth/decorators/current-user.decorator';
 import { LoginInput } from '../inputs/login.input';
-import { AuthService } from 'src/auth/services/auth.service';
+import { AuthService } from '../../auth/services/auth.service';
 import { TokenResponse } from '../interfaces/token-response.class';
 import { Role } from '../entities/role.entity';
-import { Roles } from 'src/auth/decorators/roles.decorator';
+import { Roles } from '../../auth/decorators/roles.decorator';
 
 @Resolver(() => User)
 export class UsersResolver {

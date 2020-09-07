@@ -1,12 +1,12 @@
 import { Resolver, Mutation, Args, Query, ResolveField, Int, Parent } from '@nestjs/graphql';
 import { UseInterceptors } from '@nestjs/common';
 
-import { Roles } from 'src/auth/decorators/roles.decorator';
+import { Roles } from '../../auth/decorators/roles.decorator';
 import { Crag } from '../entities/crag.entity';
 import { CreateCragInput } from '../dtos/create-crag.input';
 import { UpdateCragInput } from '../dtos/update-crag.input';
 import { CragsService } from '../services/crags.service';
-import { AuditInterceptor } from 'src/audit/interceptors/audit.interceptor';
+import { AuditInterceptor } from '../../audit/interceptors/audit.interceptor';
 
 @Resolver(() => Crag)
 export class CragsResolver {

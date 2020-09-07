@@ -1,8 +1,8 @@
 import { Resolver, Mutation, Args } from '@nestjs/graphql';
 import { Area } from '../entities/area.entity';
-import { Roles } from 'src/auth/decorators/roles.decorator';
+import { Roles } from '../../auth/decorators/roles.decorator';
 import { UseInterceptors } from '@nestjs/common';
-import { AuditInterceptor } from 'src/audit/interceptors/audit.interceptor';
+import { AuditInterceptor } from '../../audit/interceptors/audit.interceptor';
 import { UpdateAreaInput } from '../dtos/update-area.input';
 import { CreateAreaInput } from '../dtos/create-area.input';
 import { AreasService } from '../services/areas.service';

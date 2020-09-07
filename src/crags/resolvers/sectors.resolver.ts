@@ -1,7 +1,7 @@
 import { Resolver, Mutation, Args } from '@nestjs/graphql';
-import { Roles } from 'src/auth/decorators/roles.decorator';
+import { Roles } from '../../auth/decorators/roles.decorator';
 import { UseInterceptors, UseFilters } from '@nestjs/common';
-import { AuditInterceptor } from 'src/audit/interceptors/audit.interceptor';
+import { AuditInterceptor } from '../../audit/interceptors/audit.interceptor';
 import { NotFoundFilter } from '../filters/not-found.filter';
 import { Sector } from '../entities/sector.entity';
 import { SectorsService } from '../services/sectors.service';
