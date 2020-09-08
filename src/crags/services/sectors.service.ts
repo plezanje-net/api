@@ -16,7 +16,7 @@ export class SectorsService {
     ) { }
 
     findByCrag(cragId: string): Promise<Sector[]> {
-        return this.sectorsRepository.find({ where: { crag: cragId } });
+        return this.sectorsRepository.find({ where: { crag: cragId }, order: { position: 'ASC' } });
     }
 
     async create(data: CreateSectorInput): Promise<Sector> {

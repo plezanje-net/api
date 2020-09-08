@@ -7,9 +7,6 @@ export class CreateRouteInput {
     name: string;
 
     @Field()
-    grade: string;
-
-    @Field()
     length: string;
 
     @Field()

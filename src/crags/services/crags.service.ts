@@ -25,6 +25,10 @@ export class CragsService {
         return this.cragsRepository.findOneOrFail(id);
     }
 
+    findOneBySlug(slug: string): Promise<Crag> {
+        return this.cragsRepository.findOneOrFail({ slug: slug });
+    }
+
     find(params: { country?: string, area?: string }): Promise<Crag[]> {
 
         const options: FindManyOptions = {
@@ -93,35 +97,37 @@ export class CragsService {
             .getCount();
     }
 
-    async getMinGrade(crag: Crag): Promise<string> {
+    async getMinGrade(crag: Crag): Promise<number> {
 
         return this.routesRepository
             .createQueryBuilder("route")
             .innerJoinAndSelect("route.sector", "sector")
-            .where("sector.crag_id = :cragId", { cragId: crag.id })
+            .where("sector.crag_id = :cragId AND route.grade IS NOT NULL", { cragId: crag.id })
             .addSelect('route.grade')
-            .addOrderBy('route.gradeNum', 'ASC')
+            .addOrderBy('route.grade', 'ASC')
             .getOne().then((route) => {
-                if (route != null)
+                if (route != null && route.grade != null)
                     return route.grade;
 
-                return '';
+                return null;
             });
     }
 
-    async getMaxGrade(crag: Crag): Promise<string> {
+    async getMaxGrade(crag: Crag): Promise<number> {
 
         return this.routesRepository
             .createQueryBuilder("route")
             .innerJoinAndSelect("route.sector", "sector")
-            .where("sector.crag_id = :cragId", { cragId: crag.id })
+            .where("sector.crag_id = :cragId AND route.grade IS NOT NULL", { cragId: crag.id })
             .addSelect('route.grade')
-            .addOrderBy('route.gradeNum', 'DESC')
+            .addOrderBy('route.grade', 'DESC')
             .getOne().then((route) => {
-                if (route != null)
+                if (route != null && route.grade != null) {
+                    console.log(route.id, route.grade);
                     return route.grade;
+                }
 
-                return '';
+                return null;
             });
     }
 }

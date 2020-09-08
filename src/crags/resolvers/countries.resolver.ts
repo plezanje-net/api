@@ -58,9 +58,12 @@ export class CountriesResolver {
 
     @ResolveField('crags', () => [Crag])
     async getCrags(@Parent() country: Country, @Args('area', { nullable: true }) area?: string): Promise<Crag[]> {
+        const params: any = { country: country.id };
+
         if (area != null) {
-            return this.cragsService.find({ area: area });
+            params.area = area;
         }
-        return country.crags;
+
+        return this.cragsService.find(params);
     }
 }

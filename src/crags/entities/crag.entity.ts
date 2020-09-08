@@ -33,7 +33,7 @@ export class Crag extends BaseEntity {
     lang: number;
 
     @Column({ nullable: true })
-    @Field()
+    @Field({ nullable: true })
     orientation: string;
 
     @Column({ nullable: true })

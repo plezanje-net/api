@@ -12,10 +12,6 @@ export class UpdateRouteInput {
 
     @Field({ nullable: true })
     @IsOptional()
-    grade: string;
-
-    @Field({ nullable: true })
-    @IsOptional()
     author: string;
 
     @Field({ nullable: true })
