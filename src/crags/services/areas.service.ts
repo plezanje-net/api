@@ -10,42 +10,42 @@ import { Country } from '../entities/country.entity';
 export class AreasService {
     constructor(
         @InjectRepository(Area)
-        private areasRepostory: Repository<Area>,
+        private areasRepository: Repository<Area>,
         @InjectRepository(Country)
         private countryRepository: Repository<Country>
     ) { }
 
     findOneById(id: string): Promise<Area> {
-        return this.areasRepostory.findOneOrFail(id);
+        return this.areasRepository.findOneOrFail(id);
     }
 
     find(): Promise<Area[]> {
-        return this.areasRepostory.find({ order: { name: 'ASC' } });
+        return this.areasRepository.find({ order: { name: 'ASC' } });
     }
 
     async create(data: CreateAreaInput): Promise<Area> {
         const area = new Area
 
-        this.areasRepostory.merge(area, data);
+        this.areasRepository.merge(area, data);
 
         area.country = Promise.resolve(await this.countryRepository.findOneOrFail(data.countryId))
 
-        return this.areasRepostory.save(area)
+        return this.areasRepository.save(area)
     }
 
     async update(data: UpdateAreaInput): Promise<Area> {
-        const area = await this.areasRepostory.findOneOrFail(data.id);
+        const area = await this.areasRepository.findOneOrFail(data.id);
 
-        this.areasRepostory.merge(area, data);
+        this.areasRepository.merge(area, data);
 
         area.country = Promise.resolve(await this.countryRepository.findOneOrFail(data.countryId))
 
-        return this.areasRepostory.save(area)
+        return this.areasRepository.save(area)
     }
 
     async delete(id: string): Promise<boolean> {
-        const area = await this.areasRepostory.findOneOrFail(id);
+        const area = await this.areasRepository.findOneOrFail(id);
 
-        return this.areasRepostory.remove(area).then(() => true)
+        return this.areasRepository.remove(area).then(() => true)
     }
 }
