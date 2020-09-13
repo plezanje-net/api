@@ -17,6 +17,7 @@ import { Route } from './crags/entities/route.entity';
 import { Area } from './crags/entities/area.entity';
 import { Book } from './crags/entities/book.entity';
 import { Grade } from './crags/entities/grade.entity';
+import { NotificationModule } from './notification/notification.module';
 
 @Module({
   imports: [
@@ -41,6 +42,7 @@ import { Grade } from './crags/entities/grade.entity';
     UsersModule,
     CragsModule,
     AuditModule,
+    NotificationModule,
   ],
   controllers: [],
   providers: [],

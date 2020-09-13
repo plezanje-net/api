@@ -123,7 +123,6 @@ export class CragsService {
             .addOrderBy('route.grade', 'DESC')
             .getOne().then((route) => {
                 if (route != null && route.grade != null) {
-                    console.log(route.id, route.grade);
                     return route.grade;
                 }
 

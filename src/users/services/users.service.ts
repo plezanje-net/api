@@ -41,7 +41,7 @@ export class UsersService {
         });
     }
 
-    async register(data: RegisterInput): Promise<boolean> {
+    async register(data: RegisterInput): Promise<User> {
         const user = new User
 
         this.usersRepository.merge(user, data);
@@ -49,7 +49,7 @@ export class UsersService {
         user.password = await bcrypt.hash(data.password, 10)
         user.confirmationToken = randomBytes(20).toString('hex')
 
-        return this.usersRepository.save(user).then(() => true)
+        return this.usersRepository.save(user).then(() => user)
     }
 
     async confirm(data: ConfirmInput): Promise<boolean> {
@@ -68,5 +68,13 @@ export class UsersService {
         user.isActive = true
 
         return this.usersRepository.save(user).then(() => true)
+    }
+
+    async recover(email: string): Promise<User> {
+        const user = await this.usersRepository.findOneOrFail({ email: email })
+
+        user.passwordToken = randomBytes(20).toString('hex')
+
+        return this.usersRepository.save(user).then(() => user)
     }
 }
