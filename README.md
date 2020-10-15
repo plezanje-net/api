@@ -1,6 +1,6 @@
 <img src="https://www.plezanje.net/images/climbing_homepage.gif"  /></a>
 
-# Plezanje.net Graphql API
+# Graphql API
 
 ## Description
 
@@ -40,4 +40,12 @@ $ npm run test:e2e
 
 # test coverage
 $ npm run test:cov
+```
+
+### Deploying to google cloud
+
+Make sure to set the correct .env file before deployment
+```
+$ nest build
+$ gcloud deploy
 ```
