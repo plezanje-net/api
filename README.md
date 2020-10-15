@@ -16,6 +16,8 @@ Node & npm package manager, PostgreSQL server.
 $ npm install
 ```
 
+Copy the `.env.example` file to `.env` and set configuration parameters.
+
 ## Running the app
 
 ```bash
@@ -47,5 +49,5 @@ $ npm run test:cov
 Make sure to set the correct .env file before deployment
 ```
 $ nest build
-$ gcloud deploy
+$ gcloud app deploy
 ```
