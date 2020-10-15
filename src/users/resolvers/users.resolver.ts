@@ -10,9 +10,11 @@ import { TokenResponse } from '../interfaces/token-response.class';
 import { Role } from '../entities/role.entity';
 import { Roles } from '../../auth/decorators/roles.decorator';
 import { NotFoundFilter } from 'src/crags/filters/not-found.filter';
-import { UseFilters } from '@nestjs/common';
+import { InternalServerErrorException, UseFilters, UseGuards } from '@nestjs/common';
 import { ConflictFilter } from 'src/crags/filters/conflict.filter';
 import { NotificationService } from 'src/notification/services/notification.service';
+import { GqlAuthGuard } from 'src/auth/guards/gql-auth.guard';
+import { PasswordInput } from '../inputs/password.input';
 
 @Resolver(() => User)
 export class UsersResolver {
@@ -23,13 +25,13 @@ export class UsersResolver {
         private notificationService: NotificationService
     ) { }
 
-    @Roles('admin')
+    @UseGuards(GqlAuthGuard)
     @Query(() => User)
     profile(@CurrentUser() user: User): Promise<User> {
         return this.usersService.findOneById(user.id);
     }
 
-    @Roles('admin')
+    @Roles('user')
     @Query(() => [User])
     async users(): Promise<User[]> {
         return this.usersService.findAll();
@@ -40,7 +42,10 @@ export class UsersResolver {
     async register(@Args('input', { type: () => RegisterInput }) input: RegisterInput): Promise<boolean> {
         const user = await this.usersService.register(input);
 
-        this.notificationService.accountConfirmation(user);
+        if (!(await this.notificationService.accountConfirmation(user))) {
+            this.usersService.delete(user.id);
+            throw new InternalServerErrorException(500, 'email_error');
+        }
 
         return true;
     }
@@ -55,7 +60,16 @@ export class UsersResolver {
     async recover(@Args('email') email: string): Promise<boolean> {
         const user = await this.usersService.recover(email)
 
-        return false;
+        if (!(await this.notificationService.passwordRecovery(user))) {
+            throw new InternalServerErrorException(500, 'email_error');
+        }
+
+        return true;
+    }
+
+    @Mutation(() => Boolean)
+    async setPassword(@Args('input', { type: () => PasswordInput }) input: PasswordInput): Promise<boolean> {
+        return await this.usersService.setPassword(input.id, input.token, input.password);
     }
 
     @Mutation(() => TokenResponse)

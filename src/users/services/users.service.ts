@@ -54,11 +54,7 @@ export class UsersService {
 
     async confirm(data: ConfirmInput): Promise<boolean> {
 
-        const user = await this.usersRepository.findOne(data.id)
-
-        if (user == undefined) {
-            throw new NotFoundException;
-        }
+        const user = await this.usersRepository.findOneOrFail(data.id)
 
         if (user.confirmationToken != data.token) {
             throw new NotAcceptableException;
@@ -76,5 +72,25 @@ export class UsersService {
         user.passwordToken = randomBytes(20).toString('hex')
 
         return this.usersRepository.save(user).then(() => user)
+    }
+
+    async setPassword(id: string, token: string, password: string): Promise<boolean> {
+
+        const user = await this.usersRepository.findOneOrFail(id)
+
+        if (user.passwordToken != token) {
+            throw new NotAcceptableException;
+        }
+
+        user.passwordToken = null;
+        user.password = await bcrypt.hash(password, 10)
+
+        return this.usersRepository.save(user).then(() => true)
+    }
+
+    async delete(id: string): Promise<boolean> {
+        const user = await this.usersRepository.findOneOrFail(id);
+
+        return this.usersRepository.remove(user).then(() => true)
     }
 }

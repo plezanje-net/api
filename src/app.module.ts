@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { GraphQLModule } from '@nestjs/graphql';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 
 import { AuditModule } from './audit/audit.module';
 import { CragsModule } from './crags/crags.module';
@@ -28,16 +28,19 @@ import { NotificationModule } from './notification/notification.module';
       autoSchemaFile: true,
       context: ({ req }) => ({ req }),
     }),
-    TypeOrmModule.forRoot({
-      type: 'postgres',
-      host: 'localhost',
-      port: 5432,
-      username: 'plezanjenet',
-      password: 'plezanjenet',
-      database: 'plezanjenet',
-      entities: [Area, Audit, Book, Country, Crag, Grade, Role, Sector, User, Route],
-      synchronize: true,
-      // logging: ["query", "error"]
+    TypeOrmModule.forRootAsync({
+      imports: [ConfigModule],
+      useFactory: async (configService: ConfigService) => ({
+        type: 'postgres',
+        host: configService.get('DB_HOST'),
+        username: configService.get('DB_USER'),
+        password: configService.get('DB_PASSWORD'),
+        database: configService.get('DB_NAME'),
+        entities: [Area, Audit, Book, Country, Crag, Grade, Role, Sector, User, Route],
+        synchronize: true,
+        // logging: ["query", "error"]
+      }),
+      inject: [ConfigService]
     }),
     UsersModule,
     CragsModule,
@@ -48,3 +51,24 @@ import { NotificationModule } from './notification/notification.module';
   providers: [],
 })
 export class AppModule { }
+
+/*
+{
+      type: 'postgres',
+
+
+      // host: 'localhost',
+      // host: '/cloudsql/plezanjenet-server:europe-west2:db',
+      //35.246.30.8
+      port: 5432,
+      // username: 'plezanjenet',
+      // password: 'plezanjenet',
+      // database: 'plezanjenet',
+      // username: 'postgres',
+      // password: 'vCeMJJvmaKjFOzOE',
+      // database: 'plezanjenet',
+      entities: [Area, Audit, Book, Country, Crag, Grade, Role, Sector, User, Route],
+      synchronize: true,
+      // logging: ["query", "error"]
+    }
+*/
