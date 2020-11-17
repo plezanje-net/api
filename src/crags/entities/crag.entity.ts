@@ -77,4 +77,8 @@ export class Crag extends BaseEntity {
     @ManyToMany(() => Book)
     @JoinTable()
     books: Book[];
+
+    @Column({ nullable: true })
+    @Field({ nullable: true })
+    gradeRange: string;
 }
