@@ -14,13 +14,13 @@ export class Route extends BaseEntity {
     @Field()
     name: string;
 
-    @Column({ type: "float", nullable: true })
-    @Field({ nullable: true })
-    grade: number;
-
     @Column({ nullable: true })
     @Field()
     difficulty: string;
+
+    @Column({ type: "float", nullable: true })
+    @Field({ nullable: true })
+    grade: number;
 
     @Column({ type: "int", nullable: true })
     @Field()
