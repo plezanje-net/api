@@ -4,12 +4,15 @@ import { CreateCountryInput } from '../dtos/create-country.input';
 import { CountriesService } from '../services/countries.service';
 import { UpdateCountryInput } from '../dtos/update-country.input';
 import { Roles } from '../../auth/decorators/roles.decorator';
-import { UseInterceptors, UseFilters } from '@nestjs/common';
+import { UseInterceptors, UseFilters, UseGuards } from '@nestjs/common';
 import { AuditInterceptor } from '../../audit/interceptors/audit.interceptor';
 import { ConflictFilter } from '../filters/conflict.filter';
 import { NotFoundFilter } from '../filters/not-found.filter';
 import { Crag } from '../entities/crag.entity';
 import { CragsService } from '../services/crags.service';
+import { User } from 'src/users/entities/user.entity';
+import { CurrentUser } from 'src/auth/decorators/current-user.decorator';
+import { GqlAuthGuard } from 'src/auth/guards/gql-auth.guard';
 
 @Resolver(() => Country)
 export class CountriesResolver {
@@ -21,6 +24,7 @@ export class CountriesResolver {
 
     @Query(() => Country)
     @UseFilters(NotFoundFilter)
+    @UseGuards(GqlAuthGuard)
     async countryBySlug(@Args('slug') slug: string): Promise<Country> {
         // await new Promise(resolve => setTimeout(resolve, 2000));
         return this.countriesService.findOneBySlug(slug);
@@ -28,6 +32,7 @@ export class CountriesResolver {
 
     @Query(() => [Country])
     @UseFilters(NotFoundFilter)
+    @UseGuards(GqlAuthGuard)
     countries(): Promise<Country[]> {
         return this.countriesService.find();
     }
@@ -57,11 +62,16 @@ export class CountriesResolver {
     }
 
     @ResolveField('crags', () => [Crag])
-    async getCrags(@Parent() country: Country, @Args('area', { nullable: true }) area?: string): Promise<Crag[]> {
-        const params: any = { country: country.id };
+    async getCrags(@CurrentUser() user: User, @Parent() country: Country, @Args('area', { nullable: true }) area?: string): Promise<Crag[]> {
+
+        const params: any = { country: country.id, minStatus: 10 };
 
         if (area != null) {
             params.area = area;
+        }
+
+        if (user != null) {
+            params.minStatus = 5;
         }
 
         return this.cragsService.find(params);

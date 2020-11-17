@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { CreateCragInput } from '../dtos/create-crag.input';
 import { Crag } from '../entities/crag.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, FindManyOptions } from 'typeorm';
+import { Repository, FindManyOptions, MoreThanOrEqual } from 'typeorm';
 import { UpdateCragInput } from '../dtos/update-crag.input';
 import { Country } from '../../crags/entities/country.entity';
 import { Route } from '../entities/route.entity';
@@ -29,7 +29,7 @@ export class CragsService {
         return this.cragsRepository.findOneOrFail({ slug: slug });
     }
 
-    async find(params: { country?: string, area?: string }): Promise<Crag[]> {
+    async find(params: { country?: string, area?: string, minStatus?: number }): Promise<Crag[]> {
 
         const options: FindManyOptions = {
             order: {
@@ -37,17 +37,21 @@ export class CragsService {
             }
         }
 
+        const where: any = {};
+
         if (params.country != null) {
-            options.where = {
-                country: params.country
-            }
+            where.country = params.country
         }
 
         if (params.area != null) {
-            options.where = {
-                area: params.area
-            }
+            where.area = params.area;
         }
+
+        if (params.minStatus != null) {
+            where.status = MoreThanOrEqual(params.minStatus)
+        }
+
+        options.where = where;
 
         return this.cragsRepository.find(options);
     }
