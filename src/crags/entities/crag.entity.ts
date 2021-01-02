@@ -30,7 +30,7 @@ export class Crag extends BaseEntity {
 
     @Column({ type: 'float', nullable: true })
     @Field(() => Float, { nullable: true })
-    lang: number;
+    long: number;
 
     @Column({ nullable: true })
     @Field({ nullable: true })
@@ -65,20 +65,19 @@ export class Crag extends BaseEntity {
     @Field(() => [Sector])
     sectors: Promise<Sector[]>;
 
+    @Column({ default: 0 })
     @Field(() => Int)
     nrRoutes: number;
 
-    @Field(() => String)
+    @Column({ nullable: true })
+    @Field(() => String, { nullable: true })
     minGrade: string;
 
-    @Field(() => String)
+    @Column({ nullable: true })
+    @Field(() => String, { nullable: true })
     maxGrade: string;
 
     @ManyToMany(() => Book)
     @JoinTable()
     books: Book[];
-
-    @Column({ nullable: true })
-    @Field({ nullable: true })
-    gradeRange: string;
 }

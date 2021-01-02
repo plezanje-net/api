@@ -15,7 +15,7 @@ export class CreateCragInput {
     lat: number;
 
     @Field()
-    lang: number;
+    long: number;
 
     @Field()
     countryId: string;

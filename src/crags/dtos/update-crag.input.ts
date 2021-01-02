@@ -23,7 +23,7 @@ export class UpdateCragInput {
 
     @Field({ nullable: true })
     @IsOptional()
-    lang: number;
+    long: number;
 
     @Field({ nullable: true })
     @IsOptional()
