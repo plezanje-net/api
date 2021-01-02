@@ -30,18 +30,18 @@ export class Crag extends BaseEntity {
 
     @Column({ type: 'float', nullable: true })
     @Field(() => Float, { nullable: true })
-    long: number;
+    lon: number;
 
     @Column({ nullable: true })
     @Field({ nullable: true })
     orientation: string;
 
     @Column({ nullable: true })
-    @Field()
+    @Field({ nullable: true })
     access: string;
 
     @Column({ nullable: true })
-    @Field()
+    @Field({ nullable: true })
     description: string;
 
     @CreateDateColumn()
