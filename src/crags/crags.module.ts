@@ -18,9 +18,10 @@ import { RoutesResolver } from './resolvers/routes.resolver';
 import { Area } from './entities/area.entity';
 import { AreasService } from './services/areas.service';
 import { AreasResolver } from './resolvers/areas.resolver';
+import { Comment } from './entities/comment.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Area, Crag, Country, Sector, Route]), AuditModule],
+  imports: [TypeOrmModule.forFeature([Area, Crag, Country, Sector, Route, Comment]), AuditModule],
   providers: [CragsResolver, CragsService, CountriesResolver, CountriesService, SectorsResolver, SectorsService, RoutesService, RoutesResolver, AreasService, AreasResolver],
 })
 export class CragsModule { }

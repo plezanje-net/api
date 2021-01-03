@@ -18,6 +18,7 @@ import { Area } from './crags/entities/area.entity';
 import { Book } from './crags/entities/book.entity';
 import { Grade } from './crags/entities/grade.entity';
 import { NotificationModule } from './notification/notification.module';
+import { Comment } from './crags/entities/comment.entity';
 
 @Module({
   imports: [
@@ -36,7 +37,7 @@ import { NotificationModule } from './notification/notification.module';
         username: configService.get('DB_USER'),
         password: configService.get('DB_PASSWORD'),
         database: configService.get('DB_NAME'),
-        entities: [Area, Audit, Book, Country, Crag, Grade, Role, Sector, User, Route],
+        entities: [Area, Audit, Book, Country, Crag, Grade, Role, Sector, User, Route, Comment],
         synchronize: false,
         // logging: ["query", "error"]
       }),

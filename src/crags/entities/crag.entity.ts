@@ -4,6 +4,7 @@ import { Country } from "./country.entity";
 import { Sector } from "./sector.entity";
 import { Area } from "./area.entity";
 import { Book } from "./book.entity";
+import { Comment } from "./comment.entity";
 
 @Entity()
 @ObjectType()
@@ -80,4 +81,8 @@ export class Crag extends BaseEntity {
     @ManyToMany(() => Book)
     @JoinTable()
     books: Book[];
+
+    @OneToMany(() => Comment, comment => comment.crag, { nullable: true })
+    @Field(() => [Comment])
+    comments: Promise<Comment[]>;
 }

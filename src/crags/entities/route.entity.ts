@@ -2,6 +2,7 @@ import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateCol
 import { ObjectType, Field, Int } from "@nestjs/graphql";
 import { Sector } from "./sector.entity";
 import { Grade } from "./grade.entity";
+import { Comment } from "./comment.entity";
 
 @Entity()
 @ObjectType()
@@ -53,4 +54,8 @@ export class Route extends BaseEntity {
     @OneToMany(() => Grade, grade => grade.route, { nullable: true })
     @Field(() => [Grade])
     grades: Promise<Grade[]>;
+
+    @OneToMany(() => Comment, comment => comment.route, { nullable: true })
+    @Field(() => [Comment])
+    comments: Promise<Comment[]>;
 }
