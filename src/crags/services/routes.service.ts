@@ -15,6 +15,10 @@ export class RoutesService {
         private sectorsRepository: Repository<Sector>,
     ) { }
 
+    async findBySector(sectorId: string): Promise<Route[]> {
+        return this.routesRepository.find({ where: { sector: sectorId }, order: { position: 'ASC' } });
+    }
+
     async create(data: CreateRouteInput): Promise<Route> {
         const route = new Route
 
