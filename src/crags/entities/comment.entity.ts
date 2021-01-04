@@ -6,7 +6,7 @@ import { User } from "src/users/entities/user.entity";
 
 export enum CommentType {
     WARNING = "warning",
-    CONDITIONS = "condition",
+    CONDITION = "condition",
     DESCRIPTION = "description",
     COMMENT = "comment"
 }
@@ -31,7 +31,7 @@ export class Comment extends BaseEntity {
     type: CommentType;
 
     @ManyToOne(() => User)
-    @Field(() => User)
+    @Field(() => User, { nullable: true })
     user: Promise<User>;
 
     @Column({ nullable: true })
@@ -46,6 +46,7 @@ export class Comment extends BaseEntity {
     status: CommentStatus;
 
     @CreateDateColumn()
+    @Field()
     created: Date;
 
     @UpdateDateColumn()

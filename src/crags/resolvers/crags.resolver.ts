@@ -10,12 +10,15 @@ import { NotFoundFilter } from '../filters/not-found.filter';
 import { Sector } from '../entities/sector.entity';
 import { SectorsService } from '../services/sectors.service';
 import { AuditInterceptor } from '../../audit/interceptors/audit.interceptor';
+import { Comment, CommentType } from '../entities/comment.entity';
+import { CommentsService } from '../services/comments.service';
 
 @Resolver(() => Crag)
 export class CragsResolver {
     constructor(
         private cragsService: CragsService,
-        private sectorsService: SectorsService
+        private sectorsService: SectorsService,
+        private commentsService: CommentsService
     ) { }
 
     @Query(() => Crag)
@@ -81,5 +84,20 @@ export class CragsResolver {
     @ResolveField('sectors', () => [Sector])
     async getSectors(@Parent() crag: Crag): Promise<Sector[]> {
         return this.sectorsService.findByCrag(crag.id);
+    }
+
+    @ResolveField('warnings', () => [Comment])
+    async getWarnings(@Parent() crag: Crag): Promise<Comment[]> {
+        return this.commentsService.findByCragAndType(crag.id, CommentType.WARNING);
+    }
+
+    @ResolveField('conditions', () => [Comment])
+    async getConditions(@Parent() crag: Crag): Promise<Comment[]> {
+        return this.commentsService.findByCragAndType(crag.id, CommentType.CONDITION);
+    }
+
+    @ResolveField('comments', () => [Comment])
+    async getComments(@Parent() crag: Crag): Promise<Comment[]> {
+        return this.commentsService.findByCragAndType(crag.id, CommentType.COMMENT);
     }
 }
