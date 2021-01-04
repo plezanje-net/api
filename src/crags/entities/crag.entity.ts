@@ -55,7 +55,7 @@ export class Crag extends BaseEntity {
     legacy: string;
 
     @ManyToOne(() => Area, area => area.crags, { nullable: true })
-    @Field(() => Area)
+    @Field(() => Area, { nullable: true })
     area: Promise<Area>;
 
     @ManyToOne(() => Country, country => country.crags)
