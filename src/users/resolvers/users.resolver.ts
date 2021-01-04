@@ -82,6 +82,11 @@ export class UsersResolver {
         return (await this.usersService.findRoles(user.id)).map((role: Role) => role.role);
     }
 
+    @ResolveField('fullName', () => String)
+    getFullName(@Parent() user: User): string {
+        return user.firstname + ' ' + user.lastname;
+    }
+
 }
 
 
