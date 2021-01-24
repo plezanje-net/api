@@ -1,11 +1,30 @@
 version: '3.7'
 services:
+  api:
+    build: .
+    ports:
+      - "3000:3000"
+    depends_on:
+      - postgres
+    environment:
+      PORT: 3000
+      DB_HOST: localhost
+      DB_USER: plezanjenet
+      DB_PASSWORD: plezanjenet
+      DB_NAME: plezanjenet
+      JWT_SECRET: 456755345g6345g63456g345g63456
+      SMTP_HOST: smtp.gmail.com
+      SMTP_PORT: 465
+      SMTP_USERNAME: smtp-username
+      SMTP_PASSWORD: smtp-password
+      WEB_URL: http://localhost:4200/
+
   postgres:
     image: postgres:12
     restart: always
     environment:
-      - POSTGRES_DB=plezanjenet
-      - POSTGRES_USER=plezanjenet
-      - POSTGRES_PASSWORD=plezanjenet
+      POSTGRES_DB: plezanjenet
+      POSTGRES_USER: plezanjenet
+      POSTGRES_PASSWORD: plezanjenet
     ports:
       - "5432:5432"
