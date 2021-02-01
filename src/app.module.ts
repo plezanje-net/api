@@ -19,6 +19,9 @@ import { Book } from './crags/entities/book.entity';
 import { Grade } from './crags/entities/grade.entity';
 import { NotificationModule } from './notification/notification.module';
 import { Comment } from './crags/entities/comment.entity';
+import { ActivitiesModule } from './activities/activities.module';
+import { ActivityRoute } from './activities/entities/activity-route.entity';
+import { Activity } from './activities/entities/activity.entity';
 
 @Module({
   imports: [
@@ -37,8 +40,8 @@ import { Comment } from './crags/entities/comment.entity';
         username: configService.get('DB_USER'),
         password: configService.get('DB_PASSWORD'),
         database: configService.get('DB_NAME'),
-        entities: [Area, Audit, Book, Country, Crag, Grade, Role, Sector, User, Route, Comment],
-        synchronize: false,
+        entities: [Activity, ActivityRoute, Area, Audit, Book, Country, Crag, Grade, Role, Sector, User, Route, Comment],
+        synchronize: true,
         // logging: ["query", "error"]
       }),
       inject: [ConfigService]
@@ -47,6 +50,7 @@ import { Comment } from './crags/entities/comment.entity';
     CragsModule,
     AuditModule,
     NotificationModule,
+    ActivitiesModule,
   ],
   controllers: [],
   providers: [],
