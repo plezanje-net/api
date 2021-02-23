@@ -20,9 +20,10 @@ import { AreasService } from './services/areas.service';
 import { AreasResolver } from './resolvers/areas.resolver';
 import { Comment } from './entities/comment.entity';
 import { CommentsService } from './services/comments.service';
+import { Pitch } from './entities/pitch.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Area, Crag, Country, Sector, Route, Comment]), AuditModule],
+  imports: [TypeOrmModule.forFeature([Area, Crag, Country, Sector, Route, Pitch, Comment]), AuditModule],
   providers: [CragsResolver, CragsService, CountriesResolver, CountriesService, SectorsResolver, SectorsService, RoutesService, RoutesResolver, AreasService, AreasResolver, CommentsService],
 })
 export class CragsModule { }

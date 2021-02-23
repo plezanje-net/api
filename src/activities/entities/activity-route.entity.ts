@@ -3,6 +3,8 @@ import { ObjectType, Field, Int } from "@nestjs/graphql";
 import { Crag } from "src/crags/entities/crag.entity";
 import { Route } from "src/crags/entities/route.entity";
 import { Activity } from "./activity.entity";
+import { Pitch } from "src/crags/entities/pitch.entity";
+import { User } from "src/users/entities/user.entity";
 
 export enum AscentType {
     ONSIGHT = "onsight",
@@ -17,6 +19,14 @@ export enum AscentType {
     T_ALLFREE = "t_allfree",
     T_AID = "t_aid",
     T_ATTEMPT = "t_attempt",
+    TICK = "tick",
+}
+
+export enum PublishType {
+    PUBLIC = "public",
+    CLUB = "club",
+    LOG = "log",
+    PRIVATE = "private",
 }
 
 @Entity()
@@ -39,6 +49,9 @@ export class ActivityRoute extends BaseEntity {
 
     @ManyToOne(() => Route, { nullable: true })
     route: Promise<Route>;
+    
+    @ManyToOne(() => Pitch, { nullable: true })
+    pitch: Promise<Route>;
 
     @Column({
         type: "enum",
@@ -46,6 +59,13 @@ export class ActivityRoute extends BaseEntity {
         default: AscentType.REDPOINT
     })
     ascentType: AscentType;
+
+    @Column({
+        type: "enum",
+        enum: PublishType,
+        default: PublishType.PRIVATE
+    })
+    publish: PublishType;
 
     @Column({ nullable: true})
     date: Date;
@@ -58,4 +78,8 @@ export class ActivityRoute extends BaseEntity {
 
     @Column({ nullable: true})
     position: number;
+
+    @ManyToOne(() => User, {nullable: false})
+    @Field(() => User)
+    user: Promise<User>;
 }
