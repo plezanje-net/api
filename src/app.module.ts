@@ -42,7 +42,7 @@ import { Pitch } from './crags/entities/pitch.entity';
         password: configService.get('DB_PASSWORD'),
         database: configService.get('DB_NAME'),
         entities: [Activity, ActivityRoute, Area, Audit, Book, Country, Crag, Grade, Role, Sector, User, Route, Pitch, Comment],
-        synchronize: true,
+        synchronize: false,
         // logging: ["query", "error"]
       }),
       inject: [ConfigService]
