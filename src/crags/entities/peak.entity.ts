@@ -1,7 +1,6 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, BaseEntity, ManyToOne, OneToMany, ManyToMany, JoinTable } from "typeorm";
 import { ObjectType, Field, Int, Float } from "@nestjs/graphql";
 import { Country } from "./country.entity";
-import { Sector } from "./sector.entity";
 import { Area } from "./area.entity";
 import { Book } from "./book.entity";
 import { Comment } from "./comment.entity";
@@ -9,7 +8,7 @@ import { Image } from "src/crags/entities/image.entity";
 
 @Entity()
 @ObjectType()
-export class Crag extends BaseEntity {
+export class Peak extends BaseEntity {
     @PrimaryGeneratedColumn("uuid")
     @Field()
     id: string;
@@ -18,13 +17,9 @@ export class Crag extends BaseEntity {
     @Field()
     name: string;
 
-    @Column({ unique: true })
-    @Field()
-    slug: string;
-
-    @Column({ type: "int" })
-    @Field(() => Int)
-    status: number;
+    @Column({ nullable: true })
+    @Field({ nullable: true })
+    height: number;
 
     @Column({ type: 'float', nullable: true })
     @Field(() => Float, { nullable: true })
@@ -33,18 +28,6 @@ export class Crag extends BaseEntity {
     @Column({ type: 'float', nullable: true })
     @Field(() => Float, { nullable: true })
     lon: number;
-
-    @Column({ nullable: true })
-    @Field({ nullable: true })
-    orientation: string;
-
-    @Column({ nullable: true })
-    @Field({ nullable: true })
-    access: string;
-
-    @Column({ nullable: true })
-    @Field({ nullable: true })
-    description: string;
 
     @CreateDateColumn()
     created: Date;
@@ -55,39 +38,23 @@ export class Crag extends BaseEntity {
     @Column({ nullable: true })
     legacy: string;
 
-    @ManyToOne(() => Area, area => area.crags, { nullable: true })
+    @ManyToOne(() => Area, area => area.peaks, { nullable: true })
     @Field(() => Area, { nullable: true })
     area: Promise<Area>;
 
-    @ManyToOne(() => Country, country => country.crags)
+    @ManyToOne(() => Country, country => country.peaks)
     @Field(() => Country)
     country: Promise<Country>;
-
-    @OneToMany(() => Sector, sector => sector.crag, { nullable: true })
-    @Field(() => [Sector])
-    sectors: Promise<Sector[]>;
-
-    @Column({ default: 0 })
-    @Field(() => Int)
-    nrRoutes: number;
-
-    @Column({ nullable: true })
-    @Field(() => String, { nullable: true })
-    minGrade: string;
-
-    @Column({ nullable: true })
-    @Field(() => String, { nullable: true })
-    maxGrade: string;
 
     @ManyToMany(() => Book)
     @JoinTable()
     books: Book[];
 
-    @OneToMany(() => Comment, comment => comment.crag, { nullable: true })
+    @OneToMany(() => Comment, comment => comment.peak, { nullable: true })
     @Field(() => [Comment])
     comments: Promise<Comment[]>;
 
-    @OneToMany(() => Image, image => image.crag, { nullable: true })
+    @OneToMany(() => Image, image => image.peak, { nullable: true })
     @Field(() => [Image])
     images: Promise<Image[]>;
 }

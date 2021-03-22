@@ -23,6 +23,9 @@ import { ActivitiesModule } from './activities/activities.module';
 import { ActivityRoute } from './activities/entities/activity-route.entity';
 import { Activity } from './activities/entities/activity.entity';
 import { Pitch } from './crags/entities/pitch.entity';
+import { Image } from './crags/entities/image.entity';
+import { Peak } from './crags/entities/peak.entity';
+import { IceFall } from './crags/entities/ice-fall.entity';
 
 @Module({
   imports: [
@@ -41,8 +44,8 @@ import { Pitch } from './crags/entities/pitch.entity';
         username: configService.get('DB_USER'),
         password: configService.get('DB_PASSWORD'),
         database: configService.get('DB_NAME'),
-        entities: [Activity, ActivityRoute, Area, Audit, Book, Country, Crag, Grade, Role, Sector, User, Route, Pitch, Comment],
-        synchronize: false,
+        entities: [Activity, ActivityRoute, Area, Audit, Book, Country, Crag, Grade, Role, Sector, User, Route, Peak, Pitch, Comment, Image, IceFall],
+        synchronize: true,
         // logging: ["query", "error"]
       }),
       inject: [ConfigService]

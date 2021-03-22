@@ -2,6 +2,7 @@ import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateCol
 import { ObjectType, Field } from "@nestjs/graphql";
 import { Crag } from "../../crags/entities/crag.entity";
 import { Area } from "./area.entity";
+import { Peak } from "./peak.entity";
 
 @Entity()
 @ObjectType()
@@ -37,5 +38,9 @@ export class Country extends BaseEntity {
 
     @OneToMany(() => Area, area => area.country, { nullable: true })
     @Field(() => [Area])
-    areas: Promise<Crag[]>;
+    areas: Promise<Area[]>;
+
+    @OneToMany(() => Peak, peak => peak.country, { nullable: true })
+    @Field(() => [Peak])
+    peaks: Promise<Peak[]>;
 }

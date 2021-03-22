@@ -1,6 +1,7 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, BaseEntity, OneToMany } from "typeorm";
 import { ObjectType, Field } from "@nestjs/graphql";
 import { Role } from "./role.entity";
+import { Image } from "src/crags/entities/image.entity";
 
 @Entity()
 @ObjectType()

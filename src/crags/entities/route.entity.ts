@@ -4,6 +4,15 @@ import { Sector } from "./sector.entity";
 import { Grade } from "./grade.entity";
 import { Comment } from "./comment.entity";
 import { Pitch } from "./pitch.entity";
+import { Image } from "src/crags/entities/image.entity";
+
+export enum RouteType {
+    SPORT = "photo",
+    MULTIPITCH = "multipitch",
+    BOULDER = "boulder",
+    ALPINE = "alpine",
+    INDOOR = "indoor"
+}
 
 @Entity()
 @ObjectType()
@@ -11,6 +20,13 @@ export class Route extends BaseEntity {
     @PrimaryGeneratedColumn("uuid")
     @Field()
     id: string;
+
+    @Column({
+        type: "enum",
+        enum: RouteType,
+        default: RouteType.SPORT
+    })
+    type: RouteType;
 
     @Column()
     @Field()
@@ -63,4 +79,8 @@ export class Route extends BaseEntity {
     @OneToMany(() => Comment, comment => comment.route, { nullable: true })
     @Field(() => [Comment])
     comments: Promise<Comment[]>;
+
+    @OneToMany(() => Image, image => image.route, { nullable: true })
+    @Field(() => [Image])
+    images: Promise<Image[]>;
 }

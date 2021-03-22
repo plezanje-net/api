@@ -1,8 +1,11 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, BaseEntity, ManyToOne, OneToMany } from "typeorm";
-import { ObjectType, Field, Int } from "@nestjs/graphql";
+import { ObjectType, Field } from "@nestjs/graphql";
 import { Crag } from "./crag.entity";
 import { Route } from "./route.entity";
 import { User } from "src/users/entities/user.entity";
+import { Image } from "src/crags/entities/image.entity";
+import { Peak } from "./peak.entity";
+import { IceFall } from "./ice-fall.entity";
 
 export enum CommentType {
     WARNING = "warning",
@@ -62,4 +65,16 @@ export class Comment extends BaseEntity {
     @ManyToOne(() => Route, route => route.comments, { nullable: true })
     @Field(() => Route)
     route: Promise<Route>;
+
+    @ManyToOne(() => IceFall, iceFall => iceFall.comments, { nullable: true })
+    @Field(() => IceFall)
+    iceFall: Promise<IceFall>;
+
+    @ManyToOne(() => Peak, peak => peak.comments, { nullable: true })
+    @Field(() => Peak)
+    peak: Promise<Peak>;
+
+    @OneToMany(() => Image, image => image.comment, { nullable: true })
+    @Field(() => [Image])
+    images: Promise<Image[]>;
 }
