@@ -6,6 +6,7 @@ import { Area } from "./area.entity";
 import { Book } from "./book.entity";
 import { Comment } from "./comment.entity";
 import { Image } from "src/crags/entities/image.entity";
+import { Peak } from "./peak.entity";
 
 @Entity()
 @ObjectType()
@@ -38,12 +39,12 @@ export class Crag extends BaseEntity {
     @Field({ nullable: true })
     orientation: string;
 
-    @Column({ nullable: true })
+    @Column({ type: "text", nullable: true })
     @Field({ nullable: true })
     access: string;
 
-    @Column({ nullable: true })
-    @Field({ nullable: true })
+    @Column({ type: "text", nullable: true })
+    @Field({  nullable: true })
     description: string;
 
     @CreateDateColumn()
@@ -58,6 +59,10 @@ export class Crag extends BaseEntity {
     @ManyToOne(() => Area, area => area.crags, { nullable: true })
     @Field(() => Area, { nullable: true })
     area: Promise<Area>;
+
+    @ManyToOne(() => Peak, peak => peak.crags, { nullable: true })
+    @Field(() => Peak, { nullable: true })
+    peak: Promise<Peak>;
 
     @ManyToOne(() => Country, country => country.crags)
     @Field(() => Country)

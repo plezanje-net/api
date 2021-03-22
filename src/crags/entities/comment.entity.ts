@@ -37,7 +37,7 @@ export class Comment extends BaseEntity {
     @Field(() => User, { nullable: true })
     user: Promise<User>;
 
-    @Column({ nullable: true })
+    @Column({ type: "text", nullable: true })
     @Field({ nullable: true })
     content: string;
 

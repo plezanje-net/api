@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { CreateCragInput } from '../dtos/create-crag.input';
 import { Crag } from '../entities/crag.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, FindManyOptions, MoreThanOrEqual } from 'typeorm';
+import { Repository, FindManyOptions, MoreThanOrEqual, IsNull } from 'typeorm';
 import { UpdateCragInput } from '../dtos/update-crag.input';
 import { Country } from '../../crags/entities/country.entity';
 import { Route } from '../entities/route.entity';
@@ -37,7 +37,7 @@ export class CragsService {
             }
         }
 
-        const where: any = {};
+        const where: any = { peak: IsNull() };
 
         if (params.country != null) {
             where.country = params.country

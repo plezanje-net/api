@@ -1,5 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, BaseEntity, OneToMany, ManyToOne } from "typeorm";
-import { ObjectType, Field } from "@nestjs/graphql";
+import { ObjectType, Field, Int } from "@nestjs/graphql";
 import { Crag } from "../../crags/entities/crag.entity";
 import { Country } from "./country.entity";
 import { Image } from "src/crags/entities/image.entity";
@@ -13,7 +13,7 @@ export class Area extends BaseEntity {
     @Field()
     id: string;
 
-    @Column()
+    @Column({collation: "utf8_slovenian_ci"})
     @Field()
     name: string;
 
@@ -45,4 +45,8 @@ export class Area extends BaseEntity {
     @OneToMany(() => Image, image => image.area, { nullable: true })
     @Field(() => [Image])
     images: Promise<Image[]>;
+
+    @Column({ default: 0 })
+    @Field(() => Int)
+    nrCrags: number;
 }

@@ -1,9 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Country } from '../entities/country.entity';
-import { Repository } from 'typeorm';
+import { FindManyOptions, MoreThan, Repository } from 'typeorm';
 import { CreateCountryInput } from '../dtos/create-country.input';
 import { UpdateCountryInput } from '../dtos/update-country.input';
+import { FindCountriesInput } from '../dtos/find-countries.input';
+
+export interface CountryFindParams {
+    orderBy: any;
+}
 
 @Injectable()
 export class CountriesService {
@@ -20,8 +25,22 @@ export class CountriesService {
         return this.countriesRepository.findOneOrFail(id);
     }
 
-    find(): Promise<Country[]> {
-        return this.countriesRepository.find({ order: { name: 'ASC' } });
+    find(params: FindCountriesInput = {}): Promise<Country[]> {
+
+        const options: FindManyOptions = {
+            order: {},
+            where: {}
+        };
+
+        if (params.orderBy != null) {
+            options.order[params.orderBy.field || "name"] = params.orderBy.direction || "ASC";
+        }
+
+        if (params.hasCrags != null && params.hasCrags) {
+            options.where["nrCrags"] = MoreThan(0)
+        }
+
+        return this.countriesRepository.find(options);
     }
 
     create(data: CreateCountryInput): Promise<Country> {

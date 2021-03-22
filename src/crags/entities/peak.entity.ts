@@ -5,6 +5,7 @@ import { Area } from "./area.entity";
 import { Book } from "./book.entity";
 import { Comment } from "./comment.entity";
 import { Image } from "src/crags/entities/image.entity";
+import { Crag } from "./crag.entity";
 
 @Entity()
 @ObjectType()
@@ -16,6 +17,10 @@ export class Peak extends BaseEntity {
     @Column()
     @Field()
     name: string;
+
+    @Column({ type: "text", nullable: true })
+    @Field({ nullable: true })
+    description: string;
 
     @Column({ nullable: true })
     @Field({ nullable: true })
@@ -49,6 +54,10 @@ export class Peak extends BaseEntity {
     @ManyToMany(() => Book)
     @JoinTable()
     books: Book[];
+
+    @OneToMany(() => Crag, crag => crag.peak, { nullable: true })
+    @Field(() => [Crag])
+    crags: Promise<Crag[]>;
 
     @OneToMany(() => Comment, comment => comment.peak, { nullable: true })
     @Field(() => [Comment])

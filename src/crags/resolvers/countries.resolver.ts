@@ -1,6 +1,7 @@
 import { Resolver, Mutation, Args, Query, ResolveField, Parent } from '@nestjs/graphql';
 import { Country } from '../entities/country.entity';
 import { CreateCountryInput } from '../dtos/create-country.input';
+import { FindCountriesInput } from '../dtos/find-countries.input';
 import { CountriesService } from '../services/countries.service';
 import { UpdateCountryInput } from '../dtos/update-country.input';
 import { Roles } from '../../auth/decorators/roles.decorator';
@@ -13,13 +14,16 @@ import { CragsService } from '../services/crags.service';
 import { User } from 'src/users/entities/user.entity';
 import { CurrentUser } from 'src/auth/decorators/current-user.decorator';
 import { GqlAuthGuard } from 'src/auth/guards/gql-auth.guard';
+import { Area } from '../entities/area.entity';
+import { AreasService } from '../services/areas.service';
 
 @Resolver(() => Country)
 export class CountriesResolver {
 
     constructor(
         private countriesService: CountriesService,
-        private cragsService: CragsService
+        private cragsService: CragsService,
+        private areaService: AreasService
     ) { }
 
     @Query(() => Country)
@@ -33,8 +37,8 @@ export class CountriesResolver {
     @Query(() => [Country])
     @UseFilters(NotFoundFilter)
     @UseGuards(GqlAuthGuard)
-    countries(): Promise<Country[]> {
-        return this.countriesService.find();
+    countries(@Args('input', { nullable: true }) input?: FindCountriesInput): Promise<Country[]> {
+        return this.countriesService.find(input);
     }
 
     @Mutation(() => Country)
@@ -75,5 +79,11 @@ export class CountriesResolver {
         }
 
         return this.cragsService.find(params);
+    }
+
+    @ResolveField('areas', () => [Area])
+    async getAreas(@Parent() country: Country): Promise<Area[]> {
+
+        return this.areaService.find({ hasCrags: true, countryId: country.id });
     }
 }
