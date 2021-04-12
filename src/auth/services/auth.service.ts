@@ -3,7 +3,7 @@ import * as bcrypt from 'bcrypt';
 
 import { JwtService } from "@nestjs/jwt";
 import { User } from '../../users/entities/user.entity';
-import { LoginInput } from '../../users/inputs/login.input';
+import { LoginInput } from '../../users/dtos/login.input';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Role } from '../../users/entities/role.entity';

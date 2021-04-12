@@ -26,6 +26,8 @@ import { Pitch } from './crags/entities/pitch.entity';
 import { Image } from './crags/entities/image.entity';
 import { Peak } from './crags/entities/peak.entity';
 import { IceFall } from './crags/entities/ice-fall.entity';
+import { Club } from './users/entities/club.entity';
+import { ClubMember } from './users/entities/club-member.entity';
 
 @Module({
   imports: [
@@ -44,7 +46,7 @@ import { IceFall } from './crags/entities/ice-fall.entity';
         username: configService.get('DB_USER'),
         password: configService.get('DB_PASSWORD'),
         database: configService.get('DB_NAME'),
-        entities: [Activity, ActivityRoute, Area, Audit, Book, Country, Crag, Grade, Role, Sector, User, Route, Peak, Pitch, Comment, Image, IceFall],
+        entities: [Activity, ActivityRoute, Area, Audit, Book, Country, Crag, Grade, Role, Sector, User, Route, Peak, Pitch, Comment, Club, ClubMember, Image, IceFall],
         synchronize: true,
         // logging: ["query", "error"]
       }),

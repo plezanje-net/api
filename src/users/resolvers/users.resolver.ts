@@ -1,10 +1,10 @@
 import { Resolver, Query, Mutation, Args, ResolveField, Parent } from '@nestjs/graphql';
 import { User } from '../entities/user.entity';
 import { UsersService } from '../services/users.service';
-import { RegisterInput } from '../inputs/register.input';
-import { ConfirmInput } from '../inputs/confirm.input';
+import { RegisterInput } from '../dtos/register.input';
+import { ConfirmInput } from '../dtos/confirm.input';
 import { CurrentUser } from '../../auth/decorators/current-user.decorator';
-import { LoginInput } from '../inputs/login.input';
+import { LoginInput } from '../dtos/login.input';
 import { AuthService } from '../../auth/services/auth.service';
 import { TokenResponse } from '../interfaces/token-response.class';
 import { Role } from '../entities/role.entity';
@@ -14,7 +14,7 @@ import { InternalServerErrorException, UseFilters, UseGuards } from '@nestjs/com
 import { ConflictFilter } from 'src/crags/filters/conflict.filter';
 import { NotificationService } from 'src/notification/services/notification.service';
 import { GqlAuthGuard } from 'src/auth/guards/gql-auth.guard';
-import { PasswordInput } from '../inputs/password.input';
+import { PasswordInput } from '../dtos/password.input';
 
 @Resolver(() => User)
 export class UsersResolver {

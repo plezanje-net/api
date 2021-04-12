@@ -2,8 +2,8 @@ import { Injectable, NotFoundException, NotAcceptableException } from '@nestjs/c
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from '../entities/user.entity';
 import { Repository } from 'typeorm';
-import { RegisterInput } from '../inputs/register.input';
-import { ConfirmInput } from '../inputs/confirm.input';
+import { RegisterInput } from '../dtos/register.input';
+import { ConfirmInput } from '../dtos/confirm.input';
 import { randomBytes } from 'crypto';
 import * as bcrypt from 'bcrypt';
 import { Role } from '../entities/role.entity';

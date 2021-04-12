@@ -2,6 +2,8 @@ import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateCol
 import { ObjectType, Field } from "@nestjs/graphql";
 import { Role } from "./role.entity";
 import { Image } from "src/crags/entities/image.entity";
+import { Club } from "./club.entity";
+import { ClubMember } from "./club-member.entity";
 
 @Entity()
 @ObjectType()
@@ -59,4 +61,8 @@ export class User extends BaseEntity {
 
     @Column({ nullable: true })
     legacy: string;
+
+    @OneToMany(() => ClubMember, member => member.user)
+    @Field(() => [ClubMember])
+    clubs: ClubMember[];
 }
