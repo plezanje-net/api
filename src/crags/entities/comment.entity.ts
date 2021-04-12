@@ -31,6 +31,7 @@ export class Comment extends BaseEntity {
         enum: CommentType,
         default: CommentType.COMMENT
     })
+    @Field()
     type: CommentType;
 
     @ManyToOne(() => User)

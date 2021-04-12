@@ -10,7 +10,8 @@ import { IceFall } from "./ice-fall.entity";
 export enum ImageType {
     PHOTO = "photo",
     SKETCH = "sketch",
-    MAP = "map"
+    MAP = "map",
+    PROFILE = "profile"
 }
 
 @Entity()
@@ -27,12 +28,12 @@ export class Image extends BaseEntity {
     })
     type: ImageType;
 
-    @Column({nullable: true})
-    @Field({nullable: true})
+    @Column({ nullable: true })
+    @Field({ nullable: true })
     title: string;
 
-    @Column({nullable: true})
-    @Field({nullable: true})
+    @Column({ nullable: true })
+    @Field({ nullable: true })
     description: string;
 
     @Column()

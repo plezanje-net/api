@@ -32,7 +32,7 @@ describe('SectorsService', () => {
 
   it('should find sector by crag id', async () => {
     const returnedSector: Sector = <Sector> <unknown> {}
-    const cragId: string = 'cragId'
+    const cragId = 'cragId'
     sectorsRepositoryMock.find.mockReturnValue(returnedSector)
 
     expect(await service.findByCrag(cragId)).toEqual(returnedSector)

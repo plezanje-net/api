@@ -50,3 +50,5 @@ $ npm run test:e2e
 # test coverage
 $ npm run test:cov
 ```
+
+docker exec -it api_postgres_1 bash -c  "psql -h mx3.zakotnik.net -U plezanjenet -c 'DROP SCHEMA public CASCADE; CREATE SCHEMA public;' && pg_dump -U plezanjenet -f /home/plezanjenet.sql plezanjenet && psql -h mx3.zakotnik.net -U plezanjenet -f /home/plezanjenet.sql"

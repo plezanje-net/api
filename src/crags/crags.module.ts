@@ -24,9 +24,10 @@ import { Pitch } from './entities/pitch.entity';
 import { Image } from './entities/image.entity';
 import { Peak } from './entities/peak.entity';
 import { IceFall } from './entities/ice-fall.entity';
+import { CommentsResolver } from './resolvers/comments.resolver';
 
 @Module({
   imports: [TypeOrmModule.forFeature([Area, Crag, Country, IceFall, Image, Sector, Route, Pitch, Peak, Comment]), AuditModule],
-  providers: [CragsResolver, CragsService, CountriesResolver, CountriesService, SectorsResolver, SectorsService, RoutesService, RoutesResolver, AreasService, AreasResolver, CommentsService],
+  providers: [CragsResolver, CragsService, CountriesResolver, CountriesService, SectorsResolver, SectorsService, RoutesService, RoutesResolver, AreasService, AreasResolver, CommentsService, CommentsResolver],
 })
 export class CragsModule { }
