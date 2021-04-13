@@ -45,7 +45,7 @@ export class Route extends BaseEntity {
     length: string;
 
     @Column({ nullable: true })
-    @Field()
+    @Field({ nullable: true })
     author: string;
 
     @Column({ type: "int" })

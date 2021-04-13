@@ -42,4 +42,8 @@ export class RoutesService {
 
         return this.routesRepository.remove(route).then(() => true)
     }
+
+    async findOneById(id: string): Promise<Route> {
+        return this.routesRepository.findOneOrFail(id);
+    }
 }

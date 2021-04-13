@@ -1,4 +1,4 @@
-import { Resolver, Mutation, Args } from '@nestjs/graphql';
+import { Resolver, Mutation, Args, Query } from '@nestjs/graphql';
 import { Route } from '../entities/route.entity';
 import { Roles } from '../../auth/decorators/roles.decorator';
 import { UseInterceptors, UseFilters } from '@nestjs/common';
@@ -36,5 +36,11 @@ export class RoutesResolver {
     @UseFilters(NotFoundFilter)
     async deleteRoute(@Args('id') id: string): Promise<boolean> {
         return this.routesService.delete(id)
+    }
+
+    @Query(() => Route)
+    @UseFilters(NotFoundFilter)
+    async route(@Args('id') id: string): Promise<Route> {
+        return this.routesService.findOneById(id);
     }
 }
