@@ -30,9 +30,11 @@ export class Activity extends BaseEntity {
     type: ActivityType;
 
     @Column({ nullable: true })
+    @Field()
     name: string;
 
     @Column({ nullable: true })
+    @Field()
     date: Date;
 
     @Column({ nullable: true })
