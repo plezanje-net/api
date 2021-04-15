@@ -10,8 +10,9 @@ export class GqlAuthGuard extends AuthGuard('jwt') {
     return ctx.getContext().req;
   }
 
-  // handleRequest(err: any, user: any, info: any, context: any) {
-  //   if (user) return user;
-  //   return null;
-  // }
+  // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
+  handleRequest(_err: any, user: any): any { 
+    if (user) return user;
+    return null;
+  }
 }
