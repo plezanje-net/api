@@ -66,21 +66,6 @@ export class CragsResolver {
         return this.cragsService.delete(id)
     }
 
-    // @ResolveField('nrRoutes', () => Int)
-    // async getNrRoutes(@Parent() crag: Crag): Promise<number> {
-    //     return this.cragsService.getNumberOfRoutes(crag);
-    // }
-
-    // @ResolveField('minGrade', () => Float, { nullable: true })
-    // async getMinGrade(@Parent() crag: Crag): Promise<number> {
-    //     return this.cragsService.getMinGrade(crag);
-    // }
-
-    // @ResolveField('maxGrade', () => Float, { nullable: true })
-    // async getMaxGrade(@Parent() crag: Crag): Promise<number> {
-    //     return this.cragsService.getMaxGrade(crag);
-    // }
-
     @ResolveField('sectors', () => [Sector])
     async getSectors(@Parent() crag: Crag): Promise<Sector[]> {
         return this.sectorsService.findByCrag(crag.id);
@@ -88,16 +73,16 @@ export class CragsResolver {
 
     @ResolveField('warnings', () => [Comment])
     async getWarnings(@Parent() crag: Crag): Promise<Comment[]> {
-        return this.commentsService.findByCragAndType(crag.id, CommentType.WARNING);
+        return this.commentsService.find({ cragId: crag.id, type: CommentType.WARNING });
     }
 
     @ResolveField('conditions', () => [Comment])
     async getConditions(@Parent() crag: Crag): Promise<Comment[]> {
-        return this.commentsService.findByCragAndType(crag.id, CommentType.CONDITION);
+        return this.commentsService.find({ cragId: crag.id, type: CommentType.CONDITION });
     }
 
     @ResolveField('comments', () => [Comment])
     async getComments(@Parent() crag: Crag): Promise<Comment[]> {
-        return this.commentsService.findByCragAndType(crag.id, CommentType.COMMENT);
+        return this.commentsService.find({ cragId: crag.id, type: CommentType.COMMENT });
     }
 }
