@@ -9,10 +9,12 @@ import { ActivityRoute } from './entities/activity-route.entity';
 import { Activity } from './entities/activity.entity';
 import { ActivitiesResolver } from './resolvers/activities.resolver';
 import { ActivitiesService } from './services/activities.service';
+import { ActivityRoutesResolver } from './resolvers/activity-routes.resolver';
+import { ActivityRoutesService } from './services/activity-routes.service';
 
 @Module({
     imports: [TypeOrmModule.forFeature([Activity, ActivityRoute, Crag, Route, Pitch]), AuditModule],
-    providers: [ActivitiesResolver, ActivitiesService],
+    providers: [ActivitiesResolver, ActivitiesService, ActivityRoutesResolver, ActivityRoutesService],
 })
 export class ActivitiesModule {
 

@@ -3,10 +3,14 @@ import { IsOptional } from "class-validator";
 import { OrderByInput } from "src/core/interfaces/order-by-input.interface";
 
 @InputType()
-export class FindActivitiesInput {
+export class FindActivityRoutesInput {
     @Field({ nullable: true })
     @IsOptional()
     userId?: string;
+
+    @Field({ nullable: true })
+    @IsOptional()
+    ascentType?: string;
 
     @Field({ nullable: true })
     @IsOptional()

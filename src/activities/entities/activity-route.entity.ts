@@ -48,6 +48,7 @@ export class ActivityRoute extends BaseEntity {
     activity: Promise<Activity>;
 
     @ManyToOne(() => Route, { nullable: true })
+    @Field(() => Route)
     route: Promise<Route>;
     
     @ManyToOne(() => Pitch, { nullable: true })
@@ -58,7 +59,16 @@ export class ActivityRoute extends BaseEntity {
         enum: AscentType,
         default: AscentType.REDPOINT
     })
+    @Field()
     ascentType: AscentType;
+
+    @Column({ nullable: true })
+    @Field({ nullable: true })
+    difficulty: string;
+
+    @Column({ type: "float", nullable: true })
+    @Field({ nullable: true })
+    grade: number;
 
     @Column({
         type: "enum",
@@ -68,9 +78,11 @@ export class ActivityRoute extends BaseEntity {
     publish: PublishType;
 
     @Column({ nullable: true})
+    @Field({ nullable: true})
     date: Date;
 
     @Column({ nullable: true })
+    @Field({ nullable: true})
     notes: string;
 
     @Column({ nullable: true })

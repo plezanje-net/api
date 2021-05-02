@@ -7,6 +7,7 @@ import { Book } from "./book.entity";
 import { Comment } from "./comment.entity";
 import { Image } from "src/crags/entities/image.entity";
 import { Peak } from "./peak.entity";
+import { Route } from "./route.entity";
 
 @Entity()
 @ObjectType()
@@ -71,6 +72,10 @@ export class Crag extends BaseEntity {
     @OneToMany(() => Sector, sector => sector.crag, { nullable: true })
     @Field(() => [Sector])
     sectors: Promise<Sector[]>;
+
+    @OneToMany(() => Route, route => route.crag, { nullable: true })
+    @Field(() => [Route])
+    routes: Promise<Route[]>;
 
     @Column({ default: 0 })
     @Field(() => Int)

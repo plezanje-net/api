@@ -5,6 +5,7 @@ import { Grade } from "./grade.entity";
 import { Comment } from "./comment.entity";
 import { Pitch } from "./pitch.entity";
 import { Image } from "src/crags/entities/image.entity";
+import { Crag } from "./crag.entity";
 
 export enum RouteType {
     SPORT = "photo",
@@ -63,6 +64,10 @@ export class Route extends BaseEntity {
 
     @Column({ nullable: true })
     legacy: string;
+
+    @ManyToOne(() => Crag, crag => crag.routes)
+    @Field(() => Crag)
+    crag: Promise<Crag>;
 
     @ManyToOne(() => Sector, sector => sector.routes)
     @Field(() => Sector)
