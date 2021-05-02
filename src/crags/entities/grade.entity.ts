@@ -19,9 +19,11 @@ export class Grade extends BaseEntity {
     user: Promise<User>;
 
     @CreateDateColumn()
+    @Field()
     created: Date;
 
     @UpdateDateColumn()
+    @Field()
     updated: Date;
 
     @Column({ nullable: true })

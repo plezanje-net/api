@@ -1,8 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from 'src/users/entities/user.entity';
-import { Repository } from 'typeorm';
+import { FindManyOptions, Repository } from 'typeorm';
 import { CreateCommentInput } from '../dtos/create-comment.input';
+import { FindCommentsInput } from '../dtos/find-comments.input';
 import { UpdateCommentInput } from '../dtos/update-comment';
 import { Comment } from '../entities/comment.entity';
 import { Crag } from '../entities/crag.entity';
@@ -48,13 +49,25 @@ export class CommentsService {
         return this.commentsRepository.remove(comment).then(() => true)
     }
 
-    findByCragAndType(cragId: string, type: string): Promise<Comment[]> {
-        return this.commentsRepository.find({
-            where: {
-                crag: cragId,
-                type: type,
-            },
-            order: { created: 'DESC' } 
-        });
+    find(params: FindCommentsInput = {}): Promise<Comment[]> {
+
+        const options: FindManyOptions = {
+            order: {},
+            where: {}
+        };
+
+        if (params.routeId != null) {
+            options.where["route"] = params.routeId;
+        }
+
+        if (params.cragId != null) {
+            options.where["crag"] = params.cragId;
+        }
+
+        if (params.type != null) {
+            options.where["type"] = params.type;
+        }
+
+        return this.commentsRepository.find(options);
     }
 }
