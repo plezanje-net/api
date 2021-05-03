@@ -12,6 +12,8 @@ import { ObjectType, Field, Int } from '@nestjs/graphql';
 import { Crag } from 'src/crags/entities/crag.entity';
 import { ActivityRoute } from './activity-route.entity';
 import { User } from 'src/users/entities/user.entity';
+import { IceFall } from 'src/crags/entities/ice-fall.entity';
+import { Peak } from 'src/crags/entities/peak.entity';
 
 export enum ActivityType {
   CRAG = 'crag',
@@ -26,10 +28,20 @@ export enum ActivityType {
 @ObjectType()
 export class Activity extends BaseEntity {
   @PrimaryGeneratedColumn('uuid')
+  @Field()
   id: string;
 
   @ManyToOne(() => Crag, { nullable: true })
+  @Field(() => Crag)
   crag: Promise<Crag>;
+
+  @ManyToOne(() => IceFall, { nullable: true })
+  @Field(() => IceFall)
+  iceFall: Promise<IceFall>;
+
+  @ManyToOne(() => Peak, { nullable: true })
+  @Field(() => Peak)
+  peak: Promise<Peak>;
 
   @Column({
     type: 'enum',
@@ -48,12 +60,15 @@ export class Activity extends BaseEntity {
   date: Date;
 
   @Column({ nullable: true })
+  @Field(() => Int, { nullable: true })
   duration: number;
 
   @Column({ nullable: true })
+  @Field()
   notes: string;
 
   @Column({ nullable: true })
+  @Field()
   partners: string;
 
   @CreateDateColumn()
