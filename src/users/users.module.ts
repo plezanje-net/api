@@ -8,10 +8,23 @@ import { Role } from './entities/role.entity';
 import { NotificationModule } from 'src/notification/notification.module';
 import { Club } from './entities/club.entity';
 import { ClubMember } from './entities/club-member.entity';
+import { ClubsService } from './services/clubs.service';
+import { ClubsResolver } from './resolvers/clubs.resolver';
+import { ClubMembersService } from './services/club-members.service';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([User, Role, Club, ClubMember]), forwardRef(() => AuthModule), NotificationModule],
-  providers: [UsersService, UsersResolver],
-  exports: [UsersService]
+  imports: [
+    TypeOrmModule.forFeature([User, Role, Club, ClubMember]),
+    forwardRef(() => AuthModule),
+    NotificationModule,
+  ],
+  providers: [
+    UsersService,
+    UsersResolver,
+    ClubsService,
+    ClubsResolver,
+    ClubMembersService,
+  ],
+  exports: [UsersService],
 })
-export class UsersModule { }
+export class UsersModule {}

@@ -46,11 +46,31 @@ import { ClubMember } from './users/entities/club-member.entity';
         username: configService.get('DB_USER'),
         password: configService.get('DB_PASSWORD'),
         database: configService.get('DB_NAME'),
-        entities: [Activity, ActivityRoute, Area, Audit, Book, Country, Crag, Grade, Role, Sector, User, Route, Peak, Pitch, Comment, Club, ClubMember, Image, IceFall],
+        entities: [
+          Activity,
+          ActivityRoute,
+          Area,
+          Audit,
+          Book,
+          Country,
+          Crag,
+          Grade,
+          Role,
+          Sector,
+          User,
+          Route,
+          Peak,
+          Pitch,
+          Comment,
+          Club,
+          ClubMember,
+          Image,
+          IceFall,
+        ],
         synchronize: true,
         // logging: ["query", "error"]
       }),
-      inject: [ConfigService]
+      inject: [ConfigService],
     }),
     UsersModule,
     CragsModule,
@@ -61,7 +81,7 @@ import { ClubMember } from './users/entities/club-member.entity';
   controllers: [],
   providers: [],
 })
-export class AppModule { }
+export class AppModule {}
 
 /*
 {

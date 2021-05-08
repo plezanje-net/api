@@ -1,30 +1,52 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, BaseEntity, ManyToOne } from "typeorm";
-import { ObjectType, Field } from "@nestjs/graphql";
-import { User } from "./user.entity";
-import { Club } from "./club.entity";
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
+  BaseEntity,
+  ManyToOne,
+} from 'typeorm';
+import { ObjectType, Field } from '@nestjs/graphql';
+import { User } from './user.entity';
+import { Club } from './club.entity';
 
 @Entity()
 @ObjectType()
 export class ClubMember extends BaseEntity {
-    @PrimaryGeneratedColumn("uuid")
-    id: string;
+  @PrimaryGeneratedColumn('uuid')
+  @Field()
+  id: string;
 
-    @Column()
-    @Field()
-    admin: boolean;
+  @Column()
+  @Field()
+  admin: boolean;
 
-    @CreateDateColumn()
-    created: Date;
+  @CreateDateColumn()
+  @Field()
+  created: Date;
 
-    @UpdateDateColumn()
-    updated: Date;
+  @UpdateDateColumn()
+  @Field()
+  updated: Date;
 
-    @Column({ nullable: true })
-    legacy: string;
+  @Column({ nullable: true })
+  @Field()
+  legacy: string;
 
-    @ManyToOne(() => User, user => user.clubs, { nullable: false })
-    user: User;
+  @ManyToOne(
+    () => User,
+    user => user.clubs,
+    { nullable: false },
+  )
+  @Field(type => User)
+  user: Promise<User>;
 
-    @ManyToOne(() => Club, club => club.members, { nullable: false })
-    club: Club;
+  @ManyToOne(
+    () => Club,
+    club => club.members,
+    { nullable: false },
+  )
+  @Field(type => Club)
+  club: Promise<Club>;
 }

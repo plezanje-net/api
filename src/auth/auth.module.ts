@@ -16,12 +16,12 @@ import { TypeOrmModule } from '@nestjs/typeorm';
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => ({
         secret: configService.get('JWT_SECRET'),
-        signOptions: { expiresIn: "30d" },
+        signOptions: { expiresIn: '30d' },
       }),
-      inject: [ConfigService]
+      inject: [ConfigService],
     }),
   ],
   providers: [AuthService, JwtStrategy],
-  exports: [AuthService]
+  exports: [AuthService],
 })
-export class AuthModule { }
+export class AuthModule {}
