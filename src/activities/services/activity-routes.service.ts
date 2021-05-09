@@ -3,7 +3,15 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { PaginationMeta } from 'src/core/utils/pagination-meta.class';
 import { Route } from 'src/crags/entities/route.entity';
 import { User } from 'src/users/entities/user.entity';
-import { FindManyOptions, In, IsNull, Not, Repository } from 'typeorm';
+import {
+  FindManyOptions,
+  In,
+  IsNull,
+  LessThan,
+  MoreThan,
+  Not,
+  Repository,
+} from 'typeorm';
 import { CreateActivityRouteInput } from '../dtos/create-activity-route.input';
 import { FindActivityRoutesInput } from '../dtos/find-activity-routes.input';
 import { ActivityRoute } from '../entities/activity-route.entity';
@@ -77,6 +85,8 @@ export class ActivityRoutesService {
     if (params.orderBy != null) {
       options.order[params.orderBy.field || 'created'] =
         params.orderBy.direction || 'DESC';
+    } else {
+      options.order['created'] = 'DESC';
     }
 
     const where: any = {};
@@ -90,7 +100,19 @@ export class ActivityRoutesService {
     }
 
     if (params.ascentType != null) {
-      where.ascentType = In(params.ascentType.split(';'));
+      where.ascentType = In(params.ascentType);
+    }
+
+    if (params.publish != null) {
+      where.publish = In(params.publish);
+    }
+
+    if (params.dateFrom != null) {
+      where.date = MoreThan(params.dateFrom);
+    }
+
+    if (params.dateTo != null) {
+      where.date = LessThan(params.dateTo);
     }
 
     options.where = where;

@@ -1,35 +1,46 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, BaseEntity, ManyToOne } from "typeorm";
-import { ObjectType, Field } from "@nestjs/graphql";
-import { User } from "src/users/entities/user.entity";
-import { Route } from "./route.entity";
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
+  BaseEntity,
+  ManyToOne,
+} from 'typeorm';
+import { ObjectType, Field } from '@nestjs/graphql';
+import { User } from 'src/users/entities/user.entity';
+import { Route } from './route.entity';
 
 @Entity()
 @ObjectType()
 export class Grade extends BaseEntity {
-    @PrimaryGeneratedColumn("uuid")
-    @Field()
-    id: string;
+  @PrimaryGeneratedColumn('uuid')
+  @Field()
+  id: string;
 
-    @Column({ type: "float" })
-    @Field()
-    grade: number;
+  @Column({ type: 'float' })
+  @Field()
+  grade: number;
 
-    @ManyToOne(() => User)
-    @Field(() => User)
-    user: Promise<User>;
+  @ManyToOne(() => User, { nullable: true })
+  @Field(() => User, { nullable: true })
+  user: Promise<User>;
 
-    @CreateDateColumn()
-    @Field()
-    created: Date;
+  @CreateDateColumn()
+  @Field()
+  created: Date;
 
-    @UpdateDateColumn()
-    @Field()
-    updated: Date;
+  @UpdateDateColumn()
+  @Field()
+  updated: Date;
 
-    @Column({ nullable: true })
-    legacy: string;
+  @Column({ nullable: true })
+  legacy: string;
 
-    @ManyToOne(() => Route, route => route.grades)
-    @Field(() => Route)
-    route: Promise<Route>;
+  @ManyToOne(
+    () => Route,
+    route => route.grades,
+  )
+  @Field(() => Route)
+  route: Promise<Route>;
 }

@@ -41,6 +41,7 @@ export enum PublishType {
 @ObjectType()
 export class ActivityRoute extends BaseEntity {
   @PrimaryGeneratedColumn('uuid')
+  @Field()
   id: string;
 
   @CreateDateColumn()
@@ -91,6 +92,7 @@ export class ActivityRoute extends BaseEntity {
     enum: PublishType,
     default: PublishType.PRIVATE,
   })
+  @Field()
   publish: PublishType;
 
   @Column({ nullable: true })
@@ -102,7 +104,8 @@ export class ActivityRoute extends BaseEntity {
   notes: string;
 
   @Column({ nullable: true })
-  partners: string;
+  @Field({ nullable: true })
+  partner: string;
 
   @Column({ nullable: true })
   position: number;

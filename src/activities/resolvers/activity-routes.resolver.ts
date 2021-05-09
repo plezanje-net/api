@@ -9,15 +9,16 @@ import { PaginatedActivityRoutes } from '../utils/paginated-activity-routes.clas
 
 @Resolver()
 export class ActivityRoutesResolver {
-    constructor(
-        private activityRoutesService: ActivityRoutesService
-    ) { }
+  constructor(private activityRoutesService: ActivityRoutesService) {}
 
-    @UseGuards(GqlAuthGuard)
-    @Query(() => PaginatedActivityRoutes)
-    myActivityRoutes(@CurrentUser() user: User, @Args('input', { nullable: true }) input: FindActivityRoutesInput = {}): Promise<PaginatedActivityRoutes> {
-        input.userId = user.id;
+  @UseGuards(GqlAuthGuard)
+  @Query(() => PaginatedActivityRoutes)
+  myActivityRoutes(
+    @CurrentUser() user: User,
+    @Args('input', { nullable: true }) input: FindActivityRoutesInput = {},
+  ): Promise<PaginatedActivityRoutes> {
+    input.userId = user.id;
 
-        return this.activityRoutesService.paginate(input);
-    }
+    return this.activityRoutesService.paginate(input);
+  }
 }
