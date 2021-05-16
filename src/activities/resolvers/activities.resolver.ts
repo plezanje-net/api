@@ -1,5 +1,5 @@
 import { UseGuards } from '@nestjs/common';
-import { Resolver, Query, Args } from '@nestjs/graphql';
+import { Resolver, Query, Args, Mutation } from '@nestjs/graphql';
 import { CurrentUser } from 'src/auth/decorators/current-user.decorator';
 import { GqlAuthGuard } from 'src/auth/guards/gql-auth.guard';
 import { User } from 'src/users/entities/user.entity';
@@ -7,19 +7,43 @@ import { Activity } from '../entities/activity.entity';
 import { PaginatedActivities } from '../utils/paginated-activities.class';
 import { ActivitiesService } from '../services/activities.service';
 import { FindActivitiesInput } from '../dtos/find-activities.input';
+import { CreateActivityInput } from '../dtos/create-activity.input';
+import { CreateActivityRouteInput } from '../dtos/create-activity-route.input';
+import { ActivityRoutesService } from '../services/activity-routes.service';
 
 @Resolver(() => Activity)
 export class ActivitiesResolver {
+  constructor(
+    private activitiesService: ActivitiesService,
+    private activityRoutesService: ActivityRoutesService,
+  ) {}
 
-    constructor(
-        private activitiesService: ActivitiesService
-    ) { }
+  @UseGuards(GqlAuthGuard)
+  @Query(() => PaginatedActivities)
+  myActivities(
+    @CurrentUser() user: User,
+    @Args('input', { nullable: true }) input: FindActivitiesInput = {},
+  ): Promise<PaginatedActivities> {
+    input.userId = user.id;
 
-    @UseGuards(GqlAuthGuard)
-    @Query(() => PaginatedActivities)
-    myActivities(@CurrentUser() user: User, @Args('input', { nullable: true }) input: FindActivitiesInput = {}): Promise<PaginatedActivities> {
-        input.userId = user.id;
+    return this.activitiesService.paginate(input);
+  }
 
-        return this.activitiesService.paginate(input);
-    }
+  @Mutation(() => Activity)
+  @UseGuards(GqlAuthGuard)
+  async createActivity(
+    @CurrentUser() user: User,
+    @Args('input', { type: () => CreateActivityInput })
+    input: CreateActivityInput,
+    @Args('routes', { type: () => [CreateActivityRouteInput] })
+    routes: CreateActivityRouteInput[],
+  ): Promise<Activity> {
+    const activity = await this.activitiesService.create(input, user);
+
+    routes.forEach(async route => {
+      await this.activityRoutesService.create(route, user, activity);
+    });
+
+    return this.activitiesService.findOneById(activity.id);
+  }
 }

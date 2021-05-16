@@ -1,26 +1,39 @@
-import { InputType, Field, Int } from "@nestjs/graphql";
-import { IsOptional } from "class-validator";
-import { OrderByInput } from "src/core/interfaces/order-by-input.interface";
+import { InputType, Field, Int } from '@nestjs/graphql';
+import { IsOptional } from 'class-validator';
+import { OrderByInput } from 'src/core/interfaces/order-by-input.interface';
+import { AscentType, PublishType } from '../entities/activity-route.entity';
 
 @InputType()
 export class FindActivityRoutesInput {
-    @Field({ nullable: true })
-    @IsOptional()
-    userId?: string;
+  @Field({ nullable: true })
+  @IsOptional()
+  userId?: string;
 
-    @Field({ nullable: true })
-    @IsOptional()
-    ascentType?: string;
+  @Field({ nullable: true })
+  @IsOptional()
+  dateFrom?: Date;
 
-    @Field({ nullable: true })
-    @IsOptional()
-    orderBy?: OrderByInput;
+  @Field({ nullable: true })
+  @IsOptional()
+  dateTo?: Date;
 
-    @Field(() => Int, { nullable: true })
-    @IsOptional()
-    pageNumber?: number;
+  @Field(() => [String], { nullable: true })
+  @IsOptional()
+  ascentType?: AscentType[];
 
-    @Field(() => Int, { nullable: true })
-    @IsOptional()
-    pageSize?: number;
+  @Field(() => [String], { nullable: true })
+  @IsOptional()
+  publish?: PublishType[];
+
+  @Field({ nullable: true })
+  @IsOptional()
+  orderBy?: OrderByInput;
+
+  @Field(() => Int, { nullable: true })
+  @IsOptional()
+  pageNumber?: number;
+
+  @Field(() => Int, { nullable: true })
+  @IsOptional()
+  pageSize?: number;
 }
