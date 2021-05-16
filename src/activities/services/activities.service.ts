@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { PaginationMeta } from 'src/core/utils/pagination-meta.class';
 import { Crag } from 'src/crags/entities/crag.entity';
 import { User } from 'src/users/entities/user.entity';
-import { FindManyOptions, Repository } from 'typeorm';
+import { FindManyOptions, Repository, SelectQueryBuilder } from 'typeorm';
 import { CreateActivityInput } from '../dtos/create-activity.input';
 import { FindActivitiesInput } from '../dtos/find-activities.input';
 import { Activity } from '../entities/activity.entity';
@@ -41,9 +41,9 @@ export class ActivitiesService {
   async paginate(
     params: FindActivitiesInput = {},
   ): Promise<PaginatedActivities> {
-    const options = this.parseOptions(params);
+    const query = this.buildQuery(params);
 
-    const itemCount = await this.activitiesRepository.count(options);
+    const itemCount = await query.getCount();
 
     const pagination = new PaginationMeta(
       itemCount,
@@ -51,34 +51,64 @@ export class ActivitiesService {
       params.pageSize,
     );
 
-    options.skip = pagination.pageSize * (pagination.pageNumber - 1);
-    options.take = pagination.pageSize;
+    query
+      .skip(pagination.pageSize * (pagination.pageNumber - 1))
+      .take(pagination.pageSize);
 
     return Promise.resolve({
-      items: await this.activitiesRepository.find(options),
+      items: await query.getMany(),
       meta: pagination,
     });
   }
 
   async find(params: FindActivitiesInput = {}): Promise<Activity[]> {
-    return this.activitiesRepository.find(this.parseOptions(params));
+    return this.buildQuery(params).getMany();
   }
 
-  private parseOptions(params: FindActivitiesInput): FindManyOptions {
-    const options: FindManyOptions = {
-      order: {
-        created: 'DESC',
-      },
-    };
+  private buildQuery(
+    params: FindActivitiesInput = {},
+  ): SelectQueryBuilder<Activity> {
+    const builder = this.activitiesRepository.createQueryBuilder('a');
 
-    const where: any = {};
-
-    if (params.userId != null) {
-      where.user = params.userId;
+    if (params.orderBy != null) {
+      builder.orderBy(
+        params.orderBy.field != null
+          ? 'a.' + params.orderBy.field
+          : 'a.created',
+        params.orderBy.direction || 'DESC',
+      );
+    } else {
+      builder.orderBy('a.created', 'DESC');
     }
 
-    options.where = where;
+    if (params.orderBy != null && params.orderBy.field == 'grade') {
+      builder.andWhere('a.grade IS NOT NULL');
+    }
 
-    return options;
+    if (params.userId != null) {
+      builder.andWhere('a."userId" = :userId', {
+        userId: params.userId,
+      });
+    }
+
+    if (params.dateFrom != null) {
+      builder.andWhere('a.date >= :dateFrom', { dateFrom: params.dateFrom });
+    }
+
+    if (params.dateTo != null) {
+      builder.andWhere('a.date <= :dateTo', { dateTo: params.dateTo });
+    }
+
+    if (params.type != null) {
+      builder.andWhere('a."type" IN (:...type)', {
+        type: params.type,
+      });
+    }
+
+    if (params.cragId != null) {
+      builder.andWhere('a."cragId" = :cragId', { cragId: params.cragId });
+    }
+
+    return builder;
   }
 }
