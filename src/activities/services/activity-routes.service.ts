@@ -7,10 +7,12 @@ import {
   FindManyOptions,
   In,
   IsNull,
+  JoinOptions,
   LessThan,
   MoreThan,
   Not,
   Repository,
+  SelectQueryBuilder,
 } from 'typeorm';
 import { CreateActivityRouteInput } from '../dtos/create-activity-route.input';
 import { FindActivityRoutesInput } from '../dtos/find-activity-routes.input';
@@ -54,9 +56,9 @@ export class ActivityRoutesService {
   async paginate(
     params: FindActivityRoutesInput = {},
   ): Promise<PaginatedActivityRoutes> {
-    const options = this.parseOptions(params);
+    const query = this.buildQuery(params);
 
-    const itemCount = await this.activityRoutesRepository.count(options);
+    const itemCount = await query.getCount();
 
     const pagination = new PaginationMeta(
       itemCount,
@@ -64,59 +66,81 @@ export class ActivityRoutesService {
       params.pageSize,
     );
 
-    options.skip = pagination.pageSize * (pagination.pageNumber - 1);
-    options.take = pagination.pageSize;
+    query
+      .skip(pagination.pageSize * (pagination.pageNumber - 1))
+      .take(pagination.pageSize);
 
     return Promise.resolve({
-      items: await this.activityRoutesRepository.find(options),
+      items: await query.getMany(),
       meta: pagination,
     });
   }
 
   async find(params: FindActivityRoutesInput = {}): Promise<ActivityRoute[]> {
-    return this.activityRoutesRepository.find(this.parseOptions(params));
+    return this.buildQuery(params).getMany();
   }
 
-  private parseOptions(params: FindActivityRoutesInput): FindManyOptions {
-    const options: FindManyOptions = {
-      order: {},
-    };
+  private buildQuery(
+    params: FindActivityRoutesInput = {},
+  ): SelectQueryBuilder<ActivityRoute> {
+    const builder = this.activityRoutesRepository.createQueryBuilder('ar');
 
     if (params.orderBy != null) {
-      options.order[params.orderBy.field || 'created'] =
-        params.orderBy.direction || 'DESC';
+      builder.orderBy(
+        params.orderBy.field != null
+          ? 'ar.' + params.orderBy.field
+          : 'ar.created',
+        params.orderBy.direction || 'DESC',
+      );
     } else {
-      options.order['created'] = 'DESC';
+      builder.orderBy('ar.created', 'DESC');
     }
 
-    const where: any = {};
+    if (params.cragId != null) {
+      builder.innerJoin(
+        'activity',
+        'activity',
+        'ar."activityId" = activity.id',
+      );
+      builder.andWhere('activity."cragId" = :cragId', {
+        cragId: params.cragId,
+      });
+    }
 
     if (params.orderBy != null && params.orderBy.field == 'grade') {
-      where.grade = Not(IsNull());
+      builder.andWhere('ar.grade IS NOT NULL');
     }
 
     if (params.userId != null) {
-      where.user = params.userId;
+      builder.andWhere('ar."userId" = :userId', {
+        userId: params.userId,
+      });
     }
 
     if (params.ascentType != null) {
-      where.ascentType = In(params.ascentType);
+      builder.andWhere('ar."ascentType" IN (:...ascentType)', {
+        ascentType: params.ascentType,
+      });
     }
 
     if (params.publish != null) {
-      where.publish = In(params.publish);
+      builder.andWhere('ar."publish" IN (:...publish)', {
+        publish: params.publish,
+      });
     }
 
     if (params.dateFrom != null) {
-      where.date = MoreThan(params.dateFrom);
+      builder.andWhere('ar.date >= :dateFrom', { dateFrom: params.dateFrom });
     }
 
     if (params.dateTo != null) {
-      where.date = LessThan(params.dateTo);
+      builder.andWhere('ar.date <= :dateTo', { dateTo: params.dateTo });
     }
 
-    options.where = where;
+    if (params.routeId != null) {
+      builder.andWhere('ar."routeId" = :routeId', { routeId: params.routeId });
+    }
 
-    return options;
+    return builder;
   }
 }
