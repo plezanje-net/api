@@ -11,36 +11,35 @@ export class ClubsService {
     @InjectRepository(Club) private clubsRepository: Repository<Club>,
   ) {}
 
-  create(createClubInput: CreateClubInput) {
-    return 'This action adds a new club';
+  async findAll(userId?: string): Promise<Club[]> {
+    if (userId) {
+      return this.clubsRepository
+        .createQueryBuilder('club')
+        .leftJoinAndSelect('club.members', 'member')
+        .where('"member"."userId" = :userId', { userId })
+        .getMany();
+    } else {
+      return this.clubsRepository.find();
+    }
   }
 
-  findAll(): Promise<Club[]> {
-    // return `This action returns all clubs`;
-
-    return this.clubsRepository.find();
-    // return [
-    //   {
-    //     id: 1,
-    //     name: 'some club',
-    //     created: new Date(),
-    //     updated: new Date(),
-    //     legacy: 'dafafgasdg',
-    //     members: [{}],
-    //   },
-    // ];
-  }
-
-  findOne(id: string): Promise<Club> {
-    // return `This action returns a #${id} club`;
+  async findOne(id: string): Promise<Club> {
     return this.clubsRepository.findOneOrFail(id);
   }
 
-  update(id: number, updateClubInput: UpdateClubInput) {
-    return `This action updates a #${id} club`;
+  async create(data: CreateClubInput): Promise<Club> {
+    return this.clubsRepository.create(data).save();
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} club`;
+  async update(data: UpdateClubInput): Promise<Club> {
+    const club = await this.clubsRepository.findOneOrFail(data.id);
+    this.clubsRepository.merge(club, data);
+
+    return this.clubsRepository.save(club);
+  }
+
+  async delete(id: string): Promise<boolean> {
+    const club = await this.clubsRepository.findOneOrFail(id); // when a club is deleted all entries reffering to the club in pivot are also deleted
+    return this.clubsRepository.remove(club).then(() => true);
   }
 }

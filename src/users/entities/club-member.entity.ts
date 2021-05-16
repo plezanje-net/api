@@ -6,12 +6,14 @@ import {
   UpdateDateColumn,
   BaseEntity,
   ManyToOne,
+  Unique,
 } from 'typeorm';
 import { ObjectType, Field } from '@nestjs/graphql';
 import { User } from './user.entity';
 import { Club } from './club.entity';
 
 @Entity()
+@Unique(['user', 'club'])
 @ObjectType()
 export class ClubMember extends BaseEntity {
   @PrimaryGeneratedColumn('uuid')
@@ -35,17 +37,17 @@ export class ClubMember extends BaseEntity {
   legacy: string;
 
   @ManyToOne(
-    () => User,
+    type => User,
     user => user.clubs,
-    { nullable: false },
+    { nullable: false, onDelete: 'CASCADE' },
   )
   @Field(type => User)
   user: Promise<User>;
 
   @ManyToOne(
-    () => Club,
+    type => Club,
     club => club.members,
-    { nullable: false },
+    { nullable: false, onDelete: 'CASCADE' },
   )
   @Field(type => Club)
   club: Promise<Club>;

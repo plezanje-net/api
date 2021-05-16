@@ -5,11 +5,9 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   BaseEntity,
-  ManyToOne,
   OneToMany,
 } from 'typeorm';
 import { ObjectType, Field } from '@nestjs/graphql';
-import { User } from './user.entity';
 import { ClubMember } from './club-member.entity';
 
 @Entity()
@@ -36,8 +34,8 @@ export class Club extends BaseEntity {
   legacy: string;
 
   @OneToMany(
-    () => ClubMember,
-    member => member.club,
+    type => ClubMember,
+    clubMember => clubMember.club,
   )
   @Field(type => [ClubMember])
   members: ClubMember[];

@@ -46,6 +46,7 @@ import { ClubMember } from './users/entities/club-member.entity';
         username: configService.get('DB_USER'),
         password: configService.get('DB_PASSWORD'),
         database: configService.get('DB_NAME'),
+        // logging: true,
         entities: [
           Activity,
           ActivityRoute,

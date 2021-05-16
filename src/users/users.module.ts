@@ -11,6 +11,7 @@ import { ClubMember } from './entities/club-member.entity';
 import { ClubsService } from './services/clubs.service';
 import { ClubsResolver } from './resolvers/clubs.resolver';
 import { ClubMembersService } from './services/club-members.service';
+import { ClubMembersResolver } from './resolvers/club-members.resolver';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { ClubMembersService } from './services/club-members.service';
     ClubsService,
     ClubsResolver,
     ClubMembersService,
+    ClubMembersResolver,
   ],
   exports: [UsersService],
 })
