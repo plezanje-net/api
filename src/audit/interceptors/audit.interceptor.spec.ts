@@ -5,7 +5,7 @@ import { AuditService } from '../services/audit.service';
 
 describe('AuditInterceptor', () => {
   let interceptor: AuditInterceptor;
-  let auditServiceMock: MockType<AuditService>
+  let auditServiceMock: MockType<AuditService>;
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -15,7 +15,7 @@ describe('AuditInterceptor', () => {
     }).compile();
 
     interceptor = module.get<AuditInterceptor>(AuditInterceptor);
-    auditServiceMock = module.get(AuditService)
+    auditServiceMock = module.get(AuditService);
   });
   it('should be defined', () => {
     expect(interceptor).toBeDefined();

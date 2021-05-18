@@ -6,22 +6,25 @@ import { AuditService } from '../services/audit.service';
 
 describe('AuditSubscriber', () => {
   let subscriber: AuditSubscriber;
-  let auditServiceMock: MockType<AuditService>
+  let auditServiceMock: MockType<AuditService>;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         AuditSubscriber,
-        { provide: getConnectionToken(), useValue: {
-            subscribers: []
-        } },
+        {
+          provide: getConnectionToken(),
+          useValue: {
+            subscribers: [],
+          },
+        },
         { provide: AuditService, useFactory: serviceMockFactory },
       ],
     }).compile();
 
     subscriber = module.get<AuditSubscriber>(AuditSubscriber);
-    
-    auditServiceMock = module.get(AuditService)
+
+    auditServiceMock = module.get(AuditService);
   });
 
   it('should be defined', () => {

@@ -10,64 +10,65 @@ import { Crag } from '../entities/crag.entity';
 
 @Injectable()
 export class CommentsService {
-    constructor(
-        @InjectRepository(Comment)
-        private commentsRepository: Repository<Comment>,
-        @InjectRepository(Crag)
-        private cragRepository: Repository<Crag>
-    ) { }
+  constructor(
+    @InjectRepository(Comment)
+    private commentsRepository: Repository<Comment>,
+    @InjectRepository(Crag)
+    private cragRepository: Repository<Crag>,
+  ) {}
 
-    async findOneById(id: string): Promise<Comment> {
-        return this.commentsRepository.findOneOrFail(id);
+  async findOneById(id: string): Promise<Comment> {
+    return this.commentsRepository.findOneOrFail(id);
+  }
+
+  async create(data: CreateCommentInput, user: User): Promise<Comment> {
+    const comment = new Comment();
+
+    this.commentsRepository.merge(comment, data);
+
+    comment.user = Promise.resolve(user);
+
+    if (data.cragId != null) {
+      comment.crag = Promise.resolve(
+        await this.cragRepository.findOneOrFail(data.cragId),
+      );
     }
 
-    async create(data: CreateCommentInput, user: User): Promise<Comment> {
-        const comment = new Comment;
+    return this.commentsRepository.save(comment);
+  }
 
-        this.commentsRepository.merge(comment, data);
+  async update(data: UpdateCommentInput): Promise<Comment> {
+    const comment = await this.commentsRepository.findOneOrFail(data.id);
 
-        comment.user = Promise.resolve(user);
+    this.commentsRepository.merge(comment, data);
 
-        if (data.cragId != null) {
-            comment.crag = Promise.resolve(await this.cragRepository.findOneOrFail(data.cragId))
-        }
+    return this.commentsRepository.save(comment);
+  }
 
-        return this.commentsRepository.save(comment)
+  async delete(id: string): Promise<boolean> {
+    const comment = await this.commentsRepository.findOneOrFail(id);
+
+    return this.commentsRepository.remove(comment).then(() => true);
+  }
+
+  find(params: FindCommentsInput = {}): Promise<Comment[]> {
+    const options: FindManyOptions = {
+      order: {},
+      where: {},
+    };
+
+    if (params.routeId != null) {
+      options.where['route'] = params.routeId;
     }
 
-    async update(data: UpdateCommentInput): Promise<Comment> {
-        const comment = await this.commentsRepository.findOneOrFail(data.id);
-
-        this.commentsRepository.merge(comment, data);
-
-        return this.commentsRepository.save(comment)
+    if (params.cragId != null) {
+      options.where['crag'] = params.cragId;
     }
 
-    async delete(id: string): Promise<boolean> {
-        const comment = await this.commentsRepository.findOneOrFail(id);
-
-        return this.commentsRepository.remove(comment).then(() => true)
+    if (params.type != null) {
+      options.where['type'] = params.type;
     }
 
-    find(params: FindCommentsInput = {}): Promise<Comment[]> {
-
-        const options: FindManyOptions = {
-            order: {},
-            where: {}
-        };
-
-        if (params.routeId != null) {
-            options.where["route"] = params.routeId;
-        }
-
-        if (params.cragId != null) {
-            options.where["crag"] = params.cragId;
-        }
-
-        if (params.type != null) {
-            options.where["type"] = params.type;
-        }
-
-        return this.commentsRepository.find(options);
-    }
+    return this.commentsRepository.find(options);
+  }
 }

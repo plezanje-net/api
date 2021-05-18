@@ -1,5 +1,5 @@
-import { RequestUser } from "./request-user.interface";
+import { RequestUser } from './request-user.interface';
 
 export interface Request {
-    user: RequestUser;
+  user: RequestUser;
 }

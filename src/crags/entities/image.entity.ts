@@ -1,80 +1,111 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, BaseEntity, ManyToOne } from "typeorm";
-import { ObjectType, Field } from "@nestjs/graphql";
-import { Crag } from "src/crags/entities/crag.entity";
-import { Area } from "src/crags/entities/area.entity";
-import { Route } from "src/crags/entities/route.entity";
-import { Comment } from "src/crags/entities/comment.entity";
-import { Peak } from "./peak.entity";
-import { IceFall } from "./ice-fall.entity";
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
+  BaseEntity,
+  ManyToOne,
+} from 'typeorm';
+import { ObjectType, Field } from '@nestjs/graphql';
+import { Crag } from 'src/crags/entities/crag.entity';
+import { Area } from 'src/crags/entities/area.entity';
+import { Route } from 'src/crags/entities/route.entity';
+import { Comment } from 'src/crags/entities/comment.entity';
+import { Peak } from './peak.entity';
+import { IceFall } from './ice-fall.entity';
 
 export enum ImageType {
-    PHOTO = "photo",
-    SKETCH = "sketch",
-    MAP = "map",
-    PROFILE = "profile"
+  PHOTO = 'photo',
+  SKETCH = 'sketch',
+  MAP = 'map',
+  PROFILE = 'profile',
 }
 
 @Entity()
 @ObjectType()
 export class Image extends BaseEntity {
-    @PrimaryGeneratedColumn("uuid")
-    @Field()
-    id: string;
+  @PrimaryGeneratedColumn('uuid')
+  @Field()
+  id: string;
 
-    @Column({
-        type: "enum",
-        enum: ImageType,
-        default: ImageType.PHOTO
-    })
-    type: ImageType;
+  @Column({
+    type: 'enum',
+    enum: ImageType,
+    default: ImageType.PHOTO,
+  })
+  type: ImageType;
 
-    @Column({ nullable: true })
-    @Field({ nullable: true })
-    title: string;
+  @Column({ nullable: true })
+  @Field({ nullable: true })
+  title: string;
 
-    @Column({ nullable: true })
-    @Field({ nullable: true })
-    description: string;
+  @Column({ nullable: true })
+  @Field({ nullable: true })
+  description: string;
 
-    @Column()
-    @Field()
-    path: string;
+  @Column()
+  @Field()
+  path: string;
 
-    @Column()
-    @Field()
-    extension: string;
+  @Column()
+  @Field()
+  extension: string;
 
-    @CreateDateColumn()
-    created: Date;
+  @CreateDateColumn()
+  created: Date;
 
-    @UpdateDateColumn()
-    updated: Date;
+  @UpdateDateColumn()
+  updated: Date;
 
-    @Column({ nullable: true })
-    legacy: string;
+  @Column({ nullable: true })
+  legacy: string;
 
-    @ManyToOne(() => Area, area => area.images, { nullable: true })
-    @Field(() => Area, { nullable: true })
-    area: Promise<Area>;
+  @ManyToOne(
+    () => Area,
+    area => area.images,
+    { nullable: true },
+  )
+  @Field(() => Area, { nullable: true })
+  area: Promise<Area>;
 
-    @ManyToOne(() => Crag, crag => crag.images, { nullable: true })
-    @Field(() => Crag, { nullable: true })
-    crag: Promise<Crag>;
+  @ManyToOne(
+    () => Crag,
+    crag => crag.images,
+    { nullable: true },
+  )
+  @Field(() => Crag, { nullable: true })
+  crag: Promise<Crag>;
 
-    @ManyToOne(() => Route, route => route.images, { nullable: true })
-    @Field(() => Route, { nullable: true })
-    route: Promise<Route>;
+  @ManyToOne(
+    () => Route,
+    route => route.images,
+    { nullable: true },
+  )
+  @Field(() => Route, { nullable: true })
+  route: Promise<Route>;
 
-    @ManyToOne(() => IceFall, iceFall => iceFall.images, { nullable: true })
-    @Field(() => IceFall, { nullable: true })
-    iceFall: Promise<IceFall>;
+  @ManyToOne(
+    () => IceFall,
+    iceFall => iceFall.images,
+    { nullable: true },
+  )
+  @Field(() => IceFall, { nullable: true })
+  iceFall: Promise<IceFall>;
 
-    @ManyToOne(() => Comment, comment => comment.images, { nullable: true })
-    @Field(() => Comment, { nullable: true })
-    comment: Promise<Comment>;
+  @ManyToOne(
+    () => Comment,
+    comment => comment.images,
+    { nullable: true },
+  )
+  @Field(() => Comment, { nullable: true })
+  comment: Promise<Comment>;
 
-    @ManyToOne(() => Peak, peak => peak.images, { nullable: true })
-    @Field(() => Peak, { nullable: true })
-    peak: Promise<Peak>;
-
+  @ManyToOne(
+    () => Peak,
+    peak => peak.images,
+    { nullable: true },
+  )
+  @Field(() => Peak, { nullable: true })
+  peak: Promise<Peak>;
 }

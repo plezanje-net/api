@@ -11,7 +11,7 @@ export class GqlAuthGuard extends AuthGuard('jwt') {
   }
 
   // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-  handleRequest(_err: any, user: any): any { 
+  handleRequest(_err: any, user: any): any {
     if (user) return user;
     return null;
   }

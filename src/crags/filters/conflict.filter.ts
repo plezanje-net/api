@@ -5,6 +5,6 @@ import { QueryFailedError } from 'typeorm';
 @Catch(QueryFailedError)
 export class ConflictFilter implements GqlExceptionFilter {
   catch(): HttpException {
-    return new HttpException('duplicate_entity_field', HttpStatus.CONFLICT)
+    return new HttpException('duplicate_entity_field', HttpStatus.CONFLICT);
   }
 }

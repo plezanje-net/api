@@ -1,10 +1,10 @@
-import { InputType, Field } from "@nestjs/graphql";
+import { InputType, Field } from '@nestjs/graphql';
 
 @InputType()
 export class UpdateCommentInput {
-    @Field()
-    id: string;
-    
-    @Field()
-    content: string;
+  @Field()
+  id: string;
+
+  @Field()
+  content: string;
 }

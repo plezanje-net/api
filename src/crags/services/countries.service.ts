@@ -7,61 +7,61 @@ import { UpdateCountryInput } from '../dtos/update-country.input';
 import { FindCountriesInput } from '../dtos/find-countries.input';
 
 export interface CountryFindParams {
-    orderBy: any;
+  orderBy: any;
 }
 
 @Injectable()
 export class CountriesService {
-    constructor(
-        @InjectRepository(Country)
-        private countriesRepository: Repository<Country>
-    ) { }
+  constructor(
+    @InjectRepository(Country)
+    private countriesRepository: Repository<Country>,
+  ) {}
 
-    findOneBySlug(slug: string): Promise<Country> {
-        return this.countriesRepository.findOneOrFail({ slug: slug });
+  findOneBySlug(slug: string): Promise<Country> {
+    return this.countriesRepository.findOneOrFail({ slug: slug });
+  }
+
+  findOneById(id: string): Promise<Country> {
+    return this.countriesRepository.findOneOrFail(id);
+  }
+
+  find(params: FindCountriesInput = {}): Promise<Country[]> {
+    const options: FindManyOptions = {
+      order: {},
+      where: {},
+    };
+
+    if (params.orderBy != null) {
+      options.order[params.orderBy.field || 'name'] =
+        params.orderBy.direction || 'ASC';
     }
 
-    findOneById(id: string): Promise<Country> {
-        return this.countriesRepository.findOneOrFail(id);
+    if (params.hasCrags != null && params.hasCrags) {
+      options.where['nrCrags'] = MoreThan(0);
     }
 
-    find(params: FindCountriesInput = {}): Promise<Country[]> {
+    return this.countriesRepository.find(options);
+  }
 
-        const options: FindManyOptions = {
-            order: {},
-            where: {}
-        };
+  create(data: CreateCountryInput): Promise<Country> {
+    const country = new Country();
 
-        if (params.orderBy != null) {
-            options.order[params.orderBy.field || "name"] = params.orderBy.direction || "ASC";
-        }
+    this.countriesRepository.merge(country, data);
 
-        if (params.hasCrags != null && params.hasCrags) {
-            options.where["nrCrags"] = MoreThan(0)
-        }
+    return this.countriesRepository.save(country);
+  }
 
-        return this.countriesRepository.find(options);
-    }
+  async update(data: UpdateCountryInput): Promise<Country> {
+    const country = await this.countriesRepository.findOneOrFail(data.id);
 
-    create(data: CreateCountryInput): Promise<Country> {
-        const country = new Country
+    this.countriesRepository.merge(country, data);
 
-        this.countriesRepository.merge(country, data);
+    return this.countriesRepository.save(country);
+  }
 
-        return this.countriesRepository.save(country)
-    }
+  async delete(id: string): Promise<boolean> {
+    const country = await this.countriesRepository.findOneOrFail(id);
 
-    async update(data: UpdateCountryInput): Promise<Country> {
-        const country = await this.countriesRepository.findOneOrFail(data.id);
-
-        this.countriesRepository.merge(country, data);
-
-        return this.countriesRepository.save(country)
-    }
-
-    async delete(id: string): Promise<boolean> {
-        const country = await this.countriesRepository.findOneOrFail(id);
-
-        return this.countriesRepository.remove(country).then(() => true)
-    }
+    return this.countriesRepository.remove(country).then(() => true);
+  }
 }
