@@ -60,6 +60,7 @@ export class ActivityRoute extends BaseEntity {
     activity => activity.routes,
     { nullable: true },
   )
+  @Field(() => Activity, { nullable: true })
   activity: Promise<Activity>;
 
   @ManyToOne(() => Route, { nullable: true })

@@ -64,11 +64,11 @@ export class Activity extends BaseEntity {
   duration: number;
 
   @Column({ nullable: true })
-  @Field()
+  @Field({ nullable: true })
   notes: string;
 
   @Column({ nullable: true })
-  @Field()
+  @Field({ nullable: true })
   partners: string;
 
   @CreateDateColumn()
