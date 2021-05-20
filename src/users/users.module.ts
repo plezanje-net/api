@@ -10,8 +10,12 @@ import { Club } from './entities/club.entity';
 import { ClubMember } from './entities/club-member.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([User, Role, Club, ClubMember]), forwardRef(() => AuthModule), NotificationModule],
+  imports: [
+    TypeOrmModule.forFeature([User, Role, Club, ClubMember]),
+    forwardRef(() => AuthModule),
+    NotificationModule,
+  ],
   providers: [UsersService, UsersResolver],
-  exports: [UsersService]
+  exports: [UsersService],
 })
-export class UsersModule { }
+export class UsersModule {}

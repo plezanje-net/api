@@ -1,4 +1,10 @@
-import { Resolver, Mutation, Args, ResolveField, Parent } from '@nestjs/graphql';
+import {
+  Resolver,
+  Mutation,
+  Args,
+  ResolveField,
+  Parent,
+} from '@nestjs/graphql';
 import { Roles } from '../../auth/decorators/roles.decorator';
 import { UseInterceptors, UseFilters } from '@nestjs/common';
 import { AuditInterceptor } from '../../audit/interceptors/audit.interceptor';
@@ -12,38 +18,41 @@ import { Route } from '../entities/route.entity';
 
 @Resolver(() => Sector)
 export class SectorsResolver {
+  constructor(
+    private sectorsService: SectorsService,
+    private routesService: RoutesService,
+  ) {}
 
-    constructor(
-        private sectorsService: SectorsService,
-        private routesService: RoutesService
-    ) { }
+  @Mutation(() => Sector)
+  @Roles('admin')
+  @UseInterceptors(AuditInterceptor)
+  @UseFilters(NotFoundFilter)
+  async createSector(
+    @Args('input', { type: () => CreateSectorInput }) input: CreateSectorInput,
+  ): Promise<Sector> {
+    return this.sectorsService.create(input);
+  }
 
-    @Mutation(() => Sector)
-    @Roles('admin')
-    @UseInterceptors(AuditInterceptor)
-    @UseFilters(NotFoundFilter)
-    async createSector(@Args('input', { type: () => CreateSectorInput }) input: CreateSectorInput): Promise<Sector> {
-        return this.sectorsService.create(input);
-    }
+  @Mutation(() => Sector)
+  @Roles('admin')
+  @UseInterceptors(AuditInterceptor)
+  @UseFilters(NotFoundFilter)
+  async updateSector(
+    @Args('input', { type: () => UpdateSectorInput }) input: UpdateSectorInput,
+  ): Promise<Sector> {
+    return this.sectorsService.update(input);
+  }
 
-    @Mutation(() => Sector)
-    @Roles('admin')
-    @UseInterceptors(AuditInterceptor)
-    @UseFilters(NotFoundFilter)
-    async updateSector(@Args('input', { type: () => UpdateSectorInput }) input: UpdateSectorInput): Promise<Sector> {
-        return this.sectorsService.update(input)
-    }
+  @Mutation(() => Boolean)
+  @Roles('admin')
+  @UseInterceptors(AuditInterceptor)
+  @UseFilters(NotFoundFilter)
+  async deleteSector(@Args('id') id: string): Promise<boolean> {
+    return this.sectorsService.delete(id);
+  }
 
-    @Mutation(() => Boolean)
-    @Roles('admin')
-    @UseInterceptors(AuditInterceptor)
-    @UseFilters(NotFoundFilter)
-    async deleteSector(@Args('id') id: string): Promise<boolean> {
-        return this.sectorsService.delete(id)
-    }
-
-    @ResolveField('routes', () => [Route])
-    async getSectors(@Parent() sector: Sector): Promise<Route[]> {
-        return this.routesService.findBySector(sector.id);
-    }
+  @ResolveField('routes', () => [Route])
+  async getSectors(@Parent() sector: Sector): Promise<Route[]> {
+    return this.routesService.findBySector(sector.id);
+  }
 }

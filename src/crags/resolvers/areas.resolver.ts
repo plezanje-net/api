@@ -9,30 +9,30 @@ import { AreasService } from '../services/areas.service';
 
 @Resolver(() => Area)
 export class AreasResolver {
-    constructor(
-        private areasService: AreasService
-    ) { }
+  constructor(private areasService: AreasService) {}
 
-    @Roles('admin')
-    @UseInterceptors(AuditInterceptor)
-    @Mutation(() => Area)
-    async createArea(@Args('input', { type: () => CreateAreaInput }) input: CreateAreaInput): Promise<Area> {
-        return this.areasService.create(input);
-    }
+  @Roles('admin')
+  @UseInterceptors(AuditInterceptor)
+  @Mutation(() => Area)
+  async createArea(
+    @Args('input', { type: () => CreateAreaInput }) input: CreateAreaInput,
+  ): Promise<Area> {
+    return this.areasService.create(input);
+  }
 
-    @Roles('admin')
-    @UseInterceptors(AuditInterceptor)
-    @Mutation(() => Area)
-    async updateArea(@Args('input', { type: () => UpdateAreaInput }) input: UpdateAreaInput): Promise<Area> {
-        return this.areasService.update(input);
-    }
+  @Roles('admin')
+  @UseInterceptors(AuditInterceptor)
+  @Mutation(() => Area)
+  async updateArea(
+    @Args('input', { type: () => UpdateAreaInput }) input: UpdateAreaInput,
+  ): Promise<Area> {
+    return this.areasService.update(input);
+  }
 
-    @Roles('admin')
-    @UseInterceptors(AuditInterceptor)
-    @Mutation(() => Boolean)
-    async deleteArea(@Args('id') id: string): Promise<boolean> {
-        return this.areasService.delete(id)
-    }
-
-
+  @Roles('admin')
+  @UseInterceptors(AuditInterceptor)
+  @Mutation(() => Boolean)
+  async deleteArea(@Args('id') id: string): Promise<boolean> {
+    return this.areasService.delete(id);
+  }
 }

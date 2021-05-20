@@ -4,8 +4,8 @@ import { NotificationService } from './services/notification.service';
 import { MailService } from './services/mail.service';
 
 @Module({
-    imports: [ConfigModule],
-    providers: [NotificationService, MailService, ConfigService],
-    exports: [NotificationService]
+  imports: [ConfigModule],
+  providers: [NotificationService, MailService, ConfigService],
+  exports: [NotificationService],
 })
-export class NotificationModule { }
+export class NotificationModule {}

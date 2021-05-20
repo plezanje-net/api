@@ -1,4 +1,11 @@
-import { Resolver, Mutation, Args, Query, ResolveField, Parent } from '@nestjs/graphql';
+import {
+  Resolver,
+  Mutation,
+  Args,
+  Query,
+  ResolveField,
+  Parent,
+} from '@nestjs/graphql';
 import { Route } from '../entities/route.entity';
 import { Roles } from '../../auth/decorators/roles.decorator';
 import { UseInterceptors, UseFilters } from '@nestjs/common';
@@ -12,53 +19,66 @@ import { Comment, CommentType } from '../entities/comment.entity';
 
 @Resolver(() => Route)
 export class RoutesResolver {
-    constructor(
-        private routesService: RoutesService,
-        private commentsService: CommentsService
-    ) { }
+  constructor(
+    private routesService: RoutesService,
+    private commentsService: CommentsService,
+  ) {}
 
-    @Mutation(() => Route)
-    @Roles('admin')
-    @UseInterceptors(AuditInterceptor)
-    @UseFilters(NotFoundFilter)
-    async createRoute(@Args('input', { type: () => CreateRouteInput }) input: CreateRouteInput): Promise<Route> {
-        return this.routesService.create(input);
-    }
+  @Mutation(() => Route)
+  @Roles('admin')
+  @UseInterceptors(AuditInterceptor)
+  @UseFilters(NotFoundFilter)
+  async createRoute(
+    @Args('input', { type: () => CreateRouteInput }) input: CreateRouteInput,
+  ): Promise<Route> {
+    return this.routesService.create(input);
+  }
 
-    @Mutation(() => Route)
-    @Roles('admin')
-    @UseInterceptors(AuditInterceptor)
-    @UseFilters(NotFoundFilter)
-    async updateRoute(@Args('input', { type: () => UpdateRouteInput }) input: UpdateRouteInput): Promise<Route> {
-        return this.routesService.update(input)
-    }
+  @Mutation(() => Route)
+  @Roles('admin')
+  @UseInterceptors(AuditInterceptor)
+  @UseFilters(NotFoundFilter)
+  async updateRoute(
+    @Args('input', { type: () => UpdateRouteInput }) input: UpdateRouteInput,
+  ): Promise<Route> {
+    return this.routesService.update(input);
+  }
 
-    @Mutation(() => Boolean)
-    @Roles('admin')
-    @UseInterceptors(AuditInterceptor)
-    @UseFilters(NotFoundFilter)
-    async deleteRoute(@Args('id') id: string): Promise<boolean> {
-        return this.routesService.delete(id)
-    }
+  @Mutation(() => Boolean)
+  @Roles('admin')
+  @UseInterceptors(AuditInterceptor)
+  @UseFilters(NotFoundFilter)
+  async deleteRoute(@Args('id') id: string): Promise<boolean> {
+    return this.routesService.delete(id);
+  }
 
-    @Query(() => Route)
-    @UseFilters(NotFoundFilter)
-    async route(@Args('id') id: string): Promise<Route> {
-        return this.routesService.findOneById(id);
-    }
+  @Query(() => Route)
+  @UseFilters(NotFoundFilter)
+  async route(@Args('id') id: string): Promise<Route> {
+    return this.routesService.findOneById(id);
+  }
 
-    @ResolveField('warnings', () => [Comment])
-    async getWarnings(@Parent() route: Route): Promise<Comment[]> {
-        return this.commentsService.find({ routeId: route.id, type: CommentType.WARNING });
-    }
+  @ResolveField('warnings', () => [Comment])
+  async getWarnings(@Parent() route: Route): Promise<Comment[]> {
+    return this.commentsService.find({
+      routeId: route.id,
+      type: CommentType.WARNING,
+    });
+  }
 
-    @ResolveField('conditions', () => [Comment])
-    async getConditions(@Parent() route: Route): Promise<Comment[]> {
-        return this.commentsService.find({ routeId: route.id, type: CommentType.CONDITION });
-    }
+  @ResolveField('conditions', () => [Comment])
+  async getConditions(@Parent() route: Route): Promise<Comment[]> {
+    return this.commentsService.find({
+      routeId: route.id,
+      type: CommentType.CONDITION,
+    });
+  }
 
-    @ResolveField('comments', () => [Comment])
-    async getComments(@Parent() route: Route): Promise<Comment[]> {
-        return this.commentsService.find({ routeId: route.id, type: CommentType.COMMENT });
-    }
+  @ResolveField('comments', () => [Comment])
+  async getComments(@Parent() route: Route): Promise<Comment[]> {
+    return this.commentsService.find({
+      routeId: route.id,
+      type: CommentType.COMMENT,
+    });
+  }
 }

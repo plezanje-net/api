@@ -1,55 +1,79 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, BaseEntity, OneToMany } from "typeorm";
-import { ObjectType, Field, Int } from "@nestjs/graphql";
-import { Crag } from "../../crags/entities/crag.entity";
-import { Area } from "./area.entity";
-import { Peak } from "./peak.entity";
-import { IceFall } from "./ice-fall.entity";
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
+  BaseEntity,
+  OneToMany,
+} from 'typeorm';
+import { ObjectType, Field, Int } from '@nestjs/graphql';
+import { Crag } from '../../crags/entities/crag.entity';
+import { Area } from './area.entity';
+import { Peak } from './peak.entity';
+import { IceFall } from './ice-fall.entity';
 
 @Entity()
 @ObjectType()
 export class Country extends BaseEntity {
-    @PrimaryGeneratedColumn("uuid")
-    @Field()
-    id: string;
+  @PrimaryGeneratedColumn('uuid')
+  @Field()
+  id: string;
 
-    @Column({ unique: true })
-    @Field()
-    code: string;
+  @Column({ unique: true })
+  @Field()
+  code: string;
 
-    @Column()
-    @Field()
-    name: string;
+  @Column()
+  @Field()
+  name: string;
 
-    @Column({ unique: true })
-    @Field()
-    slug: string;
+  @Column({ unique: true })
+  @Field()
+  slug: string;
 
-    @CreateDateColumn()
-    created: Date;
+  @CreateDateColumn()
+  created: Date;
 
-    @UpdateDateColumn()
-    updated: Date;
+  @UpdateDateColumn()
+  updated: Date;
 
-    @Column({ nullable: true })
-    legacy: string;
+  @Column({ nullable: true })
+  legacy: string;
 
-    @OneToMany(() => Crag, crag => crag.country, { nullable: true })
-    @Field(() => [Crag])
-    crags: Promise<Crag[]>;
+  @OneToMany(
+    () => Crag,
+    crag => crag.country,
+    { nullable: true },
+  )
+  @Field(() => [Crag])
+  crags: Promise<Crag[]>;
 
-    @OneToMany(() => Area, area => area.country, { nullable: true })
-    @Field(() => [Area])
-    areas: Promise<Area[]>;
+  @OneToMany(
+    () => Area,
+    area => area.country,
+    { nullable: true },
+  )
+  @Field(() => [Area])
+  areas: Promise<Area[]>;
 
-    @OneToMany(() => Peak, peak => peak.country, { nullable: true })
-    @Field(() => [Peak])
-    peaks: Promise<Peak[]>;
+  @OneToMany(
+    () => Peak,
+    peak => peak.country,
+    { nullable: true },
+  )
+  @Field(() => [Peak])
+  peaks: Promise<Peak[]>;
 
-    @OneToMany(() => IceFall, iceFall => iceFall.country, { nullable: true })
-    @Field(() => [IceFall])
-    iceFalls: Promise<IceFall[]>;
+  @OneToMany(
+    () => IceFall,
+    iceFall => iceFall.country,
+    { nullable: true },
+  )
+  @Field(() => [IceFall])
+  iceFalls: Promise<IceFall[]>;
 
-    @Column({ default: 0 })
-    @Field(() => Int)
-    nrCrags: number;
+  @Column({ default: 0 })
+  @Field(() => Int)
+  nrCrags: number;
 }

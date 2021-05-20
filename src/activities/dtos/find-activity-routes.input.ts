@@ -11,6 +11,14 @@ export class FindActivityRoutesInput {
 
   @Field({ nullable: true })
   @IsOptional()
+  cragId?: string;
+
+  @Field({ nullable: true })
+  @IsOptional()
+  routeId?: string;
+
+  @Field({ nullable: true })
+  @IsOptional()
   dateFrom?: Date;
 
   @Field({ nullable: true })

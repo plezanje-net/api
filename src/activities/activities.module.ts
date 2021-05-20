@@ -13,9 +13,15 @@ import { ActivityRoutesResolver } from './resolvers/activity-routes.resolver';
 import { ActivityRoutesService } from './services/activity-routes.service';
 
 @Module({
-    imports: [TypeOrmModule.forFeature([Activity, ActivityRoute, Crag, Route, Pitch]), AuditModule],
-    providers: [ActivitiesResolver, ActivitiesService, ActivityRoutesResolver, ActivityRoutesService],
+  imports: [
+    TypeOrmModule.forFeature([Activity, ActivityRoute, Crag, Route, Pitch]),
+    AuditModule,
+  ],
+  providers: [
+    ActivitiesResolver,
+    ActivitiesService,
+    ActivityRoutesResolver,
+    ActivityRoutesService,
+  ],
 })
-export class ActivitiesModule {
-
-}
+export class ActivitiesModule {}

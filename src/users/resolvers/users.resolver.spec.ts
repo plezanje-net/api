@@ -6,8 +6,8 @@ import { MockType, serviceMockFactory } from '../../../test/unit/helpers';
 
 describe('UsersResolver', () => {
   let resolver: UsersResolver;
-  let usersServiceMock: MockType<UsersService>
-  let authServiceMock: MockType<AuthService>
+  let usersServiceMock: MockType<UsersService>;
+  let authServiceMock: MockType<AuthService>;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -19,9 +19,9 @@ describe('UsersResolver', () => {
     }).compile();
 
     resolver = module.get<UsersResolver>(UsersResolver);
-    
-    usersServiceMock = module.get(UsersService)
-    authServiceMock = module.get(AuthService)
+
+    usersServiceMock = module.get(UsersService);
+    authServiceMock = module.get(AuthService);
   });
 
   it('should be defined', () => {

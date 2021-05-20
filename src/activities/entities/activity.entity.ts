@@ -32,15 +32,15 @@ export class Activity extends BaseEntity {
   id: string;
 
   @ManyToOne(() => Crag, { nullable: true })
-  @Field(() => Crag)
+  @Field(() => Crag, { nullable: true })
   crag: Promise<Crag>;
 
   @ManyToOne(() => IceFall, { nullable: true })
-  @Field(() => IceFall)
+  @Field(() => IceFall, { nullable: true })
   iceFall: Promise<IceFall>;
 
   @ManyToOne(() => Peak, { nullable: true })
-  @Field(() => Peak)
+  @Field(() => Peak, { nullable: true })
   peak: Promise<Peak>;
 
   @Column({
@@ -64,11 +64,11 @@ export class Activity extends BaseEntity {
   duration: number;
 
   @Column({ nullable: true })
-  @Field()
+  @Field({ nullable: true })
   notes: string;
 
   @Column({ nullable: true })
-  @Field()
+  @Field({ nullable: true })
   partners: string;
 
   @CreateDateColumn()

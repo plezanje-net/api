@@ -18,12 +18,14 @@ export enum AscentType {
   ONSIGHT = 'onsight',
   FLASH = 'flash',
   REDPOINT = 'redpoint',
+  REPEAT = 'repeat',
   ALLFREE = 'allfree',
   AID = 'aid',
   ATTEMPT = 'attempt',
   T_ONSIGHT = 't_onsight',
   T_FLASH = 't_flash',
   T_REDPOINT = 't_redpoint',
+  T_REPEAT = 't_repeat',
   T_ALLFREE = 't_allfree',
   T_AID = 't_aid',
   T_ATTEMPT = 't_attempt',
@@ -58,6 +60,7 @@ export class ActivityRoute extends BaseEntity {
     activity => activity.routes,
     { nullable: true },
   )
+  @Field(() => Activity, { nullable: true })
   activity: Promise<Activity>;
 
   @ManyToOne(() => Route, { nullable: true })

@@ -1,6 +1,6 @@
-import { PaginationMeta } from "../utils/pagination-meta.class";
+import { PaginationMeta } from '../utils/pagination-meta.class';
 
 export interface Pagination<PaginationObject> {
-    items: PaginationObject[];
-    meta: PaginationMeta;
+  items: PaginationObject[];
+  meta: PaginationMeta;
 }
