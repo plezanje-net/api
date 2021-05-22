@@ -1,6 +1,5 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { Resolver } from 'dns';
 import { AuditModule } from 'src/audit/audit.module';
 import { Crag } from 'src/crags/entities/crag.entity';
 import { Pitch } from 'src/crags/entities/pitch.entity';
@@ -13,9 +12,15 @@ import { ActivityRoutesResolver } from './resolvers/activity-routes.resolver';
 import { ActivityRoutesService } from './services/activity-routes.service';
 
 @Module({
-    imports: [TypeOrmModule.forFeature([Activity, ActivityRoute, Crag, Route, Pitch]), AuditModule],
-    providers: [ActivitiesResolver, ActivitiesService, ActivityRoutesResolver, ActivityRoutesService],
+  imports: [
+    TypeOrmModule.forFeature([Activity, ActivityRoute, Crag, Route, Pitch]),
+    AuditModule,
+  ],
+  providers: [
+    ActivitiesResolver,
+    ActivitiesService,
+    ActivityRoutesResolver,
+    ActivityRoutesService,
+  ],
 })
-export class ActivitiesModule {
-
-}
+export class ActivitiesModule {}

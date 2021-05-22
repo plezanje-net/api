@@ -18,7 +18,15 @@ export class ActivityRoutesResolver {
     @Args('input', { nullable: true }) input: FindActivityRoutesInput = {},
   ): Promise<PaginatedActivityRoutes> {
     input.userId = user.id;
-
     return this.activityRoutesService.paginate(input);
+  }
+
+  // TODO: add clubId to input?
+  @Query(returns => PaginatedActivityRoutes)
+  activityRoutesByClub(
+    @Args('clubId') clubId: string,
+    @Args('input', { nullable: true }) input: FindActivityRoutesInput = {},
+  ): Promise<PaginatedActivityRoutes> {
+    return this.activityRoutesService.finbByClub(clubId, input);
   }
 }

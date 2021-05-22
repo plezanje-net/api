@@ -3,17 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { PaginationMeta } from 'src/core/utils/pagination-meta.class';
 import { Route } from 'src/crags/entities/route.entity';
 import { User } from 'src/users/entities/user.entity';
-import {
-  FindManyOptions,
-  In,
-  IsNull,
-  JoinOptions,
-  LessThan,
-  MoreThan,
-  Not,
-  Repository,
-  SelectQueryBuilder,
-} from 'typeorm';
+import { Repository, SelectQueryBuilder } from 'typeorm';
 import { CreateActivityRouteInput } from '../dtos/create-activity-route.input';
 import { FindActivityRoutesInput } from '../dtos/find-activity-routes.input';
 import { ActivityRoute } from '../entities/activity-route.entity';
@@ -51,6 +41,36 @@ export class ActivityRoutesService {
     }
 
     return this.activityRoutesRepository.save(activityRoute);
+  }
+
+  // TODO: DRY
+  async finbByClub(
+    clubId: string,
+    params: FindActivityRoutesInput = {},
+  ): Promise<PaginatedActivityRoutes> {
+    const query = this.buildQuery(params);
+    query
+      .leftJoinAndSelect('ar.user', 'user')
+      .leftJoinAndSelect('user.clubs', 'clubMember')
+      .leftJoinAndSelect('clubMember.club', 'club')
+      .andWhere('"club"."id" = :clubId', { clubId });
+
+    const itemCount = await query.getCount();
+
+    const pagination = new PaginationMeta(
+      itemCount,
+      params.pageNumber,
+      params.pageSize,
+    );
+
+    query
+      .skip(pagination.pageSize * (pagination.pageNumber - 1))
+      .take(pagination.pageSize);
+
+    return Promise.resolve({
+      items: await query.getMany(),
+      meta: pagination,
+    });
   }
 
   async paginate(

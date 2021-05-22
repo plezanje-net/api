@@ -44,4 +44,8 @@ export class FindActivityRoutesInput {
   @Field(() => Int, { nullable: true })
   @IsOptional()
   pageSize?: number;
+
+  @Field(() => String, { nullable: true })
+  @IsOptional()
+  clubId?: string;
 }

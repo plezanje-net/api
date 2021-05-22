@@ -52,7 +52,13 @@ export class UsersResolver {
 
   // TODO: auth?
   @Query(returns => User)
-  async user(@Args('email') email: string): Promise<User> {
+  async user(
+    @Args('email') email: string,
+    @Args('id', { nullable: true }) id: string,
+  ): Promise<User> {
+    if (id) {
+      return this.usersService.findOneById(id);
+    }
     return this.usersService.findOneByEmail(email);
   }
 
