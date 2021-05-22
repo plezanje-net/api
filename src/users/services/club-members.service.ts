@@ -21,6 +21,12 @@ export class ClubMembersService {
     return this.clubMembersRepository.find({ where: { club: clubId } });
   }
 
+  async nrMembersByClub(clubId: string): Promise<number> {
+    return this.clubMembersRepository.count({
+      where: { club: clubId },
+    });
+  }
+
   async findByUser(userId: string): Promise<ClubMember[]> {
     return this.clubMembersRepository.find({ where: { user: userId } });
   }

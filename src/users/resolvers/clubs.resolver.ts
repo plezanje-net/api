@@ -47,6 +47,11 @@ export class ClubsResolver {
     return this.clubMembersService.findByClub(club.id);
   }
 
+  @ResolveField('nrMembers', returns => Number)
+  async getNumberOfClubMembers(@Parent() club: Club) {
+    return this.clubMembersService.nrMembersByClub(club.id);
+  }
+
   @Roles('admin')
   @Mutation(returns => Club)
   async createClub(

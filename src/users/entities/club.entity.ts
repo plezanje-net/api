@@ -39,4 +39,7 @@ export class Club extends BaseEntity {
   )
   @Field(type => [ClubMember])
   members: ClubMember[];
+
+  @Field({ nullable: true })
+  nrMembers: number;
 }
