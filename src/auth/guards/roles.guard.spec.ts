@@ -5,7 +5,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 
 describe('RolesGuard', () => {
   let guard: RolesGuard;
-  let reflectorMock: MockType<Reflector>
+  let reflectorMock: MockType<Reflector>;
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -15,7 +15,7 @@ describe('RolesGuard', () => {
     }).compile();
 
     guard = module.get<RolesGuard>(RolesGuard);
-    reflectorMock = module.get(Reflector)
+    reflectorMock = module.get(Reflector);
   });
   it('should be defined', () => {
     expect(guard).toBeDefined();

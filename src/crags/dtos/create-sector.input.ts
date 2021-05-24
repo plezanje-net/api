@@ -1,21 +1,21 @@
-import { InputType, Field } from "@nestjs/graphql";
-import { IsUUID } from "class-validator";
+import { InputType, Field } from '@nestjs/graphql';
+import { IsUUID } from 'class-validator';
 
 @InputType()
 export class CreateSectorInput {
-    @Field()
-    name: string;
+  @Field()
+  name: string;
 
-    @Field()
-    label: string;
+  @Field()
+  label: string;
 
-    @Field()
-    position: number;
+  @Field()
+  position: number;
 
-    @Field()
-    status: number;
+  @Field()
+  status: number;
 
-    @IsUUID()
-    @Field()
-    cragId: string;
+  @IsUUID()
+  @Field()
+  cragId: string;
 }

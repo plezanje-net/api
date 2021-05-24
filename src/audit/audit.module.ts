@@ -7,8 +7,8 @@ import { AuthModule } from '../auth/auth.module';
 import { AuditInterceptor } from './interceptors/audit.interceptor';
 
 @Module({
-    imports: [TypeOrmModule.forFeature([Audit]), forwardRef(() => AuthModule)],
-    providers: [AuditService, AuditSubscriber, AuditInterceptor],
-    exports: [AuditService]
+  imports: [TypeOrmModule.forFeature([Audit]), forwardRef(() => AuthModule)],
+  providers: [AuditService, AuditSubscriber, AuditInterceptor],
+  exports: [AuditService],
 })
-export class AuditModule { }
+export class AuditModule {}

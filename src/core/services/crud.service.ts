@@ -1,3 +1,1 @@
-export class CrudService {
-
-}
+export class CrudService {}

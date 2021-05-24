@@ -9,6 +9,8 @@ import {
 } from 'typeorm';
 import { ObjectType, Field } from '@nestjs/graphql';
 import { Role } from './role.entity';
+import { Image } from 'src/crags/entities/image.entity';
+import { Club } from './club.entity';
 import { ClubMember } from './club-member.entity';
 
 @Entity()

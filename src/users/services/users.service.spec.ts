@@ -8,20 +8,27 @@ import { Role } from '../entities/role.entity';
 
 describe('UsersService', () => {
   let service: UsersService;
-  let usersRepositoryMock: MockType<Repository<User>>
-  let rolesRepositoryMock: MockType<Repository<Role>>
+  let usersRepositoryMock: MockType<Repository<User>>;
+  let rolesRepositoryMock: MockType<Repository<Role>>;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         UsersService,
-        { provide: getRepositoryToken(User), useFactory: repositoryMockFactory },
-        { provide: getRepositoryToken(Role), useFactory: repositoryMockFactory },],
+        {
+          provide: getRepositoryToken(User),
+          useFactory: repositoryMockFactory,
+        },
+        {
+          provide: getRepositoryToken(Role),
+          useFactory: repositoryMockFactory,
+        },
+      ],
     }).compile();
 
     service = module.get<UsersService>(UsersService);
-    usersRepositoryMock = module.get(getRepositoryToken(User))
-    rolesRepositoryMock = module.get(getRepositoryToken(Role))
+    usersRepositoryMock = module.get(getRepositoryToken(User));
+    rolesRepositoryMock = module.get(getRepositoryToken(Role));
   });
 
   it('should be defined', () => {

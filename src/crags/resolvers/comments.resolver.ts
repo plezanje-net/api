@@ -11,38 +11,51 @@ import { UpdateCommentInput } from '../dtos/update-comment';
 
 @Resolver(() => Comment)
 export class CommentsResolver {
-    constructor(private commentsService: CommentsService, private cragsService: CragsService) {}
+  constructor(
+    private commentsService: CommentsService,
+    private cragsService: CragsService,
+  ) {}
 
-    @Mutation(() => Comment)
-    @UseGuards(GqlAuthGuard)
-    async createComment(@CurrentUser() user: User, @Args('input', { type: () => CreateCommentInput }) input: CreateCommentInput): Promise<Comment> {
-        return this.commentsService.create(input, user);
+  @Mutation(() => Comment)
+  @UseGuards(GqlAuthGuard)
+  async createComment(
+    @CurrentUser() user: User,
+    @Args('input', { type: () => CreateCommentInput })
+    input: CreateCommentInput,
+  ): Promise<Comment> {
+    return this.commentsService.create(input, user);
+  }
+
+  @UseGuards(GqlAuthGuard)
+  @Mutation(() => Comment)
+  async updateComment(
+    @CurrentUser() user: User,
+    @Args('input', { type: () => UpdateCommentInput })
+    input: UpdateCommentInput,
+  ): Promise<Comment> {
+    const comment = await this.commentsService.findOneById(input.id);
+    const author = await comment.user;
+
+    if (user.id == author.id) {
+      return this.commentsService.update(input);
     }
 
-    @UseGuards(GqlAuthGuard)
-    @Mutation(() => Comment)
-    async updateComment(@CurrentUser() user: User, @Args('input', { type: () => UpdateCommentInput }) input: UpdateCommentInput): Promise<Comment> {
-        
-        const comment = await this.commentsService.findOneById(input.id);
-        const author = await comment.user;
+    throw new UnauthorizedException('comment_author_mismatch');
+  }
 
-        if (user.id == author.id) {
-            return this.commentsService.update(input);
-        }
+  @UseGuards(GqlAuthGuard)
+  @Mutation(() => Boolean)
+  async deleteComment(
+    @CurrentUser() user: User,
+    @Args('id') id: string,
+  ): Promise<boolean> {
+    const comment = await this.commentsService.findOneById(id);
+    const author = await comment.user;
 
-        throw new UnauthorizedException("comment_author_mismatch");
+    if (user.id == author.id) {
+      return this.commentsService.delete(id);
     }
 
-    @UseGuards(GqlAuthGuard)
-    @Mutation(() => Boolean)
-    async deleteComment(@CurrentUser() user: User, @Args('id') id: string): Promise<boolean> {
-        const comment = await this.commentsService.findOneById(id);
-        const author = await comment.user;
-
-        if (user.id == author.id) {
-            return this.commentsService.delete(id)
-        }
-
-        throw new UnauthorizedException("comment_author_mismatch");
-    }
+    throw new UnauthorizedException('comment_author_mismatch');
+  }
 }

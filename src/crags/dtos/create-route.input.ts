@@ -1,24 +1,24 @@
-import { InputType, Field } from "@nestjs/graphql";
-import { IsUUID } from "class-validator";
+import { InputType, Field } from '@nestjs/graphql';
+import { IsUUID } from 'class-validator';
 
 @InputType()
 export class CreateRouteInput {
-    @Field()
-    name: string;
+  @Field()
+  name: string;
 
-    @Field()
-    length: string;
+  @Field()
+  length: string;
 
-    @Field()
-    author: string;
+  @Field()
+  author: string;
 
-    @Field()
-    position: number;
+  @Field()
+  position: number;
 
-    @Field()
-    status: number;
+  @Field()
+  status: number;
 
-    @IsUUID()
-    @Field()
-    sectorId: string;
+  @IsUUID()
+  @Field()
+  sectorId: string;
 }

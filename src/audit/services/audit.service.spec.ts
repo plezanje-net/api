@@ -7,19 +7,22 @@ import { Repository } from 'typeorm';
 
 describe('AuditService', () => {
   let service: AuditService;
-  let auditRepositoryMock: MockType<Repository<Audit>>
+  let auditRepositoryMock: MockType<Repository<Audit>>;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         AuditService,
-        { provide: getRepositoryToken(Audit), useFactory: repositoryMockFactory },
+        {
+          provide: getRepositoryToken(Audit),
+          useFactory: repositoryMockFactory,
+        },
       ],
     }).compile();
 
     service = module.get<AuditService>(AuditService);
-    
-    auditRepositoryMock = module.get(getRepositoryToken(Audit))
+
+    auditRepositoryMock = module.get(getRepositoryToken(Audit));
   });
 
   it('should be defined', () => {

@@ -8,38 +8,43 @@ import { Crag } from '../entities/crag.entity';
 
 @Injectable()
 export class SectorsService {
-    constructor(
-        @InjectRepository(Sector)
-        private sectorsRepository: Repository<Sector>,
-        @InjectRepository(Crag)
-        private cragsRepository: Repository<Crag>,
-    ) { }
+  constructor(
+    @InjectRepository(Sector)
+    private sectorsRepository: Repository<Sector>,
+    @InjectRepository(Crag)
+    private cragsRepository: Repository<Crag>,
+  ) {}
 
-    async findByCrag(cragId: string): Promise<Sector[]> {
-        return this.sectorsRepository.find({ where: { crag: cragId }, order: { position: 'ASC' } });
-    }
+  async findByCrag(cragId: string): Promise<Sector[]> {
+    return this.sectorsRepository.find({
+      where: { crag: cragId },
+      order: { position: 'ASC' },
+    });
+  }
 
-    async create(data: CreateSectorInput): Promise<Sector> {
-        const sector = new Sector();
+  async create(data: CreateSectorInput): Promise<Sector> {
+    const sector = new Sector();
 
-        this.sectorsRepository.merge(sector, data);
+    this.sectorsRepository.merge(sector, data);
 
-        sector.crag = Promise.resolve(await this.cragsRepository.findOneOrFail(data.cragId));
+    sector.crag = Promise.resolve(
+      await this.cragsRepository.findOneOrFail(data.cragId),
+    );
 
-        return this.sectorsRepository.save(sector)
-    }
+    return this.sectorsRepository.save(sector);
+  }
 
-    async update(data: UpdateSectorInput): Promise<Sector> {
-        const sector = await this.sectorsRepository.findOneOrFail(data.id);
+  async update(data: UpdateSectorInput): Promise<Sector> {
+    const sector = await this.sectorsRepository.findOneOrFail(data.id);
 
-        this.sectorsRepository.merge(sector, data);
+    this.sectorsRepository.merge(sector, data);
 
-        return this.sectorsRepository.save(sector)
-    }
+    return this.sectorsRepository.save(sector);
+  }
 
-    async delete(id: string): Promise<boolean> {
-        const sector = await this.sectorsRepository.findOneOrFail(id);
+  async delete(id: string): Promise<boolean> {
+    const sector = await this.sectorsRepository.findOneOrFail(id);
 
-        return this.sectorsRepository.remove(sector).then(() => true)
-    }
+    return this.sectorsRepository.remove(sector).then(() => true);
+  }
 }

@@ -1,25 +1,25 @@
-import { InputType, Field } from "@nestjs/graphql";
+import { InputType, Field } from '@nestjs/graphql';
 
 @InputType()
 export class CreateCragInput {
-    @Field()
-    name: string;
+  @Field()
+  name: string;
 
-    @Field()
-    slug: string;
+  @Field()
+  slug: string;
 
-    @Field()
-    status: number;
+  @Field()
+  status: number;
 
-    @Field()
-    lat: number;
+  @Field()
+  lat: number;
 
-    @Field()
-    lon: number;
+  @Field()
+  lon: number;
 
-    @Field()
-    countryId: string;
+  @Field()
+  countryId: string;
 
-    @Field({ nullable: true })
-    areaId: string;
+  @Field({ nullable: true })
+  areaId: string;
 }
