@@ -2,6 +2,7 @@ import { UseGuards } from '@nestjs/common';
 import { Args, Mutation, Resolver } from '@nestjs/graphql';
 import { CurrentUser } from 'src/auth/decorators/current-user.decorator';
 import { GqlAuthGuard } from 'src/auth/guards/gql-auth.guard';
+import { CreateClubMemberByEmailInput } from '../dtos/create-club-member-by-email.input';
 import { CreateClubMemberInput } from '../dtos/create-club-member.input';
 import { ClubMember } from '../entities/club-member.entity';
 import { User } from '../entities/user.entity';
@@ -18,7 +19,20 @@ export class ClubMembersResolver {
     @Args('input', { type: () => CreateClubMemberInput })
     createClubMemberInput: CreateClubMemberInput,
   ): Promise<ClubMember> {
-    return this.clubMembersService.create(user, createClubMemberInput);
+    return this.clubMembersService.createByUserId(user, createClubMemberInput);
+  }
+
+  @UseGuards(GqlAuthGuard)
+  @Mutation(returns => ClubMember)
+  async createClubMemberByEmail(
+    @CurrentUser() user: User,
+    @Args('input', { type: () => CreateClubMemberByEmailInput })
+    createClubMemberByEmailInput: CreateClubMemberByEmailInput,
+  ): Promise<ClubMember> {
+    return this.clubMembersService.createByUserEmail(
+      user,
+      createClubMemberByEmailInput,
+    );
   }
 
   @UseGuards(GqlAuthGuard)
