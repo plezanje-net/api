@@ -37,9 +37,10 @@ export class ClubsResolver {
     return this.clubsService.findAll(userId);
   }
 
+  @UseGuards(GqlAuthGuard)
   @Query(returns => Club, { name: 'club' })
-  async findOne(@Args('id') id: string) {
-    return this.clubsService.findOne(id);
+  async findOne(@CurrentUser() user: User, @Args('id') id: string) {
+    return this.clubsService.findOne(user, id);
   }
 
   @ResolveField('members', returns => [ClubMember])

@@ -1,14 +1,18 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CreateClubInput } from '../dtos/create-club.input';
 import { UpdateClubInput } from '../dtos/update-club.input';
+import { ClubMember } from '../entities/club-member.entity';
 import { Club } from '../entities/club.entity';
+import { User } from '../entities/user.entity';
 
 @Injectable()
 export class ClubsService {
   constructor(
     @InjectRepository(Club) private clubsRepository: Repository<Club>,
+    @InjectRepository(ClubMember)
+    private clubMembersRepository: Repository<ClubMember>,
   ) {}
 
   async findAll(userId?: string): Promise<Club[]> {
@@ -23,7 +27,12 @@ export class ClubsService {
     }
   }
 
-  async findOne(id: string): Promise<Club> {
+  async findOne(user: User, id: string): Promise<Club> {
+    // only club member can se club data
+    const clubMember = await this.clubMembersRepository.findOne({
+      where: { user: user.id, club: id },
+    });
+    if (!clubMember) throw new HttpException('Forbidden', HttpStatus.FORBIDDEN);
     return this.clubsRepository.findOneOrFail(id);
   }
 
