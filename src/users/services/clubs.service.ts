@@ -28,12 +28,14 @@ export class ClubsService {
   }
 
   async findOne(user: User, id: string): Promise<Club> {
-    // only club member can se club data
+    const club = await this.clubsRepository.findOneOrFail(id);
+
+    // only club member can see club data
     const clubMember = await this.clubMembersRepository.findOne({
       where: { user: user.id, club: id },
     });
     if (!clubMember) throw new HttpException('Forbidden', HttpStatus.FORBIDDEN);
-    return this.clubsRepository.findOneOrFail(id);
+    return club;
   }
 
   async create(data: CreateClubInput): Promise<Club> {
