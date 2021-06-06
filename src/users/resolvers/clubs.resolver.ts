@@ -61,12 +61,14 @@ export class ClubsResolver {
     return this.clubsService.create(createClubInput);
   }
 
-  @Roles('admin')
+  // @Roles('admin')
+  @UseGuards(GqlAuthGuard)
   @Mutation(returns => Club)
   async updateClub(
+    @CurrentUser() user: User,
     @Args('updateClubInput') updateClubInput: UpdateClubInput,
   ): Promise<Club> {
-    return this.clubsService.update(updateClubInput);
+    return this.clubsService.update(user, updateClubInput);
   }
 
   @Roles('admin')

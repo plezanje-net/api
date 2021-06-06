@@ -42,8 +42,13 @@ export class ClubsService {
     return this.clubsRepository.create(data).save();
   }
 
-  async update(data: UpdateClubInput): Promise<Club> {
+  async update(currentUser: User, data: UpdateClubInput): Promise<Club> {
     const club = await this.clubsRepository.findOneOrFail(data.id);
+
+    // only if the logged in user is admin of this club can she update the club
+    if (!(await this.isMemberAdmin(data.id, currentUser.id)))
+      throw new HttpException('Forbidden', HttpStatus.FORBIDDEN);
+
     this.clubsRepository.merge(club, data);
 
     return this.clubsRepository.save(club);
@@ -52,5 +57,24 @@ export class ClubsService {
   async delete(id: string): Promise<boolean> {
     const club = await this.clubsRepository.findOneOrFail(id); // when a club is deleted all entries reffering to the club in pivot are also deleted
     return this.clubsRepository.remove(club).then(() => true);
+  }
+
+  private async isMemberAdmin(
+    clubId: string,
+    userId: string,
+  ): Promise<boolean> {
+    const currentUserAsAdminClubMember = await this.clubMembersRepository.findOne(
+      {
+        where: {
+          club: clubId,
+          user: userId,
+          admin: true,
+        },
+      },
+    );
+    if (currentUserAsAdminClubMember) {
+      return true;
+    }
+    return false;
   }
 }
