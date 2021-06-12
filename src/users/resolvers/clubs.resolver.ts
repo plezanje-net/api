@@ -53,15 +53,15 @@ export class ClubsResolver {
     return this.clubMembersService.nrMembersByClub(club.id);
   }
 
-  @Roles('admin')
+  @UseGuards(GqlAuthGuard)
   @Mutation(returns => Club)
   async createClub(
+    @CurrentUser() user: User,
     @Args('createClubInput') createClubInput: CreateClubInput,
   ): Promise<Club> {
-    return this.clubsService.create(createClubInput);
+    return this.clubsService.create(user, createClubInput);
   }
 
-  // @Roles('admin')
   @UseGuards(GqlAuthGuard)
   @Mutation(returns => Club)
   async updateClub(
@@ -71,9 +71,12 @@ export class ClubsResolver {
     return this.clubsService.update(user, updateClubInput);
   }
 
-  @Roles('admin')
+  @UseGuards(GqlAuthGuard)
   @Mutation(returns => Boolean)
-  async deleteClub(@Args('id') id: string): Promise<boolean> {
-    return this.clubsService.delete(id);
+  async deleteClub(
+    @CurrentUser() user: User,
+    @Args('id') id: string,
+  ): Promise<boolean> {
+    return this.clubsService.delete(user, id);
   }
 }

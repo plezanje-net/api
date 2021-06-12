@@ -38,8 +38,17 @@ export class ClubsService {
     return club;
   }
 
-  async create(data: CreateClubInput): Promise<Club> {
-    return this.clubsRepository.create(data).save();
+  async create(currentUser: User, data: CreateClubInput): Promise<Club> {
+    const newClub = await this.clubsRepository.create(data).save();
+
+    // user creating the club should be automatically added as an admin member, otherwise we would get an orphaned club
+    const clubMember = new ClubMember();
+    clubMember.user = Promise.resolve(currentUser);
+    clubMember.club = Promise.resolve(newClub);
+    clubMember.admin = true;
+    this.clubMembersRepository.save(clubMember);
+
+    return newClub;
   }
 
   async update(currentUser: User, data: UpdateClubInput): Promise<Club> {
@@ -54,7 +63,11 @@ export class ClubsService {
     return this.clubsRepository.save(club);
   }
 
-  async delete(id: string): Promise<boolean> {
+  async delete(currentUser: User, id: string): Promise<boolean> {
+    // only if the logged in user is admin of this club can she delete the club
+    if (!(await this.isMemberAdmin(id, currentUser.id)))
+      throw new HttpException('Forbidden', HttpStatus.FORBIDDEN);
+
     const club = await this.clubsRepository.findOneOrFail(id); // when a club is deleted all entries reffering to the club in pivot are also deleted
     return this.clubsRepository.remove(club).then(() => true);
   }
