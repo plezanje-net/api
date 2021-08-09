@@ -68,7 +68,7 @@ import { ClubMember } from './users/entities/club-member.entity';
           Image,
           IceFall,
         ],
-        synchronize: true,
+        synchronize: false,
         // logging: ["query", "error"]
       }),
       inject: [ConfigService],
