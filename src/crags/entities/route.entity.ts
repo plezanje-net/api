@@ -17,7 +17,7 @@ import { Image } from 'src/crags/entities/image.entity';
 import { Crag } from './crag.entity';
 
 export enum RouteType {
-  SPORT = 'photo',
+  SPORT = 'sport',
   MULTIPITCH = 'multipitch',
   BOULDER = 'boulder',
   ALPINE = 'alpine',
