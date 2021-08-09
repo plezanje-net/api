@@ -17,7 +17,7 @@ export class Club extends BaseEntity {
   @Field()
   id: string;
 
-  @Column()
+  @Column({ unique: true }) // TODO: clean DB
   @Field()
   name: string;
 

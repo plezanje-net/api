@@ -27,6 +27,6 @@ import { ClubMembersResolver } from './resolvers/club-members.resolver';
     ClubMembersService,
     ClubMembersResolver,
   ],
-  exports: [UsersService],
+  exports: [UsersService, ClubMembersService],
 })
 export class UsersModule {}

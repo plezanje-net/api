@@ -37,9 +37,10 @@ export class ClubsResolver {
     return this.clubsService.findAll(userId);
   }
 
+  @UseGuards(GqlAuthGuard)
   @Query(returns => Club, { name: 'club' })
-  async findOne(@Args('id') id: string) {
-    return this.clubsService.findOne(id);
+  async findOne(@CurrentUser() user: User, @Args('id') id: string) {
+    return this.clubsService.findOne(user, id);
   }
 
   @ResolveField('members', returns => [ClubMember])
@@ -52,25 +53,30 @@ export class ClubsResolver {
     return this.clubMembersService.nrMembersByClub(club.id);
   }
 
-  @Roles('admin')
+  @UseGuards(GqlAuthGuard)
   @Mutation(returns => Club)
   async createClub(
+    @CurrentUser() user: User,
     @Args('createClubInput') createClubInput: CreateClubInput,
   ): Promise<Club> {
-    return this.clubsService.create(createClubInput);
+    return this.clubsService.create(user, createClubInput);
   }
 
-  @Roles('admin')
+  @UseGuards(GqlAuthGuard)
   @Mutation(returns => Club)
   async updateClub(
+    @CurrentUser() user: User,
     @Args('updateClubInput') updateClubInput: UpdateClubInput,
   ): Promise<Club> {
-    return this.clubsService.update(updateClubInput);
+    return this.clubsService.update(user, updateClubInput);
   }
 
-  @Roles('admin')
+  @UseGuards(GqlAuthGuard)
   @Mutation(returns => Boolean)
-  async deleteClub(@Args('id') id: string): Promise<boolean> {
-    return this.clubsService.delete(id);
+  async deleteClub(
+    @CurrentUser() user: User,
+    @Args('id') id: string,
+  ): Promise<boolean> {
+    return this.clubsService.delete(user, id);
   }
 }

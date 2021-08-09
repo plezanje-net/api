@@ -1,7 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { PaginationMeta } from 'src/core/utils/pagination-meta.class';
 import { Route } from 'src/crags/entities/route.entity';
+import { ClubMember } from 'src/users/entities/club-member.entity';
 import { User } from 'src/users/entities/user.entity';
 import { Repository, SelectQueryBuilder } from 'typeorm';
 import { CreateActivityRouteInput } from '../dtos/create-activity-route.input';
@@ -17,6 +18,8 @@ export class ActivityRoutesService {
     private activityRoutesRepository: Repository<ActivityRoute>,
     @InjectRepository(Route)
     private routesRepository: Repository<Route>,
+    @InjectRepository(ClubMember)
+    private clubMembersRepository: Repository<ClubMember>,
   ) {}
 
   async create(
@@ -45,9 +48,19 @@ export class ActivityRoutesService {
 
   // TODO: DRY
   async finbByClub(
+    user: User,
     clubId: string,
     params: FindActivityRoutesInput = {},
   ): Promise<PaginatedActivityRoutes> {
+    // if current user is not member of the club, reject access to activity routes data
+    const clubMember = await this.clubMembersRepository.findOne({
+      where: {
+        user: user.id,
+        club: clubId,
+      },
+    });
+    if (!clubMember) throw new HttpException('Forbidden', HttpStatus.FORBIDDEN);
+
     const query = this.buildQuery(params);
     query
       .leftJoinAndSelect('ar.user', 'user')

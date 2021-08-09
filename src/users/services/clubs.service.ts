@@ -1,14 +1,18 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CreateClubInput } from '../dtos/create-club.input';
 import { UpdateClubInput } from '../dtos/update-club.input';
+import { ClubMember } from '../entities/club-member.entity';
 import { Club } from '../entities/club.entity';
+import { User } from '../entities/user.entity';
 
 @Injectable()
 export class ClubsService {
   constructor(
     @InjectRepository(Club) private clubsRepository: Repository<Club>,
+    @InjectRepository(ClubMember)
+    private clubMembersRepository: Repository<ClubMember>,
   ) {}
 
   async findAll(userId?: string): Promise<Club[]> {
@@ -23,23 +27,67 @@ export class ClubsService {
     }
   }
 
-  async findOne(id: string): Promise<Club> {
-    return this.clubsRepository.findOneOrFail(id);
+  async findOne(user: User, id: string): Promise<Club> {
+    const club = await this.clubsRepository.findOneOrFail(id);
+
+    // only club member can see club data
+    const clubMember = await this.clubMembersRepository.findOne({
+      where: { user: user.id, club: id },
+    });
+    if (!clubMember) throw new HttpException('Forbidden', HttpStatus.FORBIDDEN);
+    return club;
   }
 
-  async create(data: CreateClubInput): Promise<Club> {
-    return this.clubsRepository.create(data).save();
+  async create(currentUser: User, data: CreateClubInput): Promise<Club> {
+    const newClub = await this.clubsRepository.create(data).save();
+
+    // user creating the club should be automatically added as an admin member, otherwise we would get an orphaned club
+    const clubMember = new ClubMember();
+    clubMember.user = Promise.resolve(currentUser);
+    clubMember.club = Promise.resolve(newClub);
+    clubMember.admin = true;
+    this.clubMembersRepository.save(clubMember);
+
+    return newClub;
   }
 
-  async update(data: UpdateClubInput): Promise<Club> {
+  async update(currentUser: User, data: UpdateClubInput): Promise<Club> {
     const club = await this.clubsRepository.findOneOrFail(data.id);
+
+    // only if the logged in user is admin of this club can she update the club
+    if (!(await this.isMemberAdmin(data.id, currentUser.id)))
+      throw new HttpException('Forbidden', HttpStatus.FORBIDDEN);
+
     this.clubsRepository.merge(club, data);
 
     return this.clubsRepository.save(club);
   }
 
-  async delete(id: string): Promise<boolean> {
+  async delete(currentUser: User, id: string): Promise<boolean> {
+    // only if the logged in user is admin of this club can she delete the club
+    if (!(await this.isMemberAdmin(id, currentUser.id)))
+      throw new HttpException('Forbidden', HttpStatus.FORBIDDEN);
+
     const club = await this.clubsRepository.findOneOrFail(id); // when a club is deleted all entries reffering to the club in pivot are also deleted
     return this.clubsRepository.remove(club).then(() => true);
+  }
+
+  private async isMemberAdmin(
+    clubId: string,
+    userId: string,
+  ): Promise<boolean> {
+    const currentUserAsAdminClubMember = await this.clubMembersRepository.findOne(
+      {
+        where: {
+          club: clubId,
+          user: userId,
+          admin: true,
+        },
+      },
+    );
+    if (currentUserAsAdminClubMember) {
+      return true;
+    }
+    return false;
   }
 }

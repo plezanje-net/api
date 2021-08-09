@@ -1,6 +1,7 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { CreateClubMemberByEmailInput } from '../dtos/create-club-member-by-email.input';
 import { CreateClubMemberInput } from '../dtos/create-club-member.input';
 import { ClubMember } from '../entities/club-member.entity';
 import { Club } from '../entities/club.entity';
@@ -31,34 +32,37 @@ export class ClubMembersService {
     return this.clubMembersRepository.find({ where: { user: userId } });
   }
 
-  async create(
+  async createByUserEmail(
     currentUser: User,
-    data: CreateClubMemberInput,
+    data: CreateClubMemberByEmailInput,
   ): Promise<ClubMember> {
     // only if the logged in user is admin of this club can she add a member
-    const currentUserAsAdminClubMember = await this.clubMembersRepository.findOne(
-      {
-        where: {
-          club: data.clubId,
-          user: currentUser.id,
-          admin: true,
-        },
-      },
-    );
-    if (!currentUserAsAdminClubMember) {
+    if (!(await this.isMemberAdmin(data.clubId, currentUser.id)))
       throw new HttpException('Forbidden', HttpStatus.FORBIDDEN);
-    }
 
+    // get user that we are adding as a new member
+    const newMemberUser = Promise.resolve(
+      await this.usersRepository.findOneOrFail({
+        where: {
+          email: data.userEmail,
+        },
+      }),
+    );
+
+    return this.addUserToClub(newMemberUser, data.clubId, data.admin);
+  }
+
+  private async addUserToClub(
+    newMemberUser: Promise<User>,
+    clubId: string,
+    asAdmin: boolean,
+  ) {
     const clubMember = new ClubMember();
-    clubMember.user = Promise.resolve(
-      await this.usersRepository.findOneOrFail(data.userId),
-    );
-
+    clubMember.user = newMemberUser;
     clubMember.club = Promise.resolve(
-      await this.clubRepository.findOneOrFail(data.clubId),
+      await this.clubRepository.findOneOrFail(clubId),
     );
-    clubMember.admin = data.admin;
-
+    clubMember.admin = asAdmin;
     return this.clubMembersRepository.save(clubMember);
   }
 
@@ -66,19 +70,44 @@ export class ClubMembersService {
     // only if the logged in user is admin of this club can she remove a member
     const clubMember = await this.clubMembersRepository.findOneOrFail(id);
     const clubId = (await clubMember.club).id;
+    if (!(await this.isMemberAdmin(clubId, currentUser.id)))
+      throw new HttpException('Forbidden', HttpStatus.FORBIDDEN);
+
+    return this.clubMembersRepository.remove(clubMember).then(() => true);
+  }
+
+  async createByUserId(
+    currentUser: User,
+    data: CreateClubMemberInput,
+  ): Promise<ClubMember> {
+    // only if the logged in user is admin of this club can she add a member
+    if (!(await this.isMemberAdmin(data.clubId, currentUser.id)))
+      throw new HttpException('Forbidden', HttpStatus.FORBIDDEN);
+
+    // get user that we are adding as a new member
+    const newMemberUser = Promise.resolve(
+      await this.usersRepository.findOneOrFail(data.userId),
+    );
+
+    return this.addUserToClub(newMemberUser, data.clubId, data.admin);
+  }
+
+  private async isMemberAdmin(
+    clubId: string,
+    userId: string,
+  ): Promise<boolean> {
     const currentUserAsAdminClubMember = await this.clubMembersRepository.findOne(
       {
         where: {
           club: clubId,
-          user: currentUser.id,
+          user: userId,
           admin: true,
         },
       },
     );
-    if (!currentUserAsAdminClubMember) {
-      throw new HttpException('Forbidden', HttpStatus.FORBIDDEN);
+    if (currentUserAsAdminClubMember) {
+      return true;
     }
-
-    return this.clubMembersRepository.remove(clubMember).then(() => true);
+    return false;
   }
 }

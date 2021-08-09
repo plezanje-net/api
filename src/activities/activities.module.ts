@@ -10,11 +10,21 @@ import { ActivitiesResolver } from './resolvers/activities.resolver';
 import { ActivitiesService } from './services/activities.service';
 import { ActivityRoutesResolver } from './resolvers/activity-routes.resolver';
 import { ActivityRoutesService } from './services/activity-routes.service';
+import { UsersModule } from 'src/users/users.module';
+import { ClubMember } from 'src/users/entities/club-member.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Activity, ActivityRoute, Crag, Route, Pitch]),
+    TypeOrmModule.forFeature([
+      Activity,
+      ActivityRoute,
+      Crag,
+      Route,
+      Pitch,
+      ClubMember,
+    ]),
     AuditModule,
+    UsersModule,
   ],
   providers: [
     ActivitiesResolver,
