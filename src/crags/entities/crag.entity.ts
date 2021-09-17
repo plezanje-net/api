@@ -138,4 +138,6 @@ export class Crag extends BaseEntity {
   )
   @Field(() => [Image])
   images: Promise<Image[]>;
+
+  routeCount: number;
 }

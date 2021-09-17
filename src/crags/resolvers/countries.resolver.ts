@@ -23,6 +23,7 @@ import { CurrentUser } from 'src/auth/decorators/current-user.decorator';
 import { GqlAuthGuard } from 'src/auth/guards/gql-auth.guard';
 import { Area } from '../entities/area.entity';
 import { AreasService } from '../services/areas.service';
+import { FindCragsInput } from '../dtos/find-crags.input';
 
 @Resolver(() => Country)
 export class CountriesResolver {
@@ -83,19 +84,12 @@ export class CountriesResolver {
   async getCrags(
     @CurrentUser() user: User,
     @Parent() country: Country,
-    @Args('area', { nullable: true }) area?: string,
+    @Args('input', { nullable: true }) input: FindCragsInput = {},
   ): Promise<Crag[]> {
-    const params: any = { country: country.id, minStatus: 10 };
+    input.country = country.id;
+    input.minStatus = user != null ? 5 : 10;
 
-    if (area != null) {
-      params.area = area;
-    }
-
-    if (user != null) {
-      params.minStatus = 5;
-    }
-
-    return this.cragsService.find(params);
+    return this.cragsService.find(input);
   }
 
   @ResolveField('areas', () => [Area])

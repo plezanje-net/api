@@ -22,6 +22,7 @@ export enum RouteType {
   BOULDER = 'boulder',
   ALPINE = 'alpine',
   INDOOR = 'indoor',
+  COMBINED = 'combined',
 }
 
 @Entity()

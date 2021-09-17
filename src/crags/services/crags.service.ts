@@ -2,11 +2,18 @@ import { Injectable } from '@nestjs/common';
 import { CreateCragInput } from '../dtos/create-crag.input';
 import { Crag } from '../entities/crag.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, FindManyOptions, MoreThanOrEqual, IsNull } from 'typeorm';
+import {
+  Repository,
+  FindManyOptions,
+  MoreThanOrEqual,
+  IsNull,
+  SelectQueryBuilder,
+} from 'typeorm';
 import { UpdateCragInput } from '../dtos/update-crag.input';
 import { Country } from '../../crags/entities/country.entity';
 import { Route } from '../entities/route.entity';
 import { Area } from '../entities/area.entity';
+import { FindCragsInput } from '../dtos/find-crags.input';
 
 @Injectable()
 export class CragsService {
@@ -29,35 +36,63 @@ export class CragsService {
     return this.cragsRepository.findOneOrFail({ slug: slug });
   }
 
-  async find(params: {
-    country?: string;
-    area?: string;
-    minStatus?: number;
-  }): Promise<Crag[]> {
-    const options: FindManyOptions = {
-      order: {
-        name: 'ASC',
-      },
-    };
-
-    const where: any = { peak: IsNull() };
-
-    if (params.country != null) {
-      where.country = params.country;
-    }
-
-    if (params.area != null) {
-      where.area = params.area;
-    }
-
-    if (params.minStatus != null) {
-      where.status = MoreThanOrEqual(params.minStatus);
-    }
-
-    options.where = where;
-
-    return this.cragsRepository.find(options);
+  async find(params: FindCragsInput = {}): Promise<Crag[]> {
+    return this.buildQuery(params).getMany();
   }
+
+  // async find(params: {
+  //   country?: string;
+  //   area?: string;
+  //   minStatus?: number;
+  // }): Promise<Crag[]> {
+  //   const options: FindManyOptions = {
+  //     order: {
+  //       name: 'ASC',
+  //     },
+  //   };
+
+  //   const where: any = { peak: IsNull() };
+
+  //   if (params.country != null) {
+  //     where.country = params.country;
+  //   }
+
+  //   if (params.area != null) {
+  //     where.area = params.area;
+  //   }
+
+  //   if (params.minStatus != null) {
+  //     where.status = MoreThanOrEqual(params.minStatus);
+  //   }
+
+  //   where.__routes__ = { type: 'boulder' };
+
+  //   options.where = where;
+
+  //   // options.join = {
+  //   //   alias: 'route',
+  //   //   innerJoinAndSelect: {
+  //   //     routeType: 'route.type',
+  //   //   },
+  //   // };
+
+  //   // options.join = {
+  //   //   alias: 'crag',
+  //   //   innerJoinAndSelect: {
+  //   //     routes: 'crag.routes',
+  //   //   },
+  //   // };
+
+  //   options.relations = ['routes'];
+  //   // options.where.routes
+
+  //   const l = this.cragsRepository.find(options);
+  //   console.log(await l);
+
+  //   return this.cragsRepository
+  //   .createQueryBuilder('crag')
+  //   .getMany();
+  // }
 
   async create(data: CreateCragInput): Promise<Crag> {
     const crag = new Crag();
@@ -99,6 +134,50 @@ export class CragsService {
     const crag = await this.cragsRepository.findOneOrFail(id);
 
     return this.cragsRepository.remove(crag).then(() => true);
+  }
+
+  private buildQuery(params: FindCragsInput = {}): SelectQueryBuilder<Crag> {
+    const builder = this.cragsRepository.createQueryBuilder('c');
+
+    builder.orderBy('c.name', 'ASC');
+
+    builder.andWhere('c."peakId" IS NULL');
+
+    if (params.country != null) {
+      builder.andWhere('c.country = :countryId', {
+        countryId: params.country,
+      });
+    }
+
+    if (params.area != null) {
+      builder.andWhere('c.area = :areaId', {
+        areaId: params.area,
+      });
+    }
+
+    if (params.minStatus != null) {
+      builder.andWhere('c.status >= :minStatus', {
+        minStatus: params.minStatus,
+      });
+    }
+
+    if (params.routeType != null) {
+      let condition = 'route.type = :routeType';
+
+      if (params.routeType == 'sport') {
+        condition += ' OR route.type IS NULL';
+      }
+
+      builder
+        .leftJoin('c.routes', 'route')
+        .andWhere('route.status > 0')
+        .andWhere('(' + condition + ')', { routeType: params.routeType })
+        .groupBy('c.id');
+
+      builder.addSelect('COUNT(route.id) AS routeCount');
+    }
+
+    return builder;
   }
 
   async getNumberOfRoutes(crag: Crag): Promise<number> {

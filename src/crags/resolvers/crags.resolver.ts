@@ -51,6 +51,8 @@ export class CragsResolver {
       params.country = country;
     }
 
+    params.routeType = 'boulder';
+
     return this.cragsService.find(params);
   }
 
@@ -77,6 +79,11 @@ export class CragsResolver {
   @Mutation(() => Boolean)
   async deleteCrag(@Args('id') id: string): Promise<boolean> {
     return this.cragsService.delete(id);
+  }
+
+  @ResolveField('nrRoutes', () => Int)
+  nrRoutes(@Parent() crag: Crag): number {
+    return crag.routeCount ?? crag.nrRoutes;
   }
 
   @ResolveField('sectors', () => [Sector])
