@@ -4,6 +4,7 @@ import { CurrentUser } from 'src/auth/decorators/current-user.decorator';
 import { GqlAuthGuard } from 'src/auth/guards/gql-auth.guard';
 import { User } from 'src/users/entities/user.entity';
 import { FindActivityRoutesInput } from '../dtos/find-activity-routes.input';
+import { ActivityRoute } from '../entities/activity-route.entity';
 import { ActivityRoutesService } from '../services/activity-routes.service';
 import { PaginatedActivityRoutes } from '../utils/paginated-activity-routes.class';
 
@@ -19,6 +20,16 @@ export class ActivityRoutesResolver {
   ): Promise<PaginatedActivityRoutes> {
     input.userId = user.id;
     return this.activityRoutesService.paginate(input);
+  }
+
+  @UseGuards(GqlAuthGuard)
+  @Query(() => [ActivityRoute])
+  myCragSummary(
+    @CurrentUser() user: User,
+    @Args('input', { nullable: true }) input: FindActivityRoutesInput = {},
+  ): Promise<ActivityRoute[]> {
+    input.userId = user.id;
+    return this.activityRoutesService.cragSummary(input);
   }
 
   // TODO: add clubId to input?

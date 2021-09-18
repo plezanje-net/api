@@ -46,6 +46,35 @@ export class ActivityRoutesService {
     return this.activityRoutesRepository.save(activityRoute);
   }
 
+  async cragSummary(
+    params: FindActivityRoutesInput = {},
+  ): Promise<ActivityRoute[]> {
+    const builder = this.activityRoutesRepository.createQueryBuilder('ar');
+
+    builder.distinctOn(['ar."routeId"']);
+    builder.orderBy('ar."routeId"');
+    builder.addOrderBy('ar."ascentType"');
+
+    if (params.userId != null) {
+      builder.andWhere('ar."userId" = :userId', {
+        userId: params.userId,
+      });
+    }
+
+    if (params.cragId != null) {
+      builder.innerJoin(
+        'activity',
+        'activity',
+        'ar."activityId" = activity.id',
+      );
+      builder.andWhere('activity."cragId" = :cragId', {
+        cragId: params.cragId,
+      });
+    }
+
+    return builder.getMany();
+  }
+
   // TODO: DRY
   async finbByClub(
     user: User,
