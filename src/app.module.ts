@@ -80,7 +80,6 @@ import { ClubMember } from './users/entities/club-member.entity';
     ActivitiesModule,
   ],
   controllers: [],
-  providers: [],
 })
 export class AppModule {}
 

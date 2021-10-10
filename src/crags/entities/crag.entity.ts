@@ -20,6 +20,14 @@ import { Image } from 'src/crags/entities/image.entity';
 import { Peak } from './peak.entity';
 import { Route } from './route.entity';
 
+export enum CommentStatus {
+  PUBLIC = 'public',
+  USER = 'user',
+  ADMIN = 'adimin',
+  PROPOSAL = 'proposal',
+  PRIVATE = 'private',
+}
+
 @Entity()
 @ObjectType()
 export class Crag extends BaseEntity {
