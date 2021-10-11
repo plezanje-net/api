@@ -82,7 +82,6 @@ import { Rating } from './crags/entities/rating.entity';
     ActivitiesModule,
   ],
   controllers: [],
-  providers: [],
 })
 export class AppModule {}
 
