@@ -116,4 +116,8 @@ export class ActivityRoute extends BaseEntity {
   @ManyToOne(() => User, { nullable: false })
   @Field(() => User)
   user: Promise<User>;
+
+  @Column({ nullable: true })
+  @Field({ nullable: true })
+  stars: number;
 }
