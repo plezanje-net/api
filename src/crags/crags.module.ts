@@ -24,6 +24,7 @@ import { Pitch } from './entities/pitch.entity';
 import { Image } from './entities/image.entity';
 import { Peak } from './entities/peak.entity';
 import { IceFall } from './entities/ice-fall.entity';
+import { User } from 'src/users/entities/user.entity';
 import { CommentsResolver } from './resolvers/comments.resolver';
 import { SearchService } from './services/search.service';
 import { SearchResolver } from './resolvers/search.resolver';
@@ -41,6 +42,7 @@ import { SearchResolver } from './resolvers/search.resolver';
       Pitch,
       Peak,
       Comment,
+      User,
     ]),
     AuditModule,
   ],
