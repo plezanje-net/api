@@ -6,17 +6,21 @@ import { User } from 'src/users/entities/user.entity';
 import { FindCragsInput } from '../dtos/find-crags.input';
 import { SearchService } from '../services/search.service';
 import { SearchResult } from '../utils/search-result.class';
+import { SearchResults } from '../utils/search-results.class';
 
-@Resolver(() => SearchResult)
+// @Resolver(() => SearchResult)
+@Resolver(() => SearchResults)
 export class SearchResolver {
   constructor(private searchService: SearchService) {}
 
-  @Query(() => [SearchResult])
+  // @Query(() => [SearchResult])
+  @Query(() => SearchResults)
   @UseGuards(GqlAuthGuard)
   search(
     @CurrentUser() user: User,
     @Args('input', { nullable: true }) input?: string,
-  ): Promise<SearchResult[]> {
+    // ): Promise<SearchResult[]> {
+  ): Promise<SearchResults> {
     const cragsInput = new FindCragsInput();
     cragsInput.minStatus = user != null ? 5 : 10;
 

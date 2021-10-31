@@ -74,7 +74,7 @@ export class Comment extends BaseEntity {
     crag => crag.comments,
     { nullable: true },
   )
-  @Field(() => Crag)
+  @Field(() => Crag, { nullable: true })
   crag: Promise<Crag>;
 
   @ManyToOne(
@@ -82,7 +82,7 @@ export class Comment extends BaseEntity {
     route => route.comments,
     { nullable: true },
   )
-  @Field(() => Route)
+  @Field(() => Route, { nullable: true })
   route: Promise<Route>;
 
   @ManyToOne(
