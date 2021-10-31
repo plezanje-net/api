@@ -49,7 +49,7 @@ export class SearchService {
     builder.where('c.peakId IS NULL');
 
     if (cragParams.minStatus != null) {
-      builder.andWhere('c.status >= :minStatus', {
+      builder.andWhere('c.status <= :minStatus', {
         minStatus: cragParams.minStatus,
       });
     }
@@ -70,7 +70,7 @@ export class SearchService {
     builder.where('c.peakId IS NULL');
 
     if (cragParams.minStatus != null) {
-      builder.andWhere('c.status >= :minStatus', {
+      builder.andWhere('c.status <= :minStatus', {
         minStatus: cragParams.minStatus,
       });
     }
@@ -90,7 +90,7 @@ export class SearchService {
     builder.where('c.peakId IS NULL');
 
     if (cragParams.minStatus != null) {
-      builder.andWhere('c.status >= :minStatus', {
+      builder.andWhere('c.status <= :minStatus', {
         minStatus: cragParams.minStatus,
       });
     }
@@ -118,7 +118,7 @@ export class SearchService {
       builder.andWhere(
         new Brackets(qb =>
           qb
-            .where('c.status >= :minStatus', {
+            .where('c.status <= :minStatus', {
               minStatus: cragParams.minStatus,
             })
             .orWhere('cr.status >= :minStatus', {

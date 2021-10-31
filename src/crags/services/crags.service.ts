@@ -40,60 +40,6 @@ export class CragsService {
     return this.buildQuery(params).getMany();
   }
 
-  // async find(params: {
-  //   country?: string;
-  //   area?: string;
-  //   minStatus?: number;
-  // }): Promise<Crag[]> {
-  //   const options: FindManyOptions = {
-  //     order: {
-  //       name: 'ASC',
-  //     },
-  //   };
-
-  //   const where: any = { peak: IsNull() };
-
-  //   if (params.country != null) {
-  //     where.country = params.country;
-  //   }
-
-  //   if (params.area != null) {
-  //     where.area = params.area;
-  //   }
-
-  //   if (params.minStatus != null) {
-  //     where.status = MoreThanOrEqual(params.minStatus);
-  //   }
-
-  //   where.__routes__ = { type: 'boulder' };
-
-  //   options.where = where;
-
-  //   // options.join = {
-  //   //   alias: 'route',
-  //   //   innerJoinAndSelect: {
-  //   //     routeType: 'route.type',
-  //   //   },
-  //   // };
-
-  //   // options.join = {
-  //   //   alias: 'crag',
-  //   //   innerJoinAndSelect: {
-  //   //     routes: 'crag.routes',
-  //   //   },
-  //   // };
-
-  //   options.relations = ['routes'];
-  //   // options.where.routes
-
-  //   const l = this.cragsRepository.find(options);
-  //   console.log(await l);
-
-  //   return this.cragsRepository
-  //   .createQueryBuilder('crag')
-  //   .getMany();
-  // }
-
   async create(data: CreateCragInput): Promise<Crag> {
     const crag = new Crag();
 
