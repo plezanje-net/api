@@ -28,5 +28,21 @@ export class UpdateCragInput {
 
   @Field({ nullable: true })
   @IsOptional()
+  countryId: string;
+
+  @Field({ nullable: true })
+  @IsOptional()
   areaId: string;
+
+  @Field({ nullable: true })
+  @IsOptional()
+  description: string;
+
+  @Field({ nullable: true })
+  @IsOptional()
+  access: string;
+
+  @Field({ nullable: true })
+  @IsOptional()
+  orientation: string;
 }

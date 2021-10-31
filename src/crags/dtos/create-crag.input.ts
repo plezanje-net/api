@@ -1,4 +1,5 @@
 import { InputType, Field } from '@nestjs/graphql';
+import { IsOptional } from 'class-validator';
 import { CragStatus } from '../entities/crag.entity';
 
 @InputType()
@@ -12,10 +13,12 @@ export class CreateCragInput {
   @Field()
   status: CragStatus;
 
-  @Field()
+  @Field({ nullable: true })
+  @IsOptional()
   lat: number;
 
-  @Field()
+  @Field({ nullable: true })
+  @IsOptional()
   lon: number;
 
   @Field()
@@ -23,4 +26,16 @@ export class CreateCragInput {
 
   @Field({ nullable: true })
   areaId: string;
+
+  @Field({ nullable: true })
+  @IsOptional()
+  description: string;
+
+  @Field({ nullable: true })
+  @IsOptional()
+  access: string;
+
+  @Field({ nullable: true })
+  @IsOptional()
+  orientation: string;
 }
