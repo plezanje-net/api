@@ -20,12 +20,13 @@ import { Image } from 'src/crags/entities/image.entity';
 import { Peak } from './peak.entity';
 import { Route } from './route.entity';
 
-export enum CommentStatus {
+export enum CragStatus {
   PUBLIC = 'public',
-  USER = 'user',
-  ADMIN = 'adimin',
+  HIDDEN = 'hidden',
+  ADMIN = 'admin',
+  ARCHIVE = 'archive',
   PROPOSAL = 'proposal',
-  PRIVATE = 'private',
+  USER = 'user',
 }
 
 @Entity()
@@ -43,9 +44,13 @@ export class Crag extends BaseEntity {
   @Field()
   slug: string;
 
-  @Column({ type: 'int' })
-  @Field(() => Int)
-  status: number;
+  @Column({
+    type: 'enum',
+    enum: CragStatus,
+    default: CragStatus.PUBLIC,
+  })
+  @Field()
+  status: CragStatus;
 
   @Column({ type: 'float', nullable: true })
   @Field(() => Float, { nullable: true })

@@ -16,7 +16,7 @@ import { UseInterceptors, UseFilters, UseGuards } from '@nestjs/common';
 import { AuditInterceptor } from '../../audit/interceptors/audit.interceptor';
 import { ConflictFilter } from '../filters/conflict.filter';
 import { NotFoundFilter } from '../filters/not-found.filter';
-import { Crag } from '../entities/crag.entity';
+import { Crag, CragStatus } from '../entities/crag.entity';
 import { CragsService } from '../services/crags.service';
 import { User } from 'src/users/entities/user.entity';
 import { CurrentUser } from 'src/auth/decorators/current-user.decorator';
@@ -87,7 +87,9 @@ export class CountriesResolver {
     @Args('input', { nullable: true }) input: FindCragsInput = {},
   ): Promise<Crag[]> {
     input.country = country.id;
-    input.minStatus = user != null ? 5 : 10;
+
+    // TODO: check admin statuses
+    input.minStatus = user != null ? CragStatus.HIDDEN : CragStatus.PUBLIC;
 
     return this.cragsService.find(input);
   }

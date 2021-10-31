@@ -1,4 +1,5 @@
 import { InputType, Field } from '@nestjs/graphql';
+import { CragStatus } from '../entities/crag.entity';
 
 @InputType()
 export class CreateCragInput {
@@ -9,7 +10,7 @@ export class CreateCragInput {
   slug: string;
 
   @Field()
-  status: number;
+  status: CragStatus;
 
   @Field()
   lat: number;
