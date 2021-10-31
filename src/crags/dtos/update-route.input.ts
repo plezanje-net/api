@@ -1,5 +1,6 @@
 import { InputType, Field } from '@nestjs/graphql';
 import { IsOptional } from 'class-validator';
+import { RouteStatus } from '../entities/route.entity';
 
 @InputType()
 export class UpdateRouteInput {
@@ -24,7 +25,7 @@ export class UpdateRouteInput {
 
   @Field({ nullable: true })
   @IsOptional()
-  status: number;
+  status: RouteStatus;
 
   @Field({ nullable: true })
   @IsOptional()

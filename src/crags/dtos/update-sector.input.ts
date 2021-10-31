@@ -1,5 +1,6 @@
 import { InputType, Field } from '@nestjs/graphql';
 import { IsOptional } from 'class-validator';
+import { SectorStatus } from '../entities/sector.entity';
 
 @InputType()
 export class UpdateSectorInput {
@@ -20,5 +21,5 @@ export class UpdateSectorInput {
 
   @Field({ nullable: true })
   @IsOptional()
-  status: number;
+  status: SectorStatus;
 }

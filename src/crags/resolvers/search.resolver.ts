@@ -6,7 +6,6 @@ import { User } from 'src/users/entities/user.entity';
 import { FindCragsInput } from '../dtos/find-crags.input';
 import { CragStatus } from '../entities/crag.entity';
 import { SearchService } from '../services/search.service';
-import { SearchResult } from '../utils/search-result.class';
 import { SearchResults } from '../utils/search-results.class';
 
 // @Resolver(() => SearchResult)

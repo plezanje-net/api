@@ -25,6 +25,15 @@ export enum RouteType {
   COMBINED = 'combined',
 }
 
+export enum RouteStatus {
+  PUBLIC = 'public',
+  HIDDEN = 'hidden',
+  ADMIN = 'admin',
+  ARCHIVE = 'archive',
+  PROPOSAL = 'proposal',
+  USER = 'user',
+}
+
 @Entity()
 @ObjectType()
 export class Route extends BaseEntity {
@@ -62,9 +71,13 @@ export class Route extends BaseEntity {
   @Column({ type: 'int' })
   position: number;
 
-  @Column({ type: 'int' })
-  @Field(() => Int)
-  status: number;
+  @Column({
+    type: 'enum',
+    enum: RouteStatus,
+    default: RouteStatus.PUBLIC,
+  })
+  @Field()
+  status: RouteStatus;
 
   @CreateDateColumn()
   created: Date;

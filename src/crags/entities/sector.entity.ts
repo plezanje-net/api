@@ -12,6 +12,15 @@ import { ObjectType, Field, Int } from '@nestjs/graphql';
 import { Crag } from '../../crags/entities/crag.entity';
 import { Route } from '../../crags/entities/route.entity';
 
+export enum SectorStatus {
+  PUBLIC = 'public',
+  HIDDEN = 'hidden',
+  ADMIN = 'admin',
+  ARCHIVE = 'archive',
+  PROPOSAL = 'proposal',
+  USER = 'user',
+}
+
 @Entity()
 @ObjectType()
 export class Sector extends BaseEntity {
@@ -30,9 +39,13 @@ export class Sector extends BaseEntity {
   @Column({ type: 'int' })
   position: number;
 
-  @Column({ type: 'int' })
-  @Field(() => Int)
-  status: number;
+  @Column({
+    type: 'enum',
+    enum: SectorStatus,
+    default: SectorStatus.PUBLIC,
+  })
+  @Field()
+  status: SectorStatus;
 
   @CreateDateColumn()
   created: Date;

@@ -1,5 +1,6 @@
 import { InputType, Field } from '@nestjs/graphql';
 import { IsUUID } from 'class-validator';
+import { RouteStatus } from '../entities/route.entity';
 
 @InputType()
 export class CreateRouteInput {
@@ -16,7 +17,7 @@ export class CreateRouteInput {
   position: number;
 
   @Field()
-  status: number;
+  status: RouteStatus;
 
   @IsUUID()
   @Field()

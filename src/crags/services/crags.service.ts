@@ -156,7 +156,7 @@ export class CragsService {
     }
 
     if (params.minStatus != null) {
-      builder.andWhere('c.status >= :minStatus', {
+      builder.andWhere('c.status <= :minStatus', {
         minStatus: params.minStatus,
       });
     }
