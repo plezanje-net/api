@@ -39,4 +39,8 @@ export class CreateActivityRouteInput {
   @Field({ nullable: true })
   @IsOptional()
   difficulty: string;
+
+  @Field({ nullable: true })
+  @IsOptional()
+  stars: number;
 }

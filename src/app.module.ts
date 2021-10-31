@@ -28,6 +28,7 @@ import { Peak } from './crags/entities/peak.entity';
 import { IceFall } from './crags/entities/ice-fall.entity';
 import { Club } from './users/entities/club.entity';
 import { ClubMember } from './users/entities/club-member.entity';
+import { Rating } from './crags/entities/rating.entity';
 
 @Module({
   imports: [
@@ -67,6 +68,7 @@ import { ClubMember } from './users/entities/club-member.entity';
           ClubMember,
           Image,
           IceFall,
+          Rating,
         ],
         synchronize: false,
         // logging: ["query", "error"]

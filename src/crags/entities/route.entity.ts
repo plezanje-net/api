@@ -15,6 +15,7 @@ import { Comment } from './comment.entity';
 import { Pitch } from './pitch.entity';
 import { Image } from 'src/crags/entities/image.entity';
 import { Crag } from './crag.entity';
+import { Rating } from './rating.entity';
 
 export enum RouteType {
   SPORT = 'sport',
@@ -109,6 +110,14 @@ export class Route extends BaseEntity {
   )
   @Field(() => [Grade])
   grades: Promise<Grade[]>;
+
+  @OneToMany(
+    () => Rating,
+    rating => rating.route,
+    { nullable: true },
+  )
+  @Field(() => [Rating])
+  ratings: Promise<Rating[]>;
 
   @OneToMany(
     () => Pitch,
