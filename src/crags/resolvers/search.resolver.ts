@@ -8,18 +8,15 @@ import { CragStatus } from '../entities/crag.entity';
 import { SearchService } from '../services/search.service';
 import { SearchResults } from '../utils/search-results.class';
 
-// @Resolver(() => SearchResult)
 @Resolver(() => SearchResults)
 export class SearchResolver {
   constructor(private searchService: SearchService) {}
 
-  // @Query(() => [SearchResult])
   @Query(() => SearchResults)
   @UseGuards(GqlAuthGuard)
   search(
     @CurrentUser() user: User,
     @Args('input', { nullable: true }) input?: string,
-    // ): Promise<SearchResult[]> {
   ): Promise<SearchResults> {
     const cragsInput = new FindCragsInput();
     cragsInput.minStatus = user != null ? CragStatus.HIDDEN : CragStatus.PUBLIC;

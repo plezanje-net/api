@@ -19,6 +19,7 @@ import { Comment } from './comment.entity';
 import { Image } from 'src/crags/entities/image.entity';
 import { Peak } from './peak.entity';
 import { Route } from './route.entity';
+import { Activity } from 'src/activities/entities/activity.entity';
 
 export enum CragStatus {
   PUBLIC = 'public',
@@ -153,4 +154,12 @@ export class Crag extends BaseEntity {
   images: Promise<Image[]>;
 
   routeCount: number;
+
+  @OneToMany(
+    () => Activity,
+    activity => activity.crag,
+    { nullable: true },
+  )
+  @Field(() => [Activity])
+  activities: Promise<Activity[]>;
 }

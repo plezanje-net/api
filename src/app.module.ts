@@ -71,7 +71,7 @@ import { Rating } from './crags/entities/rating.entity';
           Rating,
         ],
         synchronize: false,
-        // logging: ["query", "error"]
+        // logging: ['query', 'error'],
       }),
       inject: [ConfigService],
     }),

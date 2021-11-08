@@ -2,18 +2,13 @@ import { Injectable } from '@nestjs/common';
 import { CreateCragInput } from '../dtos/create-crag.input';
 import { Crag } from '../entities/crag.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import {
-  Repository,
-  FindManyOptions,
-  MoreThanOrEqual,
-  IsNull,
-  SelectQueryBuilder,
-} from 'typeorm';
+import { Repository, SelectQueryBuilder } from 'typeorm';
 import { UpdateCragInput } from '../dtos/update-crag.input';
 import { Country } from '../../crags/entities/country.entity';
 import { Route } from '../entities/route.entity';
 import { Area } from '../entities/area.entity';
 import { FindCragsInput } from '../dtos/find-crags.input';
+import { PopularCrag } from '../utils/popular-crag.class';
 
 @Injectable()
 export class CragsService {
@@ -168,5 +163,34 @@ export class CragsService {
 
         return null;
       });
+  }
+
+  async getPopularCrags(dateFrom: string, top: number): Promise<PopularCrag[]> {
+    const builder = this.cragsRepository
+      .createQueryBuilder('c')
+      .addSelect('count(c.id)', 'nrvisits')
+      .leftJoin('activity', 'ac', 'ac.cragId = c.id')
+
+      .groupBy('c.id')
+      .orderBy('nrvisits', 'DESC');
+
+    if (dateFrom) {
+      builder.where('ac.date >= :dateFrom', { dateFrom: dateFrom });
+    }
+
+    if (top) {
+      builder.limit(top);
+    }
+
+    const rawAndEntities = await builder.getRawAndEntities();
+
+    const popularCrags = rawAndEntities.raw.map((element, index) => {
+      return {
+        crag: rawAndEntities.entities[index],
+        nrVisits: element.nrvisits,
+      };
+    });
+
+    return popularCrags;
   }
 }

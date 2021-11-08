@@ -6,10 +6,8 @@ import {
   ResolveField,
   Int,
   Parent,
-  Float,
 } from '@nestjs/graphql';
 import { UseInterceptors, UseFilters } from '@nestjs/common';
-
 import { Roles } from '../../auth/decorators/roles.decorator';
 import { Crag } from '../entities/crag.entity';
 import { CreateCragInput } from '../dtos/create-crag.input';
@@ -21,6 +19,7 @@ import { SectorsService } from '../services/sectors.service';
 import { AuditInterceptor } from '../../audit/interceptors/audit.interceptor';
 import { Comment, CommentType } from '../entities/comment.entity';
 import { CommentsService } from '../services/comments.service';
+import { PopularCrag } from '../utils/popular-crag.class';
 
 @Resolver(() => Crag)
 export class CragsResolver {
@@ -113,5 +112,13 @@ export class CragsResolver {
       cragId: crag.id,
       type: CommentType.COMMENT,
     });
+  }
+
+  @Query(returns => [PopularCrag])
+  async popularCrags(
+    @Args('dateFrom', { nullable: true }) dateFrom?: string,
+    @Args('top', { type: () => Int, nullable: true }) top?: number,
+  ) {
+    return this.cragsService.getPopularCrags(dateFrom, top);
   }
 }
