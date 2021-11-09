@@ -177,7 +177,7 @@ export class SearchService {
       // TODO: permformance?? should we store non html text in another db column for the purpose of search?
       searchTerms.forEach((searchTerm, index) => {
         builder.andWhere(
-          `unaccent(${searchFieldName}) ~* ('(?<![^\\s])' || :term_${index} || '(?!([^<]+)?>)')`,
+          `unaccent(${searchFieldName}) ~* ('(?<![^\\s>])' || :term_${index} || '(?!([^<]+)?>)')`,
           { [`term_${index}`]: searchTerm },
         );
       });
