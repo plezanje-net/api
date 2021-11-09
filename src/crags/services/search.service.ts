@@ -121,7 +121,7 @@ export class SearchService {
             .where('c.status <= :minStatus', {
               minStatus: cragParams.minStatus,
             })
-            .orWhere('cr.status >= :minStatus', {
+            .orWhere('cr.status <= :minStatus', {
               minStatus: cragParams.minStatus,
             }),
         ),
