@@ -130,6 +130,8 @@ export class SearchService {
 
     this.tokenizeQueryToBuilder(builder, searchString, 'co', ['content'], true);
 
+    builder.orderBy('co.created', 'DESC');
+
     return builder.getMany();
   }
 
