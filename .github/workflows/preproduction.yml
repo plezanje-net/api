@@ -6,6 +6,8 @@ jobs:
     steps:
       - run: npm install
       - run: nest build
-      - run: rm rf /var/www/plezanjenet/api/*
+      - run: supervisorctl stop api
+      - run: rm -rf /var/www/plezanjenet/api/*
       - run: cp -r ./ /var/www/plezanjenet/api/
       - run: cp /var/www/plezanjenet/.env /var/www/plezanjenet/api/.env
+      - run: supervisorctl start api
