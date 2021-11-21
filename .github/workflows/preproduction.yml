@@ -15,7 +15,7 @@ jobs:
       - run: echo "🍏 This job's status is ${{ job.status }}."
       - run: npm install
       - run: nest build
-      # - run: sudo supervisorctl stop api
+      - run: sudo supervisorctl stop api
       - run: rm -rf /var/www/plezanjenet/api/*
       - run: cp -r ./ /var/www/plezanjenet/api/
       - run: cp /var/www/plezanjenet/.env /var/www/plezanjenet/api/.env
