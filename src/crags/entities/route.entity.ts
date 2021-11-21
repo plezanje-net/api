@@ -47,6 +47,7 @@ export class Route extends BaseEntity {
     enum: RouteType,
     default: RouteType.SPORT,
   })
+  @Field()
   type: RouteType;
 
   @Column()

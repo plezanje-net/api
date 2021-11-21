@@ -16,12 +16,15 @@ import { UpdateRouteInput } from '../dtos/update-route.input';
 import { RoutesService } from '../services/routes.service';
 import { CommentsService } from '../services/comments.service';
 import { Comment, CommentType } from '../entities/comment.entity';
+import { Grade } from '../entities/grade.entity';
+import { GradesService } from '../services/grades.service';
 
 @Resolver(() => Route)
 export class RoutesResolver {
   constructor(
     private routesService: RoutesService,
     private commentsService: CommentsService,
+    private gradesService: GradesService
   ) {}
 
   @Mutation(() => Route)
@@ -80,5 +83,10 @@ export class RoutesResolver {
       routeId: route.id,
       type: CommentType.COMMENT,
     });
+  }
+
+  @ResolveField('grades', () => [Grade])
+  async grades(@Args('id') routeId: string): Promise<Grade[]> {
+    return this.gradesService.findByRouteId(routeId);
   }
 }

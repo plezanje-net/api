@@ -70,7 +70,7 @@ import { Rating } from './crags/entities/rating.entity';
           IceFall,
           Rating,
         ],
-        synchronize: false,
+        synchronize: true,
         // logging: ['query', 'error'],
       }),
       inject: [ConfigService],
