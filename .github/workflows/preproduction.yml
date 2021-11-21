@@ -6,6 +6,7 @@ jobs:
   deploy:
     runs-on: preproduction
     steps:
+      uses: actions/checkout@v2
       - run: npm install
       - run: nest build
       # - run: sudo supervisorctl stop api
