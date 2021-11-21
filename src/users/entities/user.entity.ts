@@ -37,6 +37,7 @@ export class User extends BaseEntity {
   www?: string;
 
   @Column({ nullable: true })
+  @Field({ nullable: true })
   gender: string;
 
   @Column({ nullable: true })

@@ -27,7 +27,10 @@ export class NotificationService {
         },
       })
       .then(() => true)
-      .catch(() => false);
+      .catch(e => {
+        console.log(e);
+        return false;
+      });
   }
 
   public async passwordRecovery(user: User): Promise<boolean> {
