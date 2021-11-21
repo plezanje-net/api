@@ -1,5 +1,7 @@
 name: preproduction
-on: [push]
+on:
+  push:
+    branches: [preproduction]
 jobs:
   deploy:
     runs-on: preproduction
