@@ -111,7 +111,6 @@ export class CragsService {
 
       builder
         .leftJoin('c.routes', 'route')
-        .andWhere('route.status > 0')
         .andWhere('(' + condition + ')', { routeType: params.routeType })
         .groupBy('c.id');
 
