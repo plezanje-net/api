@@ -5,6 +5,8 @@ import {
   Query,
   ResolveField,
   Parent,
+  ResolveProperty,
+  Context,
 } from '@nestjs/graphql';
 import { Route } from '../entities/route.entity';
 import { Roles } from '../../auth/decorators/roles.decorator';
@@ -18,13 +20,14 @@ import { CommentsService } from '../services/comments.service';
 import { Comment, CommentType } from '../entities/comment.entity';
 import { Grade } from '../entities/grade.entity';
 import { GradesService } from '../services/grades.service';
+import { IGraphQLContext } from 'src/types/graphql.types';
 
 @Resolver(() => Route)
 export class RoutesResolver {
   constructor(
     private routesService: RoutesService,
     private commentsService: CommentsService,
-    private gradesService: GradesService
+    private gradesService: GradesService,
   ) {}
 
   @Mutation(() => Route)
@@ -62,27 +65,27 @@ export class RoutesResolver {
   }
 
   @ResolveField('warnings', () => [Comment])
-  async getWarnings(@Parent() route: Route): Promise<Comment[]> {
-    return this.commentsService.find({
-      routeId: route.id,
-      type: CommentType.WARNING,
-    });
+  async getWarnings(
+    @Parent() route: Route,
+    @Context() { routeWarningsLoader }: IGraphQLContext,
+  ): Promise<Comment[]> {
+    return routeWarningsLoader.load(route.id);
   }
 
   @ResolveField('conditions', () => [Comment])
-  async getConditions(@Parent() route: Route): Promise<Comment[]> {
-    return this.commentsService.find({
-      routeId: route.id,
-      type: CommentType.CONDITION,
-    });
+  async getConditions(
+    @Parent() route: Route,
+    @Context() { routeConditionsLoader }: IGraphQLContext,
+  ): Promise<Comment[]> {
+    return routeConditionsLoader.load(route.id);
   }
 
   @ResolveField('comments', () => [Comment])
-  async getComments(@Parent() route: Route): Promise<Comment[]> {
-    return this.commentsService.find({
-      routeId: route.id,
-      type: CommentType.COMMENT,
-    });
+  async getComments(
+    @Parent() route: Route,
+    @Context() { routeCommentsLoader }: IGraphQLContext,
+  ): Promise<Comment[]> {
+    return routeCommentsLoader.load(route.id);
   }
 
   @ResolveField('grades', () => [Grade])

@@ -104,6 +104,9 @@ export class Route extends BaseEntity {
   @Field(() => Sector)
   sector: Promise<Sector>;
 
+  @Column({ name: 'sectorId' })
+  sectorId: string;
+
   @OneToMany(
     () => Grade,
     grade => grade.route,

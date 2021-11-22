@@ -29,6 +29,13 @@ import { IceFall } from './crags/entities/ice-fall.entity';
 import { Club } from './users/entities/club.entity';
 import { ClubMember } from './users/entities/club-member.entity';
 import { Rating } from './crags/entities/rating.entity';
+import {
+  routeCommentsLoader,
+  routeConditionsLoader,
+  routeWarningsLoader,
+} from './crags/loaders/route-comments.loader';
+import { sectorRoutesLoader } from './crags/loaders/sector-routes.loader';
+import { userLoader } from './crags/loaders/user.loader';
 
 @Module({
   imports: [
@@ -37,7 +44,14 @@ import { Rating } from './crags/entities/rating.entity';
       debug: true,
       playground: true,
       autoSchemaFile: true,
-      context: ({ req }) => ({ req }),
+      context: ({ req }) => ({
+        ...req,
+        routeCommentsLoader: routeCommentsLoader(),
+        routeWarningsLoader: routeWarningsLoader(),
+        routeConditionsLoader: routeConditionsLoader(),
+        sectorRoutesLoader: sectorRoutesLoader(),
+        userLoader: userLoader(),
+      }),
     }),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
@@ -71,7 +85,7 @@ import { Rating } from './crags/entities/rating.entity';
           Rating,
         ],
         synchronize: true,
-        // logging: ['query', 'error'],
+        logging: ['query', 'error'],
       }),
       inject: [ConfigService],
     }),
