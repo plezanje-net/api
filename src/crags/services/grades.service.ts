@@ -7,7 +7,7 @@ import { Grade } from '../entities/grade.entity';
 export class GradesService {
   constructor(
     @InjectRepository(Grade)
-    private gradeRepository: Repository<Grade>
+    private gradeRepository: Repository<Grade>,
   ) {}
 
   async findByRouteId(routeId: string): Promise<Grade[]> {
@@ -19,8 +19,8 @@ export class GradesService {
     const gradesLength = (await grades).length;
     let roundedFifth: number;
 
-    if (gradesLength === 1) {
-      grades[0].includedInCalculation = true;
+    if (gradesLength == 1) {
+      (await grades)[0].includedInCalculation = true;
     } else if (gradesLength === 2) {
       (await grades).forEach((grade: Grade) => {
         grade.includedInCalculation = grade.isBase;
@@ -29,7 +29,8 @@ export class GradesService {
       const roundedFifth = Math.round(gradesLength * 0.2);
 
       (await grades).forEach((grade: Grade, i: number) => {
-        grade.includedInCalculation = i >= roundedFifth && i < gradesLength - roundedFifth;
+        grade.includedInCalculation =
+          i >= roundedFifth && i < gradesLength - roundedFifth;
       });
     }
 
