@@ -85,7 +85,7 @@ import { userLoader } from './crags/loaders/user.loader';
           Rating,
         ],
         synchronize: true,
-        logging: ['query', 'error'],
+        // logging: ['query', 'error'],
       }),
       inject: [ConfigService],
     }),
