@@ -1,4 +1,11 @@
-import { Resolver, Mutation, Args } from '@nestjs/graphql';
+import {
+  Resolver,
+  Mutation,
+  Args,
+  ResolveField,
+  Parent,
+  Context,
+} from '@nestjs/graphql';
 import { CommentsService } from '../services/comments.service';
 import { Comment } from '../entities/comment.entity';
 import { CragsService } from '../services/crags.service';
@@ -8,6 +15,7 @@ import { UnauthorizedException, UseGuards } from '@nestjs/common';
 import { User } from 'src/users/entities/user.entity';
 import { CurrentUser } from 'src/auth/decorators/current-user.decorator';
 import { UpdateCommentInput } from '../dtos/update-comment';
+import { IGraphQLContext } from 'src/types/graphql.types';
 
 @Resolver(() => Comment)
 export class CommentsResolver {
@@ -57,5 +65,13 @@ export class CommentsResolver {
     }
 
     throw new UnauthorizedException('comment_author_mismatch');
+  }
+
+  @ResolveField('user', () => User, { nullable: true })
+  async getUser(
+    @Parent() comment: Comment,
+    @Context() { userLoader }: IGraphQLContext,
+  ): Promise<User> {
+    return comment.userId != null ? userLoader.load(comment.userId) : null;
   }
 }

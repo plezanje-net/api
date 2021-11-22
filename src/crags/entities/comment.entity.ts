@@ -47,6 +47,9 @@ export class Comment extends BaseEntity {
   @Field(() => User, { nullable: true })
   user: Promise<User>;
 
+  @Column({ name: 'userId', nullable: true })
+  userId: string;
+
   @Column({ type: 'text', nullable: true })
   @Field({ nullable: true })
   content: string;
@@ -84,6 +87,9 @@ export class Comment extends BaseEntity {
   )
   @Field(() => Route, { nullable: true })
   route: Promise<Route>;
+
+  @Column({ name: 'routeId', nullable: true })
+  routeId: string;
 
   @ManyToOne(
     () => IceFall,
