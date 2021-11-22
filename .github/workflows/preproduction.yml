@@ -8,13 +8,15 @@ jobs:
     steps:
       - name: Check out repository code
         uses: actions/checkout@v2
-      - run: echo "💡 The ${{ github.repository }} repository has been cloned to the runner."
+      - name: Use Node 16.x
+        uses: actions/setup-node@v1
+        with:
+          node-version: '16.x'
       - name: List files in the repository
         run: |
           ls ${{ github.workspace }}
-      - run: echo "🍏 This job's status is ${{ job.status }}."
       - run: npm install
-      - run: nest build
+      - run: npm run build
       - run: sudo supervisorctl stop api
       - run: rm -rf /var/www/plezanjenet/api/*
       - run: cp -r ./ /var/www/plezanjenet/api/
