@@ -43,4 +43,11 @@ export class Grade extends BaseEntity {
   )
   @Field(() => Route)
   route: Promise<Route>;
+
+  @Field()
+  includedInCalculation: boolean;
+
+  @Column({ nullable: true })
+  @Field()
+  isBase: boolean;
 }

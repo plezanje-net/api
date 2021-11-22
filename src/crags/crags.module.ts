@@ -28,6 +28,8 @@ import { User } from 'src/users/entities/user.entity';
 import { CommentsResolver } from './resolvers/comments.resolver';
 import { SearchService } from './services/search.service';
 import { SearchResolver } from './resolvers/search.resolver';
+import { GradesService } from './services/grades.service';
+import { Grade } from './entities/grade.entity';
 
 @Module({
   imports: [
@@ -43,6 +45,7 @@ import { SearchResolver } from './resolvers/search.resolver';
       Peak,
       Comment,
       User,
+      Grade,
     ]),
     AuditModule,
   ],
@@ -61,6 +64,7 @@ import { SearchResolver } from './resolvers/search.resolver';
     CommentsResolver,
     SearchResolver,
     SearchService,
+    GradesService,
   ],
 })
 export class CragsModule {}

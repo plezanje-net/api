@@ -1,5 +1,5 @@
 import { UseGuards } from '@nestjs/common';
-import { Args, Query, Resolver } from '@nestjs/graphql';
+import { Args, Int, Query, Resolver } from '@nestjs/graphql';
 import { CurrentUser } from 'src/auth/decorators/current-user.decorator';
 import { GqlAuthGuard } from 'src/auth/guards/gql-auth.guard';
 import { User } from 'src/users/entities/user.entity';
@@ -41,5 +41,12 @@ export class ActivityRoutesResolver {
     @Args('input', { nullable: true }) input: FindActivityRoutesInput = {},
   ): Promise<PaginatedActivityRoutes> {
     return this.activityRoutesService.finbByClub(user, clubId, input);
+  }
+
+  @Query(returns => [ActivityRoute])
+  latestTicks(
+    @Args('latest', { type: () => Int }) latest: number,
+  ): Promise<ActivityRoute[]> {
+    return this.activityRoutesService.latestTicks(latest);
   }
 }

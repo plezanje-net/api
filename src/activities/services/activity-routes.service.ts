@@ -4,7 +4,7 @@ import { PaginationMeta } from 'src/core/utils/pagination-meta.class';
 import { Route } from 'src/crags/entities/route.entity';
 import { ClubMember } from 'src/users/entities/club-member.entity';
 import { User } from 'src/users/entities/user.entity';
-import { Repository, SelectQueryBuilder } from 'typeorm';
+import { In, Repository, SelectQueryBuilder } from 'typeorm';
 import { CreateActivityRouteInput } from '../dtos/create-activity-route.input';
 import { FindActivityRoutesInput } from '../dtos/find-activity-routes.input';
 import { ActivityRoute } from '../entities/activity-route.entity';
@@ -113,6 +113,43 @@ export class ActivityRoutesService {
       items: await query.getMany(),
       meta: pagination,
     });
+  }
+
+  async latestTicks(latest: number): Promise<ActivityRoute[]> {
+    const builder = this.activityRoutesRepository.createQueryBuilder('ar');
+
+    builder
+      .addSelect('DATE(ar.date) AS ardate')
+      .addSelect(
+        "(ar.grade + (ar.ascentType='onsight')::int * 100 + (ar.ascentType='flash')::int * 50) as score",
+      )
+      .leftJoin('route', 'r', 'ar.routeId = r.id')
+      .distinctOn(['ardate', 'ar.userId'])
+      .where('ar.ascentType IN (:...aTypes)', {
+        aTypes: ['redpoint', 'onsight', 'flash'],
+      })
+      .andWhere('ar.publish IN (:...publish)', {
+        publish: ['log', 'public'],
+      })
+      .andWhere('ar.routeId IS NOT NULL') // TODO: what are activity routes with no route id??
+      .andWhere('ar.grade IS NOT NULL') // TODO: entries with null values for grade? -> multipitch? - skip for now
+      // .andWhere("ar.date < '2018-07-20 02:00:00.000000'") // TODO: test it
+      .orderBy('ardate', 'DESC')
+      .addOrderBy('ar.userId', 'DESC')
+      .addOrderBy('score', 'DESC')
+      .addOrderBy('ar.ascentType', 'ASC')
+      .limit(latest);
+
+    // TODO: what is a 'first' tick? should probably be defined as a group of ascentTypes somewhere
+
+    /*
+    comparing redpoint, flash, onsight:
+    8b rp ~ 8a+ f ~ 8a os
+    TODO: should implement scoring?
+    */
+
+    const ticks = builder.getMany();
+    return ticks;
   }
 
   async paginate(
