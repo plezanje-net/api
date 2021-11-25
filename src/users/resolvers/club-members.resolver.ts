@@ -1,7 +1,7 @@
 import { UseGuards } from '@nestjs/common';
 import { Args, Mutation, Resolver } from '@nestjs/graphql';
 import { CurrentUser } from 'src/auth/decorators/current-user.decorator';
-import { GqlAuthGuard } from 'src/auth/guards/gql-auth.guard';
+import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { CreateClubMemberByEmailInput } from '../dtos/create-club-member-by-email.input';
 import { CreateClubMemberInput } from '../dtos/create-club-member.input';
 import { ClubMember } from '../entities/club-member.entity';
@@ -12,7 +12,7 @@ import { ClubMembersService } from '../services/club-members.service';
 export class ClubMembersResolver {
   constructor(private clubMembersService: ClubMembersService) {}
 
-  @UseGuards(GqlAuthGuard)
+  @UseGuards(JwtAuthGuard)
   @Mutation(returns => ClubMember)
   async createClubMember(
     @CurrentUser() user: User,
@@ -22,7 +22,7 @@ export class ClubMembersResolver {
     return this.clubMembersService.createByUserId(user, createClubMemberInput);
   }
 
-  @UseGuards(GqlAuthGuard)
+  @UseGuards(JwtAuthGuard)
   @Mutation(returns => ClubMember)
   async createClubMemberByEmail(
     @CurrentUser() user: User,
@@ -35,7 +35,7 @@ export class ClubMembersResolver {
     );
   }
 
-  @UseGuards(GqlAuthGuard)
+  @UseGuards(JwtAuthGuard)
   @Mutation(returns => Boolean)
   async deleteClubMember(
     @CurrentUser() user: User,

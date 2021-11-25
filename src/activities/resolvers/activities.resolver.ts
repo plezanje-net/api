@@ -11,6 +11,7 @@ import { CreateActivityInput } from '../dtos/create-activity.input';
 import { CreateActivityRouteInput } from '../dtos/create-activity-route.input';
 import { ActivityRoutesService } from '../services/activity-routes.service';
 import { NotFoundFilter } from 'src/crags/filters/not-found.filter';
+import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 
 @Resolver(() => Activity)
 export class ActivitiesResolver {
@@ -37,7 +38,7 @@ export class ActivitiesResolver {
   }
 
   @Mutation(() => Activity)
-  @UseGuards(GqlAuthGuard)
+  @UseGuards(JwtAuthGuard)
   async createActivity(
     @CurrentUser() user: User,
     @Args('input', { type: () => CreateActivityInput })

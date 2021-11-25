@@ -17,6 +17,7 @@ import { User } from '../entities/user.entity';
 import { GqlAuthGuard } from 'src/auth/guards/gql-auth.guard';
 import { UseGuards } from '@nestjs/common';
 import { Roles } from 'src/auth/decorators/roles.decorator';
+import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 
 @Resolver(of => Club)
 export class ClubsResolver {
@@ -53,7 +54,7 @@ export class ClubsResolver {
     return this.clubMembersService.nrMembersByClub(club.id);
   }
 
-  @UseGuards(GqlAuthGuard)
+  @UseGuards(JwtAuthGuard)
   @Mutation(returns => Club)
   async createClub(
     @CurrentUser() user: User,
@@ -62,7 +63,7 @@ export class ClubsResolver {
     return this.clubsService.create(user, createClubInput);
   }
 
-  @UseGuards(GqlAuthGuard)
+  @UseGuards(JwtAuthGuard)
   @Mutation(returns => Club)
   async updateClub(
     @CurrentUser() user: User,
@@ -71,7 +72,7 @@ export class ClubsResolver {
     return this.clubsService.update(user, updateClubInput);
   }
 
-  @UseGuards(GqlAuthGuard)
+  @UseGuards(JwtAuthGuard)
   @Mutation(returns => Boolean)
   async deleteClub(
     @CurrentUser() user: User,
