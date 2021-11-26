@@ -14,6 +14,7 @@ import { Route } from 'src/crags/entities/route.entity';
 import { Comment } from 'src/crags/entities/comment.entity';
 import { Peak } from './peak.entity';
 import { IceFall } from './ice-fall.entity';
+import { User } from 'src/users/entities/user.entity';
 
 export enum ImageType {
   PHOTO = 'photo',
@@ -57,6 +58,13 @@ export class Image extends BaseEntity {
 
   @UpdateDateColumn()
   updated: Date;
+
+  @ManyToOne(
+    () => User,
+    user => user.images,
+  )
+  @Field(() => User, { nullable: true })
+  author: Promise<User>;
 
   @Column({ nullable: true })
   legacy: string;

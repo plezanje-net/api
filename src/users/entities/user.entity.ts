@@ -80,4 +80,11 @@ export class User extends BaseEntity {
   )
   @Field(() => [ClubMember])
   clubs: ClubMember[];
+
+  @OneToMany(
+    () => Image,
+    image => image.author,
+  )
+  @Field(() => [Image])
+  images: Promise<Image[]>;
 }
