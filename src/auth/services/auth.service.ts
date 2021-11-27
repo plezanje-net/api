@@ -1,5 +1,6 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
+import crypto from 'crypto';
 
 import { JwtService } from '@nestjs/jwt';
 import { User } from '../../users/entities/user.entity';
@@ -24,7 +25,17 @@ export class AuthService {
       relations: ['roles'],
     });
 
-    if (user && user.isActive && (await bcrypt.compare(pass, user.password))) {
+    const inputPasswordSha = crypto
+      .createHash('sha256')
+      .update(pass.toUpperCase())
+      .digest('hex');
+
+    if (
+      user &&
+      user.isActive &&
+      ((await bcrypt.compare(pass, user.password)) ||
+        (await bcrypt.compare(inputPasswordSha, user.password)))
+    ) {
       const result = user;
       return result;
     }
