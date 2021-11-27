@@ -10,12 +10,12 @@ import { CommentsService } from '../services/comments.service';
 import { Comment } from '../entities/comment.entity';
 import { CragsService } from '../services/crags.service';
 import { CreateCommentInput } from '../dtos/create-comment.input';
-import { GqlAuthGuard } from 'src/auth/guards/gql-auth.guard';
 import { UnauthorizedException, UseGuards } from '@nestjs/common';
 import { User } from 'src/users/entities/user.entity';
 import { CurrentUser } from 'src/auth/decorators/current-user.decorator';
 import { UpdateCommentInput } from '../dtos/update-comment';
 import { IGraphQLContext } from 'src/types/graphql.types';
+import { UserAuthGuard } from 'src/auth/guards/user-auth.guard';
 
 @Resolver(() => Comment)
 export class CommentsResolver {
@@ -25,7 +25,7 @@ export class CommentsResolver {
   ) {}
 
   @Mutation(() => Comment)
-  @UseGuards(GqlAuthGuard)
+  @UseGuards(UserAuthGuard)
   async createComment(
     @CurrentUser() user: User,
     @Args('input', { type: () => CreateCommentInput })
@@ -34,7 +34,7 @@ export class CommentsResolver {
     return this.commentsService.create(input, user);
   }
 
-  @UseGuards(GqlAuthGuard)
+  @UseGuards(UserAuthGuard)
   @Mutation(() => Comment)
   async updateComment(
     @CurrentUser() user: User,
@@ -51,7 +51,7 @@ export class CommentsResolver {
     throw new UnauthorizedException('comment_author_mismatch');
   }
 
-  @UseGuards(GqlAuthGuard)
+  @UseGuards(UserAuthGuard)
   @Mutation(() => Boolean)
   async deleteComment(
     @CurrentUser() user: User,

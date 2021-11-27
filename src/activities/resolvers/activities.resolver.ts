@@ -1,7 +1,6 @@
 import { UseFilters, UseGuards } from '@nestjs/common';
 import { Resolver, Query, Args, Mutation } from '@nestjs/graphql';
 import { CurrentUser } from 'src/auth/decorators/current-user.decorator';
-import { GqlAuthGuard } from 'src/auth/guards/gql-auth.guard';
 import { User } from 'src/users/entities/user.entity';
 import { Activity } from '../entities/activity.entity';
 import { PaginatedActivities } from '../utils/paginated-activities.class';
@@ -11,6 +10,7 @@ import { CreateActivityInput } from '../dtos/create-activity.input';
 import { CreateActivityRouteInput } from '../dtos/create-activity-route.input';
 import { ActivityRoutesService } from '../services/activity-routes.service';
 import { NotFoundFilter } from 'src/crags/filters/not-found.filter';
+import { UserAuthGuard } from 'src/auth/guards/user-auth.guard';
 
 @Resolver(() => Activity)
 export class ActivitiesResolver {
@@ -19,7 +19,7 @@ export class ActivitiesResolver {
     private activityRoutesService: ActivityRoutesService,
   ) {}
 
-  @UseGuards(GqlAuthGuard)
+  @UseGuards(UserAuthGuard)
   @Query(() => PaginatedActivities)
   myActivities(
     @CurrentUser() user: User,
@@ -37,7 +37,7 @@ export class ActivitiesResolver {
   }
 
   @Mutation(() => Activity)
-  @UseGuards(GqlAuthGuard)
+  @UseGuards(UserAuthGuard)
   async createActivity(
     @CurrentUser() user: User,
     @Args('input', { type: () => CreateActivityInput })

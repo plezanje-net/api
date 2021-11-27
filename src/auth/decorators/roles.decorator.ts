@@ -1,6 +1,6 @@
 import { applyDecorators, SetMetadata, UseGuards } from '@nestjs/common';
-import { GqlAuthGuard } from '../guards/gql-auth.guard';
 import { RolesGuard } from '../guards/roles.guard';
+import { UserAuthGuard } from '../guards/user-auth.guard';
 
 export function Roles(
   ...roles: string[]
@@ -11,6 +11,6 @@ export function Roles(
 ) => void {
   return applyDecorators(
     SetMetadata('roles', roles),
-    UseGuards(GqlAuthGuard, RolesGuard),
+    UseGuards(UserAuthGuard, RolesGuard),
   );
 }

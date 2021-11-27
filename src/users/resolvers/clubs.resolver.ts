@@ -14,9 +14,9 @@ import { ClubMember } from '../entities/club-member.entity';
 import { ClubMembersService } from '../services/club-members.service';
 import { CurrentUser } from 'src/auth/decorators/current-user.decorator';
 import { User } from '../entities/user.entity';
-import { GqlAuthGuard } from 'src/auth/guards/gql-auth.guard';
 import { UseGuards } from '@nestjs/common';
 import { Roles } from 'src/auth/decorators/roles.decorator';
+import { UserAuthGuard } from 'src/auth/guards/user-auth.guard';
 
 @Resolver(of => Club)
 export class ClubsResolver {
@@ -25,7 +25,7 @@ export class ClubsResolver {
     private clubMembersService: ClubMembersService,
   ) {}
 
-  @UseGuards(GqlAuthGuard)
+  @UseGuards(UserAuthGuard)
   @Query(returns => [Club], { name: 'myClubs' })
   async myClubs(@CurrentUser() user: User) {
     return this.clubsService.findAll(user.id);
@@ -37,7 +37,7 @@ export class ClubsResolver {
     return this.clubsService.findAll(userId);
   }
 
-  @UseGuards(GqlAuthGuard)
+  @UseGuards(UserAuthGuard)
   @Query(returns => Club, { name: 'club' })
   async findOne(@CurrentUser() user: User, @Args('id') id: string) {
     return this.clubsService.findOne(user, id);
@@ -53,7 +53,7 @@ export class ClubsResolver {
     return this.clubMembersService.nrMembersByClub(club.id);
   }
 
-  @UseGuards(GqlAuthGuard)
+  @UseGuards(UserAuthGuard)
   @Mutation(returns => Club)
   async createClub(
     @CurrentUser() user: User,
@@ -62,7 +62,7 @@ export class ClubsResolver {
     return this.clubsService.create(user, createClubInput);
   }
 
-  @UseGuards(GqlAuthGuard)
+  @UseGuards(UserAuthGuard)
   @Mutation(returns => Club)
   async updateClub(
     @CurrentUser() user: User,
@@ -71,7 +71,7 @@ export class ClubsResolver {
     return this.clubsService.update(user, updateClubInput);
   }
 
-  @UseGuards(GqlAuthGuard)
+  @UseGuards(UserAuthGuard)
   @Mutation(returns => Boolean)
   async deleteClub(
     @CurrentUser() user: User,

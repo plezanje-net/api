@@ -24,10 +24,10 @@ import {
 } from '@nestjs/common';
 import { ConflictFilter } from 'src/crags/filters/conflict.filter';
 import { NotificationService } from 'src/notification/services/notification.service';
-import { GqlAuthGuard } from 'src/auth/guards/gql-auth.guard';
 import { PasswordInput } from '../dtos/password.input';
 import { ClubMember } from '../entities/club-member.entity';
 import { ClubMembersService } from '../services/club-members.service';
+import { UserAuthGuard } from 'src/auth/guards/user-auth.guard';
 
 @Resolver(() => User)
 export class UsersResolver {
@@ -38,7 +38,7 @@ export class UsersResolver {
     private clubMembersService: ClubMembersService,
   ) {}
 
-  @UseGuards(GqlAuthGuard)
+  @UseGuards(UserAuthGuard)
   @Query(() => User)
   profile(@CurrentUser() user: User): Promise<User> {
     return this.usersService.findOneById(user.id);

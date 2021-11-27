@@ -20,10 +20,10 @@ import { Crag, CragStatus } from '../entities/crag.entity';
 import { CragsService } from '../services/crags.service';
 import { User } from 'src/users/entities/user.entity';
 import { CurrentUser } from 'src/auth/decorators/current-user.decorator';
-import { GqlAuthGuard } from 'src/auth/guards/gql-auth.guard';
 import { Area } from '../entities/area.entity';
 import { AreasService } from '../services/areas.service';
 import { FindCragsInput } from '../dtos/find-crags.input';
+import { UserAuthGuard } from 'src/auth/guards/user-auth.guard';
 
 @Resolver(() => Country)
 export class CountriesResolver {
@@ -35,15 +35,14 @@ export class CountriesResolver {
 
   @Query(() => Country)
   @UseFilters(NotFoundFilter)
-  @UseGuards(GqlAuthGuard)
+  @UseGuards(UserAuthGuard)
   async countryBySlug(@Args('slug') slug: string): Promise<Country> {
-    // await new Promise(resolve => setTimeout(resolve, 2000));
     return this.countriesService.findOneBySlug(slug);
   }
 
   @Query(() => [Country])
   @UseFilters(NotFoundFilter)
-  @UseGuards(GqlAuthGuard)
+  @UseGuards(UserAuthGuard)
   countries(
     @Args('input', { nullable: true }) input?: FindCountriesInput,
   ): Promise<Country[]> {
