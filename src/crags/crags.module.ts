@@ -30,6 +30,8 @@ import { SearchService } from './services/search.service';
 import { SearchResolver } from './resolvers/search.resolver';
 import { GradesService } from './services/grades.service';
 import { Grade } from './entities/grade.entity';
+import { ImagesResolver } from './resolvers/images.resolver';
+import { ImagesService } from './services/images.service';
 
 @Module({
   imports: [
@@ -65,6 +67,8 @@ import { Grade } from './entities/grade.entity';
     SearchResolver,
     SearchService,
     GradesService,
+    ImagesResolver,
+    ImagesService,
   ],
 })
 export class CragsModule {}
