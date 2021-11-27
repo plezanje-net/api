@@ -83,7 +83,7 @@ export class User extends BaseEntity {
 
   @OneToMany(
     () => Image,
-    image => image.author,
+    image => image.user,
   )
   @Field(() => [Image])
   images: Promise<Image[]>;

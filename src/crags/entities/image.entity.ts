@@ -64,7 +64,7 @@ export class Image extends BaseEntity {
     user => user.images,
   )
   @Field(() => User, { nullable: true })
-  author: Promise<User>;
+  user: Promise<User>;
 
   @Column({ nullable: true })
   legacy: string;
