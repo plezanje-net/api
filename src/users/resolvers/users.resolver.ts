@@ -27,7 +27,7 @@ import { NotificationService } from 'src/notification/services/notification.serv
 import { PasswordInput } from '../dtos/password.input';
 import { ClubMember } from '../entities/club-member.entity';
 import { ClubMembersService } from '../services/club-members.service';
-import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
+import { UserAuthGuard } from 'src/auth/guards/user-auth.guard';
 
 @Resolver(() => User)
 export class UsersResolver {
@@ -38,7 +38,7 @@ export class UsersResolver {
     private clubMembersService: ClubMembersService,
   ) {}
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(UserAuthGuard)
   @Query(() => User)
   profile(@CurrentUser() user: User): Promise<User> {
     return this.usersService.findOneById(user.id);

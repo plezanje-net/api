@@ -1,7 +1,8 @@
 import { UseGuards } from '@nestjs/common';
 import { Args, Query, Resolver } from '@nestjs/graphql';
+import { AllowAny } from 'src/auth/decorators/allow-any.decorator';
 import { CurrentUser } from 'src/auth/decorators/current-user.decorator';
-import { GqlAuthGuard } from 'src/auth/guards/gql-auth.guard';
+import { UserAuthGuard } from 'src/auth/guards/user-auth.guard';
 import { User } from 'src/users/entities/user.entity';
 import { FindCragsInput } from '../dtos/find-crags.input';
 import { CragStatus } from '../entities/crag.entity';
@@ -13,7 +14,8 @@ export class SearchResolver {
   constructor(private searchService: SearchService) {}
 
   @Query(() => SearchResults)
-  @UseGuards(GqlAuthGuard)
+  @AllowAny()
+  @UseGuards(UserAuthGuard)
   search(
     @CurrentUser() user: User,
     @Args('input', { nullable: true }) input?: string,
