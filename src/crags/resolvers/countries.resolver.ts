@@ -24,6 +24,7 @@ import { Area } from '../entities/area.entity';
 import { AreasService } from '../services/areas.service';
 import { FindCragsInput } from '../dtos/find-crags.input';
 import { UserAuthGuard } from 'src/auth/guards/user-auth.guard';
+import { AllowAny } from 'src/auth/decorators/allow-any.decorator';
 
 @Resolver(() => Country)
 export class CountriesResolver {
@@ -35,6 +36,7 @@ export class CountriesResolver {
 
   @Query(() => Country)
   @UseFilters(NotFoundFilter)
+  @AllowAny()
   @UseGuards(UserAuthGuard)
   async countryBySlug(@Args('slug') slug: string): Promise<Country> {
     return this.countriesService.findOneBySlug(slug);
@@ -42,6 +44,7 @@ export class CountriesResolver {
 
   @Query(() => [Country])
   @UseFilters(NotFoundFilter)
+  @AllowAny()
   @UseGuards(UserAuthGuard)
   countries(
     @Args('input', { nullable: true }) input?: FindCountriesInput,
