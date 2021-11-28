@@ -1,7 +1,7 @@
 import { UseGuards } from '@nestjs/common';
 import { Args, Int, Query, Resolver } from '@nestjs/graphql';
 import { CurrentUser } from 'src/auth/decorators/current-user.decorator';
-import { GqlAuthGuard } from 'src/auth/guards/gql-auth.guard';
+import { UserAuthGuard } from 'src/auth/guards/user-auth.guard';
 import { User } from 'src/users/entities/user.entity';
 import { FindActivityRoutesInput } from '../dtos/find-activity-routes.input';
 import { ActivityRoute } from '../entities/activity-route.entity';
@@ -12,7 +12,7 @@ import { PaginatedActivityRoutes } from '../utils/paginated-activity-routes.clas
 export class ActivityRoutesResolver {
   constructor(private activityRoutesService: ActivityRoutesService) {}
 
-  @UseGuards(GqlAuthGuard)
+  @UseGuards(UserAuthGuard)
   @Query(() => PaginatedActivityRoutes)
   myActivityRoutes(
     @CurrentUser() user: User,
@@ -22,7 +22,7 @@ export class ActivityRoutesResolver {
     return this.activityRoutesService.paginate(input);
   }
 
-  @UseGuards(GqlAuthGuard)
+  @UseGuards(UserAuthGuard)
   @Query(() => [ActivityRoute])
   myCragSummary(
     @CurrentUser() user: User,
@@ -33,14 +33,14 @@ export class ActivityRoutesResolver {
   }
 
   // TODO: add clubId to input?
-  @UseGuards(GqlAuthGuard)
+  @UseGuards(UserAuthGuard)
   @Query(returns => PaginatedActivityRoutes)
-  activityRoutesByClub(
+  activityRoutesByClubSlug(
     @CurrentUser() user: User,
-    @Args('clubId') clubId: string,
+    @Args('clubSlug') clubSlug: string,
     @Args('input', { nullable: true }) input: FindActivityRoutesInput = {},
   ): Promise<PaginatedActivityRoutes> {
-    return this.activityRoutesService.finbByClub(user, clubId, input);
+    return this.activityRoutesService.finbByClubSlug(user, clubSlug, input);
   }
 
   @Query(returns => [ActivityRoute])
