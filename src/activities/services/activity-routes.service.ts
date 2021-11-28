@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { PaginationMeta } from 'src/core/utils/pagination-meta.class';
 import { Route } from 'src/crags/entities/route.entity';
 import { ClubMember } from 'src/users/entities/club-member.entity';
+import { Club } from 'src/users/entities/club.entity';
 import { User } from 'src/users/entities/user.entity';
 import { In, Repository, SelectQueryBuilder } from 'typeorm';
 import { CreateActivityRouteInput } from '../dtos/create-activity-route.input';
@@ -20,6 +21,8 @@ export class ActivityRoutesService {
     private routesRepository: Repository<Route>,
     @InjectRepository(ClubMember)
     private clubMembersRepository: Repository<ClubMember>,
+    @InjectRepository(Club)
+    private clubsRepository: Repository<Club>,
   ) {}
 
   async create(
@@ -76,16 +79,19 @@ export class ActivityRoutesService {
   }
 
   // TODO: DRY
-  async finbByClub(
+  async finbByClubSlug(
     user: User,
-    clubId: string,
+    clubSlug: string,
     params: FindActivityRoutesInput = {},
   ): Promise<PaginatedActivityRoutes> {
     // if current user is not member of the club, reject access to activity routes data
+    const club = await this.clubsRepository.findOneOrFail({
+      where: { slug: clubSlug },
+    });
     const clubMember = await this.clubMembersRepository.findOne({
       where: {
         user: user.id,
-        club: clubId,
+        club: club.id,
       },
     });
     if (!clubMember) throw new HttpException('Forbidden', HttpStatus.FORBIDDEN);
@@ -95,7 +101,7 @@ export class ActivityRoutesService {
       .leftJoinAndSelect('ar.user', 'user')
       .leftJoinAndSelect('user.clubs', 'clubMember')
       .leftJoinAndSelect('clubMember.club', 'club')
-      .andWhere('"club"."id" = :clubId', { clubId });
+      .andWhere('"club"."id" = :clubId', { clubId: club.id });
 
     const itemCount = await query.getCount();
 

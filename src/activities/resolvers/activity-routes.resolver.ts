@@ -35,12 +35,12 @@ export class ActivityRoutesResolver {
   // TODO: add clubId to input?
   @UseGuards(UserAuthGuard)
   @Query(returns => PaginatedActivityRoutes)
-  activityRoutesByClub(
+  activityRoutesByClubSlug(
     @CurrentUser() user: User,
-    @Args('clubId') clubId: string,
+    @Args('clubSlug') clubSlug: string,
     @Args('input', { nullable: true }) input: FindActivityRoutesInput = {},
   ): Promise<PaginatedActivityRoutes> {
-    return this.activityRoutesService.finbByClub(user, clubId, input);
+    return this.activityRoutesService.finbByClubSlug(user, clubSlug, input);
   }
 
   @Query(returns => [ActivityRoute])

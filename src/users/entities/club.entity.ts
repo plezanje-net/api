@@ -21,6 +21,10 @@ export class Club extends BaseEntity {
   @Field()
   name: string;
 
+  @Column({ unique: true })
+  @Field()
+  slug: string;
+
   @CreateDateColumn()
   @Field()
   created: Date;
