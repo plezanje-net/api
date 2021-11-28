@@ -32,6 +32,7 @@ import { GradesService } from './services/grades.service';
 import { Grade } from './entities/grade.entity';
 import { ImagesResolver } from './resolvers/images.resolver';
 import { ImagesService } from './services/images.service';
+import { PitchesService } from './services/pitches.service';
 
 @Module({
   imports: [
@@ -69,6 +70,7 @@ import { ImagesService } from './services/images.service';
     GradesService,
     ImagesResolver,
     ImagesService,
+    PitchesService,
   ],
 })
 export class CragsModule {}

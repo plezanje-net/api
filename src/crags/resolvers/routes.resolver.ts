@@ -21,12 +21,15 @@ import { Comment, CommentType } from '../entities/comment.entity';
 import { Grade } from '../entities/grade.entity';
 import { GradesService } from '../services/grades.service';
 import { IGraphQLContext } from 'src/types/graphql.types';
+import { Pitch } from '../entities/pitch.entity';
+import { PitchesService } from '../services/pitches.service';
 
 @Resolver(() => Route)
 export class RoutesResolver {
   constructor(
     private routesService: RoutesService,
     private commentsService: CommentsService,
+    private pitchesService: PitchesService,
     private gradesService: GradesService,
   ) {}
 
@@ -89,7 +92,12 @@ export class RoutesResolver {
   }
 
   @ResolveField('grades', () => [Grade])
-  async grades(@Args('id') routeId: string): Promise<Grade[]> {
-    return this.gradesService.findByRouteId(routeId);
+  async grades(@Parent() route: Route): Promise<Grade[]> {
+    return this.gradesService.findByRouteId(route.id);
+  }
+
+  @ResolveField('pitches', () => [Pitch])
+  async pitches (@Parent() route: Route): Promise<Pitch[]> {
+    return this.pitchesService.findByRouteId(route.id);
   }
 }
