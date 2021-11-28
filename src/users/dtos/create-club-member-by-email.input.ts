@@ -1,5 +1,5 @@
 import { InputType, Field } from '@nestjs/graphql';
-import { IsOptional, IsUUID } from 'class-validator';
+import { IsUUID } from 'class-validator';
 
 @InputType()
 export class CreateClubMemberByEmailInput {

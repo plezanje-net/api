@@ -43,6 +43,15 @@ export class ClubsResolver {
     return this.clubsService.findOne(user, id);
   }
 
+  @UseGuards(UserAuthGuard)
+  @Query(returns => Club, { name: 'clubBySlug' })
+  async findClubBySlug(
+    @CurrentUser() user: User,
+    @Args('slug') slug: string,
+  ): Promise<Club> {
+    return this.clubsService.findOneBySlug(user, slug);
+  }
+
   @ResolveField('members', returns => [ClubMember])
   async getClubMembers(@Parent() club: Club) {
     return this.clubMembersService.findByClub(club.id);
