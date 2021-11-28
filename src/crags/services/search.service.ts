@@ -46,7 +46,6 @@ export class SearchService {
   findCrags(searchString: string, cragParams: FindCragsInput): Promise<Crag[]> {
     const builder = this.cragsRepository.createQueryBuilder('c');
 
-    builder.where('c.peakId IS NULL');
 
     if (cragParams.minStatus != null) {
       builder.andWhere('c.status <= :minStatus', {
@@ -67,8 +66,6 @@ export class SearchService {
 
     builder.innerJoin('crag', 'c', 'c.id = r."cragId"');
 
-    builder.where('c.peakId IS NULL');
-
     if (cragParams.minStatus != null) {
       builder.andWhere('c.status <= :minStatus', {
         minStatus: cragParams.minStatus,
@@ -87,7 +84,6 @@ export class SearchService {
     const builder = this.sectorsRepository.createQueryBuilder('s');
 
     builder.innerJoin('crag', 'c', 'c.id = s."cragId"');
-    builder.where('c.peakId IS NULL');
 
     if (cragParams.minStatus != null) {
       builder.andWhere('c.status <= :minStatus', {
@@ -111,7 +107,6 @@ export class SearchService {
 
     builder.leftJoin('crag', 'c', 'c.id = co.cragId');
 
-    builder.where('co.peakId IS NULL');
     builder.andWhere('co.iceFallId IS NULL');
 
     if (cragParams.minStatus != null) {
