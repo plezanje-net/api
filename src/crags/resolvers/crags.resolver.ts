@@ -90,27 +90,10 @@ export class CragsResolver {
     return this.sectorsService.findByCrag(crag.id);
   }
 
-  @ResolveField('warnings', () => [Comment])
-  async getWarnings(@Parent() crag: Crag): Promise<Comment[]> {
-    return this.commentsService.find({
-      cragId: crag.id,
-      type: CommentType.WARNING,
-    });
-  }
-
-  @ResolveField('conditions', () => [Comment])
-  async getConditions(@Parent() crag: Crag): Promise<Comment[]> {
-    return this.commentsService.find({
-      cragId: crag.id,
-      type: CommentType.CONDITION,
-    });
-  }
-
   @ResolveField('comments', () => [Comment])
   async getComments(@Parent() crag: Crag): Promise<Comment[]> {
     return this.commentsService.find({
       cragId: crag.id,
-      type: CommentType.COMMENT,
     });
   }
 
