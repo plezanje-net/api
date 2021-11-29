@@ -21,6 +21,9 @@ import { Comment, CommentType } from '../entities/comment.entity';
 import { Grade } from '../entities/grade.entity';
 import { GradesService } from '../services/grades.service';
 import { IGraphQLContext } from 'src/types/graphql.types';
+import { RouteCommentsLoader } from '../loaders/route-comments.loader';
+import DataLoader from 'dataloader';
+import { Loader } from 'src/core/interceptors/data-loader.interceptor';
 
 @Resolver(() => Route)
 export class RoutesResolver {
@@ -64,28 +67,13 @@ export class RoutesResolver {
     return this.routesService.findOneById(id);
   }
 
-  @ResolveField('warnings', () => [Comment])
-  async getWarnings(
-    @Parent() route: Route,
-    @Context() { routeWarningsLoader }: IGraphQLContext,
-  ): Promise<Comment[]> {
-    return routeWarningsLoader.load(route.id);
-  }
-
-  @ResolveField('conditions', () => [Comment])
-  async getConditions(
-    @Parent() route: Route,
-    @Context() { routeConditionsLoader }: IGraphQLContext,
-  ): Promise<Comment[]> {
-    return routeConditionsLoader.load(route.id);
-  }
-
   @ResolveField('comments', () => [Comment])
   async getComments(
     @Parent() route: Route,
-    @Context() { routeCommentsLoader }: IGraphQLContext,
+    @Loader(RouteCommentsLoader.name)
+    loader: DataLoader<Comment['id'], Comment[]>,
   ): Promise<Comment[]> {
-    return routeCommentsLoader.load(route.id);
+    return loader.load(route.id);
   }
 
   @ResolveField('grades', () => [Grade])

@@ -13,5 +13,9 @@ export class FindCommentsInput {
 
   @Field({ nullable: true })
   @IsOptional()
+  routeIds?: string[];
+
+  @Field({ nullable: true })
+  @IsOptional()
   type?: string;
 }

@@ -32,6 +32,9 @@ import { GradesService } from './services/grades.service';
 import { Grade } from './entities/grade.entity';
 import { ImagesResolver } from './resolvers/images.resolver';
 import { ImagesService } from './services/images.service';
+import { RouteCommentsLoader } from './loaders/route-comments.loader';
+import { DataLoaderInterceptor } from 'src/core/interceptors/data-loader.interceptor';
+import { APP_INTERCEPTOR } from '@nestjs/core';
 
 @Module({
   imports: [
@@ -69,6 +72,11 @@ import { ImagesService } from './services/images.service';
     GradesService,
     ImagesResolver,
     ImagesService,
+    RouteCommentsLoader,
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: DataLoaderInterceptor,
+    },
   ],
 })
 export class CragsModule {}
