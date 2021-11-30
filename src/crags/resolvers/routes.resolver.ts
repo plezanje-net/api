@@ -70,14 +70,14 @@ export class RoutesResolver {
   @ResolveField('comments', () => [Comment])
   async getComments(
     @Parent() route: Route,
-    @Loader(RouteCommentsLoader.name)
+    @Loader(RouteCommentsLoader)
     loader: DataLoader<Comment['id'], Comment[]>,
   ): Promise<Comment[]> {
     return loader.load(route.id);
   }
 
   @ResolveField('grades', () => [Grade])
-  async grades(@Args('id') routeId: string): Promise<Grade[]> {
-    return this.gradesService.findByRouteId(routeId);
+  async grades(@Parent() route: Route): Promise<Grade[]> {
+    return this.gradesService.findByRouteId(route.id);
   }
 }
