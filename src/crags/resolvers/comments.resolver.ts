@@ -1,10 +1,12 @@
 import {
   Resolver,
+  Query,
   Mutation,
   Args,
   ResolveField,
   Parent,
   Context,
+  Int,
 } from '@nestjs/graphql';
 import { CommentsService } from '../services/comments.service';
 import { Comment } from '../entities/comment.entity';
@@ -73,5 +75,10 @@ export class CommentsResolver {
     @Context() { userLoader }: IGraphQLContext,
   ): Promise<User> {
     return comment.userId != null ? userLoader.load(comment.userId) : null;
+  }
+
+  @Query(returns => [Comment])
+  latestWarnings(@Args('latest', { type: () => Int }) latest: number) {
+    return this.commentsService.findLatestWarnings(latest);
   }
 }

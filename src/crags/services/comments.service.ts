@@ -73,4 +73,12 @@ export class CommentsService {
 
     return this.commentsRepository.find(options);
   }
+
+  findLatestWarnings(latest: number) {
+    return this.commentsRepository.find({
+      where: { type: 'warning' },
+      order: { updated: 'DESC' },
+      take: latest,
+    });
+  }
 }
