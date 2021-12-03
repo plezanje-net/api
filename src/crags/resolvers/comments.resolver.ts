@@ -77,8 +77,8 @@ export class CommentsResolver {
     return comment.userId != null ? userLoader.load(comment.userId) : null;
   }
 
-  @Query(returns => [Comment])
-  latestWarnings(@Args('latest', { type: () => Int }) latest: number) {
-    return this.commentsService.findLatestWarnings(latest);
+  @Query(returns => [Comment], { name: 'exposedWarnings' })
+  getExposedWarnings() {
+    return this.commentsService.getExposedWarnings();
   }
 }

@@ -91,6 +91,10 @@ export class Comment extends BaseEntity {
   @Column({ name: 'routeId', nullable: true })
   routeId: string;
 
+  @Column({ nullable: true }) // keep nullable, only comments of type=warning use this field
+  @Field()
+  exposedUntil: Date;
+
   @ManyToOne(
     () => IceFall,
     iceFall => iceFall.comments,
