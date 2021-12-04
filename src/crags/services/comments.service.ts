@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from 'src/users/entities/user.entity';
-import { FindManyOptions, Repository } from 'typeorm';
+import { FindManyOptions, In, Repository } from 'typeorm';
 import { CreateCommentInput } from '../dtos/create-comment.input';
 import { FindCommentsInput } from '../dtos/find-comments.input';
 import { UpdateCommentInput } from '../dtos/update-comment';
@@ -59,6 +59,10 @@ export class CommentsService {
 
     if (params.routeId != null) {
       options.where['route'] = params.routeId;
+    }
+
+    if (params.routeIds != null) {
+      options.where['routeId'] = In(params.routeIds);
     }
 
     if (params.cragId != null) {

@@ -11,7 +11,7 @@ export class GradesService {
   ) {}
 
   async findByRouteId(routeId: string): Promise<Grade[]> {
-    let grades = this.gradeRepository.find({
+    const grades = this.gradeRepository.find({
       where: { route: routeId },
       order: { grade: 'ASC' },
     });

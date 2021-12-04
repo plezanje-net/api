@@ -82,8 +82,6 @@ export class CragsService {
 
     builder.orderBy('c.name', 'ASC');
 
-    builder.andWhere('c."peakId" IS NULL');
-
     if (params.country != null) {
       builder.andWhere('c.country = :countryId', {
         countryId: params.country,

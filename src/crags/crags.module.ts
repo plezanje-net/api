@@ -32,9 +32,11 @@ import { GradesService } from './services/grades.service';
 import { Grade } from './entities/grade.entity';
 import { ImagesResolver } from './resolvers/images.resolver';
 import { ImagesService } from './services/images.service';
+import { PitchesService } from './services/pitches.service';
 import { RouteCommentsLoader } from './loaders/route-comments.loader';
 import { DataLoaderInterceptor } from 'src/core/interceptors/data-loader.interceptor';
 import { APP_INTERCEPTOR } from '@nestjs/core';
+import { RoutePitchesLoader } from './loaders/route-pitches.loader';
 
 @Module({
   imports: [
@@ -72,7 +74,9 @@ import { APP_INTERCEPTOR } from '@nestjs/core';
     GradesService,
     ImagesResolver,
     ImagesService,
+    PitchesService,
     RouteCommentsLoader,
+    RoutePitchesLoader,
     {
       provide: APP_INTERCEPTOR,
       useClass: DataLoaderInterceptor,
