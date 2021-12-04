@@ -29,11 +29,6 @@ import { IceFall } from './crags/entities/ice-fall.entity';
 import { Club } from './users/entities/club.entity';
 import { ClubMember } from './users/entities/club-member.entity';
 import { Rating } from './crags/entities/rating.entity';
-import {
-  routeCommentsLoader,
-  routeConditionsLoader,
-  routeWarningsLoader,
-} from './crags/loaders/route-comments.loader';
 import { sectorRoutesLoader } from './crags/loaders/sector-routes.loader';
 import { userLoader } from './crags/loaders/user.loader';
 
@@ -46,9 +41,6 @@ import { userLoader } from './crags/loaders/user.loader';
       autoSchemaFile: true,
       context: ({ req }) => ({
         ...req,
-        routeCommentsLoader: routeCommentsLoader(),
-        routeWarningsLoader: routeWarningsLoader(),
-        routeConditionsLoader: routeConditionsLoader(),
         sectorRoutesLoader: sectorRoutesLoader(),
         userLoader: userLoader(),
       }),

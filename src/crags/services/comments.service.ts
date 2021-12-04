@@ -69,6 +69,8 @@ export class CommentsService {
       options.where['type'] = params.type;
     }
 
+    options.order = { created: 'DESC' };
+
     return this.commentsRepository.find(options);
   }
 }

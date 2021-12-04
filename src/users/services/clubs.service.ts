@@ -1,5 +1,6 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import slugify from 'slugify';
 import { Repository } from 'typeorm';
 import { CreateClubInput } from '../dtos/create-club.input';
 import { UpdateClubInput } from '../dtos/update-club.input';
@@ -38,8 +39,34 @@ export class ClubsService {
     return club;
   }
 
+  async findOneBySlug(user: User, slug: string): Promise<Club> {
+    const club = await this.clubsRepository.findOneOrFail({ where: { slug } });
+
+    // only club member can see club data
+    const clubMember = await this.clubMembersRepository.findOne({
+      where: { user: user.id, club: club.id },
+    });
+    if (!clubMember) throw new HttpException('Forbidden', HttpStatus.FORBIDDEN);
+    return club;
+  }
+
   async create(currentUser: User, data: CreateClubInput): Promise<Club> {
-    const newClub = await this.clubsRepository.create(data).save();
+    // generate slug from club name
+    const clubName = data.name;
+    let slug = slugify(clubName, { lower: true });
+    let suffixCounter = 0;
+    let suffix = '';
+    while (
+      (await this.clubsRepository.findOne({
+        where: { slug: slug + suffix },
+      })) !== undefined
+    ) {
+      suffixCounter++;
+      suffix = '-' + suffixCounter;
+    }
+    slug += suffix;
+
+    const newClub = await this.clubsRepository.create({ ...data, slug }).save();
 
     // user creating the club should be automatically added as an admin member, otherwise we would get an orphaned club
     const clubMember = new ClubMember();
