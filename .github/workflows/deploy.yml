@@ -1,0 +1,30 @@
+name: deploy
+on:
+  workflow_dispatch:
+jobs:
+  deploy:
+    runs-on: master
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v2
+      - name: Use Node 16.x
+        uses: actions/setup-node@v1
+        with:
+          node-version: '16.x'
+      - name: List files in the repository
+        run: |
+          ls ${{ github.workspace }}
+      - name: Install and deploy
+        run: |
+          npm install
+          npm run build
+          sudo supervisorctl stop api
+          rm -rf /var/www/plezanjenet/api/*
+          cp -r ./ /var/www/plezanjenet/api/
+          cp /var/www/plezanjenet/.env /var/www/plezanjenet/api/.env
+      - name: Run database migrations
+        run: |
+          npm run typeorm migration:run
+      - name: Start server
+        run: |
+          sudo supervisorctl start api

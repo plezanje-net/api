@@ -21,7 +21,7 @@ export class Pitch extends BaseEntity {
   @ManyToOne(() => Route, { nullable: false })
   @Field(() => Route)
   route: Promise<Route>;
-  @Column({ name: 'routeId', nullable: true })
+  @Column({ name: 'routeId', nullable: false })
   routeId: string;
 
   @Column({ type: 'int' })
