@@ -26,6 +26,7 @@ import { PitchesService } from '../services/pitches.service';
 import { RouteCommentsLoader } from '../loaders/route-comments.loader';
 import DataLoader from 'dataloader';
 import { Loader } from 'src/core/interceptors/data-loader.interceptor';
+import { RoutePitchesLoader } from '../loaders/route-pitches.loader';
 
 @Resolver(() => Route)
 export class RoutesResolver {
@@ -85,7 +86,11 @@ export class RoutesResolver {
   }
 
   @ResolveField('pitches', () => [Pitch])
-  async pitches(@Parent() route: Route): Promise<Pitch[]> {
-    return this.pitchesService.findByRouteId(route.id);
+  async pitches(
+    @Parent() route: Route,
+    @Loader(RoutePitchesLoader)
+    loader: DataLoader<Pitch['id'], Pitch[]>,
+  ): Promise<Pitch[]> {
+    return loader.load(route.id);
   }
 }

@@ -1,19 +1,18 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { Pitch } from '../entities/pitch.entity';
 
 @Injectable()
 export class PitchesService {
-
   constructor(
     @InjectRepository(Pitch)
     private pitchRepository: Repository<Pitch>,
   ) {}
 
-  async findByRouteId(routeId: string): Promise<Pitch[]> {
+  async findByRouteIds(routeIds: string[]): Promise<Pitch[]> {
     const pitches = this.pitchRepository.find({
-      where: { route: routeId },
+      where: { routeId: In(routeIds) },
       order: { number: 'ASC' },
     });
 

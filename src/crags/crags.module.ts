@@ -36,6 +36,7 @@ import { PitchesService } from './services/pitches.service';
 import { RouteCommentsLoader } from './loaders/route-comments.loader';
 import { DataLoaderInterceptor } from 'src/core/interceptors/data-loader.interceptor';
 import { APP_INTERCEPTOR } from '@nestjs/core';
+import { RoutePitchesLoader } from './loaders/route-pitches.loader';
 
 @Module({
   imports: [
@@ -75,6 +76,7 @@ import { APP_INTERCEPTOR } from '@nestjs/core';
     ImagesService,
     PitchesService,
     RouteCommentsLoader,
+    RoutePitchesLoader,
     {
       provide: APP_INTERCEPTOR,
       useClass: DataLoaderInterceptor,
