@@ -1,9 +1,9 @@
 import { UseGuards } from '@nestjs/common';
 import { Args, Query, Resolver } from '@nestjs/graphql';
-import { AllowAny } from 'src/auth/decorators/allow-any.decorator';
-import { CurrentUser } from 'src/auth/decorators/current-user.decorator';
-import { UserAuthGuard } from 'src/auth/guards/user-auth.guard';
-import { User } from 'src/users/entities/user.entity';
+import { AllowAny } from '../../auth/decorators/allow-any.decorator';
+import { CurrentUser } from '../../auth/decorators/current-user.decorator';
+import { UserAuthGuard } from '../../auth/guards/user-auth.guard';
+import { User } from '../../users/entities/user.entity';
 import { FindCragsInput } from '../dtos/find-crags.input';
 import { CragStatus } from '../entities/crag.entity';
 import { SearchService } from '../services/search.service';

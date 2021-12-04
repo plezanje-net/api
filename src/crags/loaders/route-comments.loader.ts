@@ -2,7 +2,7 @@ import DataLoader from 'dataloader';
 import { Injectable } from '@nestjs/common';
 import { Comment } from '../entities/comment.entity';
 import { CommentsService } from '../services/comments.service';
-import { NestDataLoader } from 'src/core/interceptors/data-loader.interceptor';
+import { NestDataLoader } from '../../core/interceptors/data-loader.interceptor';
 
 @Injectable()
 export class RouteCommentsLoader implements NestDataLoader<string, Comment[]> {

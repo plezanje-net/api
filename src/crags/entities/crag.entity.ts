@@ -16,10 +16,10 @@ import { Sector } from './sector.entity';
 import { Area } from './area.entity';
 import { Book } from './book.entity';
 import { Comment } from './comment.entity';
-import { Image } from 'src/crags/entities/image.entity';
+import { Image } from '../../crags/entities/image.entity';
 import { Peak } from './peak.entity';
 import { Route } from './route.entity';
-import { Activity } from 'src/activities/entities/activity.entity';
+import { Activity } from '../../activities/entities/activity.entity';
 
 export enum CragStatus {
   PUBLIC = 'public',

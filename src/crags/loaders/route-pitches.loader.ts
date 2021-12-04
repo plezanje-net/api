@@ -1,6 +1,6 @@
 import DataLoader from 'dataloader';
 import { Injectable } from '@nestjs/common';
-import { NestDataLoader } from 'src/core/interceptors/data-loader.interceptor';
+import { NestDataLoader } from '../../core/interceptors/data-loader.interceptor';
 import { Pitch } from '../entities/pitch.entity';
 import { PitchesService } from '../services/pitches.service';
 

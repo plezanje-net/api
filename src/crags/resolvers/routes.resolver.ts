@@ -20,12 +20,12 @@ import { CommentsService } from '../services/comments.service';
 import { Comment, CommentType } from '../entities/comment.entity';
 import { Grade } from '../entities/grade.entity';
 import { GradesService } from '../services/grades.service';
-import { IGraphQLContext } from 'src/types/graphql.types';
+import { IGraphQLContext } from '../../types/graphql.types';
 import { Pitch } from '../entities/pitch.entity';
 import { PitchesService } from '../services/pitches.service';
 import { RouteCommentsLoader } from '../loaders/route-comments.loader';
 import DataLoader from 'dataloader';
-import { Loader } from 'src/core/interceptors/data-loader.interceptor';
+import { Loader } from '../../core/interceptors/data-loader.interceptor';
 import { RoutePitchesLoader } from '../loaders/route-pitches.loader';
 
 @Resolver(() => Route)

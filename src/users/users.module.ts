@@ -5,7 +5,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from '../auth/auth.module';
 import { User } from './entities/user.entity';
 import { Role } from './entities/role.entity';
-import { NotificationModule } from 'src/notification/notification.module';
+import { NotificationModule } from '../notification/notification.module';
 import { Club } from './entities/club.entity';
 import { ClubMember } from './entities/club-member.entity';
 import { ClubsService } from './services/clubs.service';

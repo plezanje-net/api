@@ -8,13 +8,13 @@ import {
   ManyToOne,
 } from 'typeorm';
 import { ObjectType, Field } from '@nestjs/graphql';
-import { Crag } from 'src/crags/entities/crag.entity';
-import { Area } from 'src/crags/entities/area.entity';
-import { Route } from 'src/crags/entities/route.entity';
-import { Comment } from 'src/crags/entities/comment.entity';
+import { Crag } from '../../crags/entities/crag.entity';
+import { Area } from '../../crags/entities/area.entity';
+import { Route } from '../../crags/entities/route.entity';
+import { Comment } from '../../crags/entities/comment.entity';
 import { Peak } from './peak.entity';
 import { IceFall } from './ice-fall.entity';
-import { User } from 'src/users/entities/user.entity';
+import { User } from '../../users/entities/user.entity';
 
 export enum ImageType {
   PHOTO = 'photo',

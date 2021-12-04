@@ -15,7 +15,7 @@ import { Country } from './country.entity';
 import { Area } from './area.entity';
 import { Book } from './book.entity';
 import { Comment } from './comment.entity';
-import { Image } from 'src/crags/entities/image.entity';
+import { Image } from '../../crags/entities/image.entity';
 import { Crag } from './crag.entity';
 
 @Entity()

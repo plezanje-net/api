@@ -9,11 +9,11 @@ import {
   OneToMany,
 } from 'typeorm';
 import { ObjectType, Field, Int } from '@nestjs/graphql';
-import { Crag } from 'src/crags/entities/crag.entity';
+import { Crag } from '../../crags/entities/crag.entity';
 import { ActivityRoute } from './activity-route.entity';
-import { User } from 'src/users/entities/user.entity';
-import { IceFall } from 'src/crags/entities/ice-fall.entity';
-import { Peak } from 'src/crags/entities/peak.entity';
+import { User } from '../../users/entities/user.entity';
+import { IceFall } from '../../crags/entities/ice-fall.entity';
+import { Peak } from '../../crags/entities/peak.entity';
 
 export enum ActivityType {
   CRAG = 'crag',
