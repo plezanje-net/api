@@ -6,7 +6,7 @@ import { Crag } from '../entities/crag.entity';
 import { Route } from '../entities/route.entity';
 import { Sector } from '../entities/sector.entity';
 import { Comment } from '../entities/comment.entity';
-import { User } from 'src/users/entities/user.entity';
+import { User } from '../../users/entities/user.entity';
 import { SearchResults } from '../utils/search-results.class';
 
 @Injectable()
@@ -45,7 +45,6 @@ export class SearchService {
 
   findCrags(searchString: string, cragParams: FindCragsInput): Promise<Crag[]> {
     const builder = this.cragsRepository.createQueryBuilder('c');
-
 
     if (cragParams.minStatus != null) {
       builder.andWhere('c.status <= :minStatus', {
@@ -149,7 +148,7 @@ export class SearchService {
     searchString: string,
     alias: string,
     searchFieldNames: string[] = ['name'],
-    searchingInHtml: boolean = false,
+    searchingInHtml = false,
   ): void {
     searchString = searchString.trim().replace(/\s+/g, ' '); // remove multiple spaces
 

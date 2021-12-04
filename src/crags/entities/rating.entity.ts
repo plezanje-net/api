@@ -8,7 +8,7 @@ import {
   ManyToOne,
 } from 'typeorm';
 import { ObjectType, Field } from '@nestjs/graphql';
-import { User } from 'src/users/entities/user.entity';
+import { User } from '../../users/entities/user.entity';
 import { Route } from './route.entity';
 
 @Entity()

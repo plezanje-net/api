@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { PaginationMeta } from 'src/core/utils/pagination-meta.class';
-import { Crag } from 'src/crags/entities/crag.entity';
-import { User } from 'src/users/entities/user.entity';
+import { PaginationMeta } from '../../core/utils/pagination-meta.class';
+import { Crag } from '../../crags/entities/crag.entity';
+import { User } from '../../users/entities/user.entity';
 import { FindManyOptions, Repository, SelectQueryBuilder } from 'typeorm';
 import { CreateActivityInput } from '../dtos/create-activity.input';
 import { FindActivitiesInput } from '../dtos/find-activities.input';

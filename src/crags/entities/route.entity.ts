@@ -13,7 +13,7 @@ import { Sector } from './sector.entity';
 import { Grade } from './grade.entity';
 import { Comment } from './comment.entity';
 import { Pitch } from './pitch.entity';
-import { Image } from 'src/crags/entities/image.entity';
+import { Image } from './image.entity';
 import { Crag } from './crag.entity';
 import { Rating } from './rating.entity';
 

@@ -12,11 +12,11 @@ import { ClubsService } from '../services/clubs.service';
 import { Club } from '../entities/club.entity';
 import { ClubMember } from '../entities/club-member.entity';
 import { ClubMembersService } from '../services/club-members.service';
-import { CurrentUser } from 'src/auth/decorators/current-user.decorator';
+import { CurrentUser } from '../../auth/decorators/current-user.decorator';
 import { User } from '../entities/user.entity';
 import { UseGuards } from '@nestjs/common';
-import { Roles } from 'src/auth/decorators/roles.decorator';
-import { UserAuthGuard } from 'src/auth/guards/user-auth.guard';
+import { Roles } from '../../auth/decorators/roles.decorator';
+import { UserAuthGuard } from '../../auth/guards/user-auth.guard';
 
 @Resolver(of => Club)
 export class ClubsResolver {

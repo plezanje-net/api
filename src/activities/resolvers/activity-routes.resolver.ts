@@ -1,8 +1,8 @@
 import { UseGuards } from '@nestjs/common';
 import { Args, Int, Query, Resolver } from '@nestjs/graphql';
-import { CurrentUser } from 'src/auth/decorators/current-user.decorator';
-import { UserAuthGuard } from 'src/auth/guards/user-auth.guard';
-import { User } from 'src/users/entities/user.entity';
+import { CurrentUser } from '../../auth/decorators/current-user.decorator';
+import { UserAuthGuard } from '../../auth/guards/user-auth.guard';
+import { User } from '../../users/entities/user.entity';
 import { FindActivityRoutesInput } from '../dtos/find-activity-routes.input';
 import { ActivityRoute } from '../entities/activity-route.entity';
 import { ActivityRoutesService } from '../services/activity-routes.service';

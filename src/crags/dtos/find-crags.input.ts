@@ -1,6 +1,5 @@
 import { InputType, Field } from '@nestjs/graphql';
 import { IsOptional } from 'class-validator';
-import { OrderByInput } from 'src/core/interfaces/order-by-input.interface';
 import { CragStatus } from '../entities/crag.entity';
 import { RouteType } from '../entities/route.entity';
 

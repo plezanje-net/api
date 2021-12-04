@@ -1,7 +1,7 @@
 import { UseGuards } from '@nestjs/common';
 import { Args, Mutation, Resolver } from '@nestjs/graphql';
-import { CurrentUser } from 'src/auth/decorators/current-user.decorator';
-import { UserAuthGuard } from 'src/auth/guards/user-auth.guard';
+import { CurrentUser } from '../../auth/decorators/current-user.decorator';
+import { UserAuthGuard } from '../../auth/guards/user-auth.guard';
 import { CreateClubMemberByEmailInput } from '../dtos/create-club-member-by-email.input';
 import { CreateClubMemberInput } from '../dtos/create-club-member.input';
 import { ClubMember } from '../entities/club-member.entity';

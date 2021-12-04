@@ -9,10 +9,10 @@ import {
 } from 'typeorm';
 import { ObjectType, Field, Extensions } from '@nestjs/graphql';
 import { Role } from './role.entity';
-import { Image } from 'src/crags/entities/image.entity';
+import { Image } from '../../crags/entities/image.entity';
 import { Club } from './club.entity';
 import { ClubMember } from './club-member.entity';
-import { checkRoleMiddleware } from 'src/core/middleware/check-role.middleware';
+import { checkRoleMiddleware } from '../../core/middleware/check-role.middleware';
 
 @Entity()
 @ObjectType()

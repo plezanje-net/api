@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { User } from 'src/users/entities/user.entity';
+import { User } from '../../users/entities/user.entity';
 import { FindManyOptions, In, Repository } from 'typeorm';
 import { CreateCommentInput } from '../dtos/create-comment.input';
 import { FindCommentsInput } from '../dtos/find-comments.input';
