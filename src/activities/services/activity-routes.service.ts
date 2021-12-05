@@ -1,10 +1,10 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { PaginationMeta } from 'src/core/utils/pagination-meta.class';
-import { Route } from 'src/crags/entities/route.entity';
-import { ClubMember } from 'src/users/entities/club-member.entity';
-import { Club } from 'src/users/entities/club.entity';
-import { User } from 'src/users/entities/user.entity';
+import { PaginationMeta } from '../../core/utils/pagination-meta.class';
+import { Route } from '../../crags/entities/route.entity';
+import { ClubMember } from '../../users/entities/club-member.entity';
+import { Club } from '../../users/entities/club.entity';
+import { User } from '../../users/entities/user.entity';
 import { In, Repository, SelectQueryBuilder } from 'typeorm';
 import { CreateActivityRouteInput } from '../dtos/create-activity-route.input';
 import { FindActivityRoutesInput } from '../dtos/find-activity-routes.input';

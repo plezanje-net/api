@@ -1,7 +1,7 @@
 import { UseFilters, UseGuards } from '@nestjs/common';
 import { Resolver, Query, Args, Mutation } from '@nestjs/graphql';
-import { CurrentUser } from 'src/auth/decorators/current-user.decorator';
-import { User } from 'src/users/entities/user.entity';
+import { CurrentUser } from '../../auth/decorators/current-user.decorator';
+import { User } from '../../users/entities/user.entity';
 import { Activity } from '../entities/activity.entity';
 import { PaginatedActivities } from '../utils/paginated-activities.class';
 import { ActivitiesService } from '../services/activities.service';
@@ -9,8 +9,8 @@ import { FindActivitiesInput } from '../dtos/find-activities.input';
 import { CreateActivityInput } from '../dtos/create-activity.input';
 import { CreateActivityRouteInput } from '../dtos/create-activity-route.input';
 import { ActivityRoutesService } from '../services/activity-routes.service';
-import { NotFoundFilter } from 'src/crags/filters/not-found.filter';
-import { UserAuthGuard } from 'src/auth/guards/user-auth.guard';
+import { NotFoundFilter } from '../../crags/filters/not-found.filter';
+import { UserAuthGuard } from '../../auth/guards/user-auth.guard';
 
 @Resolver(() => Activity)
 export class ActivitiesResolver {

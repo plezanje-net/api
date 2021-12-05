@@ -7,11 +7,12 @@ import {
   BaseEntity,
   OneToMany,
 } from 'typeorm';
-import { ObjectType, Field } from '@nestjs/graphql';
+import { ObjectType, Field, Extensions } from '@nestjs/graphql';
 import { Role } from './role.entity';
-import { Image } from 'src/crags/entities/image.entity';
+import { Image } from '../../crags/entities/image.entity';
 import { Club } from './club.entity';
 import { ClubMember } from './club-member.entity';
+import { checkRoleMiddleware } from '../../core/middleware/check-role.middleware';
 
 @Entity()
 @ObjectType()
@@ -21,7 +22,8 @@ export class User extends BaseEntity {
   id: string;
 
   @Column({ unique: true })
-  @Field()
+  @Field({ middleware: [checkRoleMiddleware], nullable: true })
+  @Extensions({ roles: ['admin', 'self'] })
   email: string;
 
   @Column()
@@ -47,7 +49,8 @@ export class User extends BaseEntity {
     () => Role,
     role => role.user,
   )
-  @Field(() => [Role])
+  @Field(() => [Role], { middleware: [checkRoleMiddleware], nullable: true })
+  @Extensions({ roles: ['admin', 'self'] })
   roles: Role[];
 
   @Column({ nullable: true })
@@ -78,7 +81,6 @@ export class User extends BaseEntity {
     type => ClubMember,
     clubMember => clubMember.user,
   )
-  @Field(() => [ClubMember])
   clubs: ClubMember[];
 
   @OneToMany(

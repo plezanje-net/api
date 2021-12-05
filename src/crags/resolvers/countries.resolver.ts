@@ -18,13 +18,13 @@ import { ConflictFilter } from '../filters/conflict.filter';
 import { NotFoundFilter } from '../filters/not-found.filter';
 import { Crag, CragStatus } from '../entities/crag.entity';
 import { CragsService } from '../services/crags.service';
-import { User } from 'src/users/entities/user.entity';
-import { CurrentUser } from 'src/auth/decorators/current-user.decorator';
+import { User } from '../../users/entities/user.entity';
+import { CurrentUser } from '../../auth/decorators/current-user.decorator';
 import { Area } from '../entities/area.entity';
 import { AreasService } from '../services/areas.service';
 import { FindCragsInput } from '../dtos/find-crags.input';
-import { UserAuthGuard } from 'src/auth/guards/user-auth.guard';
-import { AllowAny } from 'src/auth/decorators/allow-any.decorator';
+import { UserAuthGuard } from '../../auth/guards/user-auth.guard';
+import { AllowAny } from '../../auth/decorators/allow-any.decorator';
 
 @Resolver(() => Country)
 export class CountriesResolver {

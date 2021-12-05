@@ -8,11 +8,11 @@ import {
   ManyToOne,
 } from 'typeorm';
 import { ObjectType, Field, Int } from '@nestjs/graphql';
-import { Crag } from 'src/crags/entities/crag.entity';
-import { Route } from 'src/crags/entities/route.entity';
+import { Crag } from '../../crags/entities/crag.entity';
+import { Route } from '../../crags/entities/route.entity';
 import { Activity } from './activity.entity';
-import { Pitch } from 'src/crags/entities/pitch.entity';
-import { User } from 'src/users/entities/user.entity';
+import { Pitch } from '../../crags/entities/pitch.entity';
+import { User } from '../../users/entities/user.entity';
 
 export enum AscentType {
   ONSIGHT = 'onsight',

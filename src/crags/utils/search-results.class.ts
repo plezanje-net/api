@@ -3,7 +3,7 @@ import { Crag } from '../entities/crag.entity';
 import { Route } from '../entities/route.entity';
 import { Sector } from '../entities/sector.entity';
 import { Comment } from '../entities/comment.entity';
-import { User } from 'src/users/entities/user.entity';
+import { User } from '../../users/entities/user.entity';
 
 @ObjectType()
 export class SearchResults {

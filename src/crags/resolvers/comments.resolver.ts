@@ -13,11 +13,11 @@ import { Comment } from '../entities/comment.entity';
 import { CragsService } from '../services/crags.service';
 import { CreateCommentInput } from '../dtos/create-comment.input';
 import { UnauthorizedException, UseGuards } from '@nestjs/common';
-import { User } from 'src/users/entities/user.entity';
-import { CurrentUser } from 'src/auth/decorators/current-user.decorator';
+import { User } from '../../users/entities/user.entity';
+import { CurrentUser } from '../../auth/decorators/current-user.decorator';
 import { UpdateCommentInput } from '../dtos/update-comment';
-import { IGraphQLContext } from 'src/types/graphql.types';
-import { UserAuthGuard } from 'src/auth/guards/user-auth.guard';
+import { IGraphQLContext } from '../../types/graphql.types';
+import { UserAuthGuard } from '../../auth/guards/user-auth.guard';
 
 @Resolver(() => Comment)
 export class CommentsResolver {

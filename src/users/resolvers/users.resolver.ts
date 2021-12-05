@@ -16,18 +16,18 @@ import { AuthService } from '../../auth/services/auth.service';
 import { TokenResponse } from '../interfaces/token-response.class';
 import { Role } from '../entities/role.entity';
 import { Roles } from '../../auth/decorators/roles.decorator';
-import { NotFoundFilter } from 'src/crags/filters/not-found.filter';
+import { NotFoundFilter } from '../../crags/filters/not-found.filter';
 import {
   InternalServerErrorException,
   UseFilters,
   UseGuards,
 } from '@nestjs/common';
-import { ConflictFilter } from 'src/crags/filters/conflict.filter';
-import { NotificationService } from 'src/notification/services/notification.service';
+import { ConflictFilter } from '../../crags/filters/conflict.filter';
+import { NotificationService } from '../../notification/services/notification.service';
 import { PasswordInput } from '../dtos/password.input';
 import { ClubMember } from '../entities/club-member.entity';
 import { ClubMembersService } from '../services/club-members.service';
-import { UserAuthGuard } from 'src/auth/guards/user-auth.guard';
+import { UserAuthGuard } from '../../auth/guards/user-auth.guard';
 
 @Resolver(() => User)
 export class UsersResolver {

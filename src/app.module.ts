@@ -76,7 +76,7 @@ import { userLoader } from './crags/loaders/user.loader';
           IceFall,
           Rating,
         ],
-        synchronize: true,
+        synchronize: false,
         // logging: ['query', 'error'],
       }),
       inject: [ConfigService],

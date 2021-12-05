@@ -1,6 +1,6 @@
 import { InputType, Field, Int } from '@nestjs/graphql';
 import { IsOptional } from 'class-validator';
-import { OrderByInput } from 'src/core/interfaces/order-by-input.interface';
+import { OrderByInput } from '../../core/interfaces/order-by-input.interface';
 import { AscentType, PublishType } from '../entities/activity-route.entity';
 
 @InputType()

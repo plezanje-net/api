@@ -11,7 +11,7 @@ import {
 import { ObjectType, Field, Int } from '@nestjs/graphql';
 import { Crag } from '../../crags/entities/crag.entity';
 import { Country } from './country.entity';
-import { Image } from 'src/crags/entities/image.entity';
+import { Image } from '../../crags/entities/image.entity';
 import { Peak } from './peak.entity';
 import { IceFall } from './ice-fall.entity';
 

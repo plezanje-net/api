@@ -16,7 +16,7 @@ import { CreateSectorInput } from '../dtos/create-sector.input';
 import { UpdateSectorInput } from '../dtos/update-sector.input';
 import { RoutesService } from '../services/routes.service';
 import { Route } from '../entities/route.entity';
-import { IGraphQLContext } from 'src/types/graphql.types';
+import { IGraphQLContext } from '../../types/graphql.types';
 
 @Resolver(() => Sector)
 export class SectorsResolver {
