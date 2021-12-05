@@ -103,8 +103,10 @@ export class CragsService {
     if (params.routeType != null) {
       let condition = 'route.type = :routeType';
 
-      if (params.routeType == 'sport') {
-        condition += ' OR route.type IS NULL';
+      if (params.allowEmpty) {
+        condition += ' OR route.id IS NULL';
+      } else {
+        condition += ' AND route.id IS NOT NULL';
       }
 
       builder
