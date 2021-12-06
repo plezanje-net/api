@@ -25,6 +25,7 @@ import { AreasService } from '../services/areas.service';
 import { FindCragsInput } from '../dtos/find-crags.input';
 import { UserAuthGuard } from '../../auth/guards/user-auth.guard';
 import { AllowAny } from '../../auth/decorators/allow-any.decorator';
+import { MinCragStatus } from '../decorators/min-crag-status.decorator';
 
 @Resolver(() => Country)
 export class CountriesResolver {
@@ -84,14 +85,13 @@ export class CountriesResolver {
 
   @ResolveField('crags', () => [Crag])
   async getCrags(
-    @CurrentUser() user: User,
+    @MinCragStatus() minStatus: CragStatus,
     @Parent() country: Country,
     @Args('input', { nullable: true }) input: FindCragsInput = {},
   ): Promise<Crag[]> {
     input.country = country.id;
 
-    // TODO: check admin statuses
-    input.minStatus = user != null ? CragStatus.HIDDEN : CragStatus.PUBLIC;
+    input.minStatus = minStatus;
 
     return this.cragsService.find(input);
   }

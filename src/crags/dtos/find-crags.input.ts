@@ -20,4 +20,12 @@ export class FindCragsInput {
   @Field({ nullable: true })
   @IsOptional()
   routeType?: RouteType;
+
+  @Field({ nullable: true })
+  @IsOptional()
+  id?: string;
+
+  @Field({ nullable: true })
+  @IsOptional()
+  slug?: string;
 }
