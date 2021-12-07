@@ -9,6 +9,7 @@ import { Route } from '../entities/route.entity';
 import { Area } from '../entities/area.entity';
 import { FindCragsInput } from '../dtos/find-crags.input';
 import { PopularCrag } from '../utils/popular-crag.class';
+import { filter, from, lastValueFrom, map, of, pipe, pluck } from 'rxjs';
 
 @Injectable()
 export class CragsService {
@@ -32,7 +33,16 @@ export class CragsService {
   }
 
   async find(params: FindCragsInput = {}): Promise<Crag[]> {
-    return this.buildQuery(params).getMany();
+    return lastValueFrom(
+      from(this.buildQuery(params).getRawAndEntities()).pipe(
+        map(r =>
+          r.entities.map((e, i) => {
+            e.routeCount = r.raw[i].routeCount;
+            return e;
+          }),
+        ),
+      ),
+    );
   }
 
   async create(data: CreateCragInput): Promise<Crag> {
@@ -101,20 +111,16 @@ export class CragsService {
     }
 
     if (params.routeType != null) {
-      let condition = 'route.type = :routeType';
-
-      if (params.allowEmpty) {
-        condition += ' OR route.id IS NULL';
-      } else {
-        condition += ' AND route.id IS NOT NULL';
-      }
-
       builder
-        .leftJoin('c.routes', 'route')
-        .andWhere('(' + condition + ')', { routeType: params.routeType })
+        .innerJoin('c.routes', 'route')
+        .andWhere('(route.type = :routeType)', { routeType: params.routeType })
         .groupBy('c.id');
 
-      builder.addSelect('COUNT(route.id) AS routeCount');
+      builder.addSelect('COUNT(route.id)', 'routeCount');
+    }
+
+    if (!params.allowEmpty) {
+      builder.andWhere('"nrRoutes" > 0');
     }
 
     return builder;
