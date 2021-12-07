@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from '../../users/entities/user.entity';
-import { FindManyOptions, In, Repository } from 'typeorm';
+import { FindManyOptions, In, Repository, MoreThanOrEqual } from 'typeorm';
 import { CreateCommentInput } from '../dtos/create-comment.input';
 import { FindCommentsInput } from '../dtos/find-comments.input';
 import { UpdateCommentInput } from '../dtos/update-comment';
@@ -76,5 +76,20 @@ export class CommentsService {
     options.order = { created: 'DESC' };
 
     return this.commentsRepository.find(options);
+  }
+
+  /**
+   * Gets comments of type warning that should be exposed
+   *
+   * @returns Comment[]
+   */
+  getExposedWarnings() {
+    return this.commentsRepository.find({
+      where: {
+        type: 'warning',
+        exposedUntil: MoreThanOrEqual('2021-12-03'),
+      },
+      order: { updated: 'DESC' },
+    });
   }
 }
