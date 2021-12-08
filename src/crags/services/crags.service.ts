@@ -33,16 +33,14 @@ export class CragsService {
   }
 
   async find(params: FindCragsInput = {}): Promise<Crag[]> {
-    return lastValueFrom(
-      from(this.buildQuery(params).getRawAndEntities()).pipe(
-        map(r =>
-          r.entities.map((e, i) => {
-            e.routeCount = r.raw[i].routeCount;
-            return e;
-          }),
-        ),
-      ),
-    );
+    const rawAndEntities = await this.buildQuery(params).getRawAndEntities();
+
+    const crags = rawAndEntities.entities.map((element, index) => {
+      element.routeCount = rawAndEntities.raw[index].routeCount;
+      return element;
+    });
+
+    return crags;
   }
 
   async create(data: CreateCragInput): Promise<Crag> {
