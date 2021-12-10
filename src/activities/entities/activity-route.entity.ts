@@ -8,7 +8,6 @@ import {
   ManyToOne,
 } from 'typeorm';
 import { ObjectType, Field, Int } from '@nestjs/graphql';
-import { Crag } from '../../crags/entities/crag.entity';
 import { Route } from '../../crags/entities/route.entity';
 import { Activity } from './activity.entity';
 import { Pitch } from '../../crags/entities/pitch.entity';
@@ -120,4 +119,8 @@ export class ActivityRoute extends BaseEntity {
   @Column({ nullable: true })
   @Field({ nullable: true })
   stars: number;
+
+  @Column({ type: 'float' })
+  @Field()
+  score: number;
 }

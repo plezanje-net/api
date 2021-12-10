@@ -5,10 +5,10 @@ import { Route } from '../../crags/entities/route.entity';
 import { ClubMember } from '../../users/entities/club-member.entity';
 import { Club } from '../../users/entities/club.entity';
 import { User } from '../../users/entities/user.entity';
-import { In, Repository, SelectQueryBuilder } from 'typeorm';
+import { Repository, SelectQueryBuilder } from 'typeorm';
 import { CreateActivityRouteInput } from '../dtos/create-activity-route.input';
 import { FindActivityRoutesInput } from '../dtos/find-activity-routes.input';
-import { ActivityRoute } from '../entities/activity-route.entity';
+import { ActivityRoute, AscentType } from '../entities/activity-route.entity';
 import { Activity } from '../entities/activity.entity';
 import { PaginatedActivityRoutes } from '../utils/paginated-activity-routes.class';
 
@@ -37,16 +37,54 @@ export class ActivityRoutesService {
     activityRoute.user = Promise.resolve(user);
 
     if (data.routeId != null) {
+      const route = await this.routesRepository.findOneOrFail(data.routeId);
       activityRoute.route = Promise.resolve(
-        await this.routesRepository.findOneOrFail(data.routeId),
+        await this.routesRepository.findOneOrFail(data.routeId), // TODO
+      );
+
+      activityRoute.score = this.calculateScore(
+        route.grade,
+        activityRoute.ascentType,
       );
     }
+
+    // TODO: should route grade and route difficulty be added to activity route??
 
     if (activity != null) {
       activityRoute.activity = Promise.resolve(activity);
     }
 
     return this.activityRoutesRepository.save(activityRoute);
+  }
+
+  /**
+   *
+   * @param grade
+   * @param ascentType
+   * @returns
+   *
+   * score is route's difficulty with extra points for flashing or onsighting.
+   * redpointing keeps score same as grade/difficulty
+   * other types of ascents have score 0
+   *
+   */
+  private calculateScore(grade: number, ascentType: AscentType): number {
+    let score: number;
+    switch (ascentType) {
+      case AscentType.ONSIGHT:
+        score = grade + 100;
+        break;
+      case AscentType.FLASH:
+        score = grade + 50;
+        break;
+      case AscentType.REDPOINT:
+        score = grade;
+        break;
+      default:
+        // all other ascent types don't count // TODO: discuss
+        score = 0;
+    }
+    return score;
   }
 
   async cragSummary(
