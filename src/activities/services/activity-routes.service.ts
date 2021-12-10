@@ -38,9 +38,7 @@ export class ActivityRoutesService {
 
     if (data.routeId != null) {
       const route = await this.routesRepository.findOneOrFail(data.routeId);
-      activityRoute.route = Promise.resolve(
-        await this.routesRepository.findOneOrFail(data.routeId), // TODO
-      );
+      activityRoute.route = Promise.resolve(route);
 
       activityRoute.score = this.calculateScore(
         route.grade,
