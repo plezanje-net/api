@@ -8,7 +8,11 @@ import { User } from '../../users/entities/user.entity';
 import { Repository, SelectQueryBuilder } from 'typeorm';
 import { CreateActivityRouteInput } from '../dtos/create-activity-route.input';
 import { FindActivityRoutesInput } from '../dtos/find-activity-routes.input';
-import { ActivityRoute, AscentType } from '../entities/activity-route.entity';
+import {
+  ActivityRoute,
+  AscentType,
+  tickAscentTypes,
+} from '../entities/activity-route.entity';
 import { Activity } from '../entities/activity.entity';
 import { PaginatedActivityRoutes } from '../utils/paginated-activity-routes.class';
 
@@ -37,9 +41,9 @@ export class ActivityRoutesService {
     activityRoute.user = Promise.resolve(user);
 
     if (data.routeId != null) {
-      const route = await this.routesRepository.findOneOrFail(data.routeId);
-      activityRoute.route = Promise.resolve(route);
+      activityRoute.route = this.routesRepository.findOneOrFail(data.routeId);
 
+      const route = await activityRoute.route;
       activityRoute.score = this.calculateScore(
         route.grade,
         activityRoute.ascentType,
@@ -47,6 +51,8 @@ export class ActivityRoutesService {
     }
 
     // TODO: should route grade and route difficulty be added to activity route??
+    // yes, but only after a grade suggestion has been applied to the route's grade (i.e. -> grade recalculated)
+    // grade suggestions should be implemented first
 
     if (activity != null) {
       activityRoute.activity = Promise.resolve(activity);
@@ -56,15 +62,9 @@ export class ActivityRoutesService {
   }
 
   /**
-   *
-   * @param grade
-   * @param ascentType
-   * @returns
-   *
    * score is route's difficulty with extra points for flashing or onsighting.
    * redpointing keeps score same as grade/difficulty
    * other types of ascents have score 0
-   *
    */
   private calculateScore(grade: number, ascentType: AscentType): number {
     let score: number;
@@ -79,7 +79,7 @@ export class ActivityRoutesService {
         score = grade;
         break;
       default:
-        // all other ascent types don't count // TODO: discuss
+        // all other ascent types are not scorable
         score = 0;
     }
     return score;
@@ -162,33 +162,21 @@ export class ActivityRoutesService {
 
     builder
       .addSelect('DATE(ar.date) AS ardate')
-      .addSelect(
-        "(ar.grade + (ar.ascentType='onsight')::int * 100 + (ar.ascentType='flash')::int * 50) as score",
-      )
       .leftJoin('route', 'r', 'ar.routeId = r.id')
       .distinctOn(['ardate', 'ar.userId'])
       .where('ar.ascentType IN (:...aTypes)', {
-        aTypes: ['redpoint', 'onsight', 'flash'],
+        aTypes: tickAscentTypes,
       })
       .andWhere('ar.publish IN (:...publish)', {
         publish: ['log', 'public'],
       })
       .andWhere('ar.routeId IS NOT NULL') // TODO: what are activity routes with no route id??
       .andWhere('ar.grade IS NOT NULL') // TODO: entries with null values for grade? -> multipitch? - skip for now
-      // .andWhere("ar.date < '2018-07-20 02:00:00.000000'") // TODO: test it
       .orderBy('ardate', 'DESC')
       .addOrderBy('ar.userId', 'DESC')
       .addOrderBy('score', 'DESC')
       .addOrderBy('ar.ascentType', 'ASC')
       .limit(latest);
-
-    // TODO: what is a 'first' tick? should probably be defined as a group of ascentTypes somewhere
-
-    /*
-    comparing redpoint, flash, onsight:
-    8b rp ~ 8a+ f ~ 8a os
-    TODO: should implement scoring?
-    */
 
     const ticks = builder.getMany();
     return ticks;

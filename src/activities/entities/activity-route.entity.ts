@@ -31,6 +31,12 @@ export enum AscentType {
   TICK = 'tick',
 }
 
+export const tickAscentTypes = [
+  AscentType.ONSIGHT,
+  AscentType.FLASH,
+  AscentType.REDPOINT,
+];
+
 export enum PublishType {
   PUBLIC = 'public',
   CLUB = 'club',
