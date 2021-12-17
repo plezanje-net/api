@@ -18,13 +18,12 @@ import { ConflictFilter } from '../filters/conflict.filter';
 import { NotFoundFilter } from '../filters/not-found.filter';
 import { Crag, CragStatus } from '../entities/crag.entity';
 import { CragsService } from '../services/crags.service';
-import { User } from '../../users/entities/user.entity';
-import { CurrentUser } from '../../auth/decorators/current-user.decorator';
 import { Area } from '../entities/area.entity';
 import { AreasService } from '../services/areas.service';
 import { FindCragsInput } from '../dtos/find-crags.input';
 import { UserAuthGuard } from '../../auth/guards/user-auth.guard';
 import { AllowAny } from '../../auth/decorators/allow-any.decorator';
+import { MinCragStatus } from '../decorators/min-crag-status.decorator';
 
 @Resolver(() => Country)
 export class CountriesResolver {
@@ -84,14 +83,13 @@ export class CountriesResolver {
 
   @ResolveField('crags', () => [Crag])
   async getCrags(
-    @CurrentUser() user: User,
+    @MinCragStatus() minStatus: CragStatus,
     @Parent() country: Country,
     @Args('input', { nullable: true }) input: FindCragsInput = {},
   ): Promise<Crag[]> {
     input.country = country.id;
 
-    // TODO: check admin statuses
-    input.minStatus = user != null ? CragStatus.HIDDEN : CragStatus.PUBLIC;
+    input.minStatus = minStatus;
 
     return this.cragsService.find(input);
   }

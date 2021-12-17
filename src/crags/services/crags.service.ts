@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { CreateCragInput } from '../dtos/create-crag.input';
-import { Crag } from '../entities/crag.entity';
+import { Crag, CragStatus } from '../entities/crag.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, SelectQueryBuilder } from 'typeorm';
 import { UpdateCragInput } from '../dtos/update-crag.input';
@@ -30,6 +30,10 @@ export class CragsService {
 
   async findOneBySlug(slug: string): Promise<Crag> {
     return this.cragsRepository.findOneOrFail({ slug: slug });
+  }
+
+  async findOne(params: FindCragsInput = {}): Promise<Crag> {
+    return this.buildQuery(params).getOneOrFail();
   }
 
   async find(params: FindCragsInput = {}): Promise<Crag[]> {
@@ -93,6 +97,18 @@ export class CragsService {
     if (params.country != null) {
       builder.andWhere('c.country = :countryId', {
         countryId: params.country,
+      });
+    }
+
+    if (params.id != null) {
+      builder.andWhere('c.id = :id', {
+        id: params.id,
+      });
+    }
+
+    if (params.slug != null) {
+      builder.andWhere('c.slug = :slug', {
+        slug: params.slug,
       });
     }
 
@@ -168,17 +184,23 @@ export class CragsService {
       });
   }
 
-  async getPopularCrags(dateFrom: string, top: number): Promise<PopularCrag[]> {
+  async getPopularCrags(
+    dateFrom: string,
+    top: number,
+    minStatus: CragStatus,
+  ): Promise<PopularCrag[]> {
     const builder = this.cragsRepository
       .createQueryBuilder('c')
       .addSelect('count(c.id)', 'nrvisits')
       .leftJoin('activity', 'ac', 'ac.cragId = c.id')
-
+      .where('c.status <= :minStatus', {
+        minStatus: minStatus,
+      })
       .groupBy('c.id')
       .orderBy('nrvisits', 'DESC');
 
     if (dateFrom) {
-      builder.where('ac.date >= :dateFrom', { dateFrom: dateFrom });
+      builder.andWhere('ac.date >= :dateFrom', { dateFrom: dateFrom });
     }
 
     if (top) {

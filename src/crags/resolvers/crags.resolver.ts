@@ -7,9 +7,9 @@ import {
   Int,
   Parent,
 } from '@nestjs/graphql';
-import { UseInterceptors, UseFilters } from '@nestjs/common';
+import { UseInterceptors, UseFilters, UseGuards } from '@nestjs/common';
 import { Roles } from '../../auth/decorators/roles.decorator';
-import { Crag } from '../entities/crag.entity';
+import { Crag, CragStatus } from '../entities/crag.entity';
 import { CreateCragInput } from '../dtos/create-crag.input';
 import { UpdateCragInput } from '../dtos/update-crag.input';
 import { CragsService } from '../services/crags.service';
@@ -20,6 +20,9 @@ import { AuditInterceptor } from '../../audit/interceptors/audit.interceptor';
 import { Comment, CommentType } from '../entities/comment.entity';
 import { CommentsService } from '../services/comments.service';
 import { PopularCrag } from '../utils/popular-crag.class';
+import { MinCragStatus } from '../decorators/min-crag-status.decorator';
+import { AllowAny } from '../../auth/decorators/allow-any.decorator';
+import { UserAuthGuard } from '../../auth/guards/user-auth.guard';
 
 @Resolver(() => Crag)
 export class CragsResolver {
@@ -30,14 +33,31 @@ export class CragsResolver {
   ) {}
 
   @Query(() => Crag)
-  crag(@Args('id') id: string): Promise<Crag> {
-    return this.cragsService.findOneById(id);
+  @UseFilters(NotFoundFilter)
+  @AllowAny()
+  @UseGuards(UserAuthGuard)
+  crag(
+    @Args('id') id: string,
+    @MinCragStatus() minStatus: CragStatus,
+  ): Promise<Crag> {
+    return this.cragsService.findOne({
+      id: id,
+      minStatus: minStatus,
+    });
   }
 
   @Query(() => Crag)
   @UseFilters(NotFoundFilter)
-  async cragBySlug(@Args('slug') slug: string): Promise<Crag> {
-    return this.cragsService.findOneBySlug(slug);
+  @AllowAny()
+  @UseGuards(UserAuthGuard)
+  async cragBySlug(
+    @Args('slug') slug: string,
+    @MinCragStatus() minStatus: CragStatus,
+  ): Promise<Crag> {
+    return this.cragsService.findOne({
+      slug: slug,
+      minStatus: minStatus,
+    });
   }
 
   @Roles('admin')
@@ -82,11 +102,14 @@ export class CragsResolver {
     });
   }
 
-  @Query(returns => [PopularCrag])
+  @Query(() => [PopularCrag])
+  @AllowAny()
+  @UseGuards(UserAuthGuard)
   async popularCrags(
+    @MinCragStatus() minStatus: CragStatus,
     @Args('dateFrom', { nullable: true }) dateFrom?: string,
     @Args('top', { type: () => Int, nullable: true }) top?: number,
   ) {
-    return this.cragsService.getPopularCrags(dateFrom, top);
+    return this.cragsService.getPopularCrags(dateFrom, top, minStatus);
   }
 }
