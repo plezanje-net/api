@@ -60,21 +60,6 @@ export class CragsResolver {
     });
   }
 
-  @Query(() => [Crag])
-  crags(
-    @Args('country', { nullable: true }) country?: string,
-  ): Promise<Crag[]> {
-    const params: any = {};
-
-    if (country != null) {
-      params.country = country;
-    }
-
-    params.routeType = 'boulder';
-
-    return this.cragsService.find(params);
-  }
-
   @Roles('admin')
   @UseInterceptors(AuditInterceptor)
   @Mutation(() => Crag)

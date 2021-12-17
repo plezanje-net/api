@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { Route } from '../entities/route.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Sector } from '../entities/sector.entity';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { CreateRouteInput } from '../dtos/create-route.input';
 import { UpdateRouteInput } from '../dtos/update-route.input';
 
@@ -18,6 +18,13 @@ export class RoutesService {
   async findBySector(sectorId: string): Promise<Route[]> {
     return this.routesRepository.find({
       where: { sector: sectorId },
+      order: { position: 'ASC' },
+    });
+  }
+
+  async findBySectorIds(sectorIds: string[]): Promise<Route[]> {
+    return this.routesRepository.find({
+      where: { sectorId: In(sectorIds) },
       order: { position: 'ASC' },
     });
   }

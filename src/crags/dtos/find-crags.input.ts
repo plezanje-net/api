@@ -28,4 +28,8 @@ export class FindCragsInput {
   @Field({ nullable: true })
   @IsOptional()
   slug?: string;
+
+  @Field({ nullable: true })
+  @IsOptional()
+  allowEmpty?: boolean;
 }
