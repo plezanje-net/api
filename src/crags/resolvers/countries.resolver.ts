@@ -18,8 +18,6 @@ import { ConflictFilter } from '../filters/conflict.filter';
 import { NotFoundFilter } from '../filters/not-found.filter';
 import { Crag, CragStatus } from '../entities/crag.entity';
 import { CragsService } from '../services/crags.service';
-import { User } from '../../users/entities/user.entity';
-import { CurrentUser } from '../../auth/decorators/current-user.decorator';
 import { Area } from '../entities/area.entity';
 import { AreasService } from '../services/areas.service';
 import { FindCragsInput } from '../dtos/find-crags.input';
