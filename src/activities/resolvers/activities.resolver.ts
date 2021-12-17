@@ -1,4 +1,4 @@
-import { HttpException, UseFilters, UseGuards } from '@nestjs/common';
+import { UseFilters, UseGuards } from '@nestjs/common';
 import { Resolver, Query, Args, Mutation } from '@nestjs/graphql';
 import { CurrentUser } from '../../auth/decorators/current-user.decorator';
 import { User } from '../../users/entities/user.entity';
@@ -8,18 +8,11 @@ import { ActivitiesService } from '../services/activities.service';
 import { FindActivitiesInput } from '../dtos/find-activities.input';
 import { CreateActivityInput } from '../dtos/create-activity.input';
 import { CreateActivityRouteInput } from '../dtos/create-activity-route.input';
-import { ActivityRoutesService } from '../services/activity-routes.service';
 import { NotFoundFilter } from '../../crags/filters/not-found.filter';
 import { UserAuthGuard } from '../../auth/guards/user-auth.guard';
-import { Connection } from 'typeorm';
-
 @Resolver(() => Activity)
 export class ActivitiesResolver {
-  constructor(
-    private activitiesService: ActivitiesService,
-    private activityRoutesService: ActivityRoutesService,
-    private connection: Connection,
-  ) {}
+  constructor(private activitiesService: ActivitiesService) {}
 
   @UseGuards(UserAuthGuard)
   @Query(() => PaginatedActivities)
@@ -43,40 +36,18 @@ export class ActivitiesResolver {
   async createActivity(
     @CurrentUser() user: User,
     @Args('input', { type: () => CreateActivityInput })
-    input: CreateActivityInput,
+    activityIn: CreateActivityInput,
     @Args('routes', { type: () => [CreateActivityRouteInput] })
-    routes: CreateActivityRouteInput[],
+    routesIn: CreateActivityRouteInput[],
   ): Promise<Activity> {
-    const queryRunner = this.connection.createQueryRunner();
-    await queryRunner.connect();
-    await queryRunner.startTransaction();
-
     try {
-      const activity = await this.activitiesService.create(
-        queryRunner,
-        input,
+      return this.activitiesService.createActivityWRoutes(
+        activityIn,
         user,
+        routesIn,
       );
-
-      await Promise.all(
-        routes.map(async route => {
-          await this.activityRoutesService.create(
-            queryRunner,
-            route,
-            user,
-            activity,
-          );
-        }),
-      );
-
-      await queryRunner.commitTransaction();
-
-      return activity;
     } catch (exception) {
-      await queryRunner.rollbackTransaction();
       throw exception;
-    } finally {
-      await queryRunner.release();
     }
   }
 }
