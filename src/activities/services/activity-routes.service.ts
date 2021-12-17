@@ -5,7 +5,12 @@ import { Route } from '../../crags/entities/route.entity';
 import { ClubMember } from '../../users/entities/club-member.entity';
 import { Club } from '../../users/entities/club.entity';
 import { User } from '../../users/entities/user.entity';
-import { getConnection, Repository, SelectQueryBuilder } from 'typeorm';
+import {
+  getConnection,
+  QueryRunner,
+  Repository,
+  SelectQueryBuilder,
+} from 'typeorm';
 import { CreateActivityRouteInput } from '../dtos/create-activity-route.input';
 import { FindActivityRoutesInput } from '../dtos/find-activity-routes.input';
 import {
@@ -13,6 +18,7 @@ import {
   AscentType,
   tickAscentTypes,
 } from '../entities/activity-route.entity';
+import { RouteType } from '../../crags/entities/route.entity';
 import { Activity } from '../entities/activity.entity';
 import { PaginatedActivityRoutes } from '../utils/paginated-activity-routes.class';
 
@@ -30,6 +36,7 @@ export class ActivityRoutesService {
   ) {}
 
   async create(
+    queryRunner: QueryRunner,
     data: CreateActivityRouteInput,
     user: User,
     activity?: Activity,
@@ -39,26 +46,81 @@ export class ActivityRoutesService {
     this.activityRoutesRepository.merge(activityRoute, data);
 
     activityRoute.user = Promise.resolve(user);
+    activityRoute.score = 0; // TODO: discuss: should custom route logs have score 0 or calculated from the custom difficulty
 
-    if (data.routeId != null) {
-      activityRoute.route = this.routesRepository.findOneOrFail(data.routeId);
+    if (data.routeId !== null) {
+      const route = await this.routesRepository.findOneOrFail(data.routeId);
+      const routeTouched = await this.routeTouched(user, data.routeId);
+      const logPossible = this.logPossible(
+        routeTouched.ticked,
+        routeTouched.tried,
+        data.ascentType,
+        route.type,
+      );
+      if (!logPossible) {
+        throw new HttpException('Impossible log', HttpStatus.NOT_ACCEPTABLE);
+      }
 
-      const route = await activityRoute.route;
       activityRoute.score = this.calculateScore(
         route.grade,
         activityRoute.ascentType,
       );
+      activityRoute.route = Promise.resolve(route);
     }
 
     // TODO: should route grade and route difficulty be added to activity route??
     // yes, but only after a grade suggestion has been applied to the route's grade (i.e. -> grade recalculated)
     // grade suggestions should be implemented first
 
-    if (activity != null) {
+    if (activity !== null) {
       activityRoute.activity = Promise.resolve(activity);
     }
 
-    return this.activityRoutesRepository.save(activityRoute);
+    return queryRunner.manager.save(activityRoute);
+  }
+
+  /**
+   *
+   * check if logging a route is even possible
+   * e.g. onsighting a route already tried is impossible and so on
+   *
+   */
+  private logPossible(
+    routeTicked: boolean,
+    routeTried: boolean,
+    ascentType: string,
+    routeType: string,
+  ): boolean {
+    // boulders cannot be onsighted at all
+    if (routeType === RouteType.BOULDER) {
+      if (
+        ascentType === AscentType.ONSIGHT ||
+        ascentType === AscentType.T_ONSIGHT
+      )
+        return false;
+    }
+
+    // already tried routes cannot be onsighted or flashed
+    if (routeTried) {
+      if (
+        ascentType === AscentType.ONSIGHT ||
+        ascentType === AscentType.T_ONSIGHT ||
+        ascentType === AscentType.FLASH ||
+        ascentType === AscentType.T_FLASH
+      )
+        return false;
+    }
+
+    // already ticked routes cannot be redpointed (flash, sight included above)
+    if (routeTicked) {
+      if (
+        ascentType === AscentType.REDPOINT ||
+        ascentType === AscentType.T_REDPOINT
+      )
+        return false;
+    }
+
+    return true;
   }
 
   /**

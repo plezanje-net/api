@@ -1,4 +1,4 @@
-import { UseFilters, UseGuards } from '@nestjs/common';
+import { HttpException, UseFilters, UseGuards } from '@nestjs/common';
 import { Resolver, Query, Args, Mutation } from '@nestjs/graphql';
 import { CurrentUser } from '../../auth/decorators/current-user.decorator';
 import { User } from '../../users/entities/user.entity';
@@ -11,12 +11,14 @@ import { CreateActivityRouteInput } from '../dtos/create-activity-route.input';
 import { ActivityRoutesService } from '../services/activity-routes.service';
 import { NotFoundFilter } from '../../crags/filters/not-found.filter';
 import { UserAuthGuard } from '../../auth/guards/user-auth.guard';
+import { Connection } from 'typeorm';
 
 @Resolver(() => Activity)
 export class ActivitiesResolver {
   constructor(
     private activitiesService: ActivitiesService,
     private activityRoutesService: ActivityRoutesService,
+    private connection: Connection,
   ) {}
 
   @UseGuards(UserAuthGuard)
@@ -45,12 +47,36 @@ export class ActivitiesResolver {
     @Args('routes', { type: () => [CreateActivityRouteInput] })
     routes: CreateActivityRouteInput[],
   ): Promise<Activity> {
-    const activity = await this.activitiesService.create(input, user);
+    const queryRunner = this.connection.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
 
-    routes.forEach(async route => {
-      await this.activityRoutesService.create(route, user, activity);
-    });
+    try {
+      const activity = await this.activitiesService.create(
+        queryRunner,
+        input,
+        user,
+      );
 
-    return this.activitiesService.findOneById(activity.id);
+      await Promise.all(
+        routes.map(async route => {
+          await this.activityRoutesService.create(
+            queryRunner,
+            route,
+            user,
+            activity,
+          );
+        }),
+      );
+
+      await queryRunner.commitTransaction();
+
+      return activity;
+    } catch (exception) {
+      await queryRunner.rollbackTransaction();
+      throw exception;
+    } finally {
+      await queryRunner.release();
+    }
   }
 }

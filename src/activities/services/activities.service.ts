@@ -3,7 +3,12 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { PaginationMeta } from '../../core/utils/pagination-meta.class';
 import { Crag } from '../../crags/entities/crag.entity';
 import { User } from '../../users/entities/user.entity';
-import { FindManyOptions, Repository, SelectQueryBuilder } from 'typeorm';
+import {
+  FindManyOptions,
+  QueryRunner,
+  Repository,
+  SelectQueryBuilder,
+} from 'typeorm';
 import { CreateActivityInput } from '../dtos/create-activity.input';
 import { FindActivitiesInput } from '../dtos/find-activities.input';
 import { Activity } from '../entities/activity.entity';
@@ -18,7 +23,11 @@ export class ActivitiesService {
     private cragRepository: Repository<Crag>,
   ) {}
 
-  async create(data: CreateActivityInput, user: User): Promise<Activity> {
+  async create(
+    queryRunner: QueryRunner,
+    data: CreateActivityInput,
+    user: User,
+  ): Promise<Activity> {
     const activity = new Activity();
 
     this.activitiesRepository.merge(activity, data);
@@ -31,7 +40,7 @@ export class ActivitiesService {
       );
     }
 
-    return this.activitiesRepository.save(activity);
+    return queryRunner.manager.save(activity);
   }
 
   async findOneById(id: string): Promise<Activity> {
