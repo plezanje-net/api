@@ -5,7 +5,7 @@ import { Route } from '../../crags/entities/route.entity';
 import { ClubMember } from '../../users/entities/club-member.entity';
 import { Club } from '../../users/entities/club.entity';
 import { User } from '../../users/entities/user.entity';
-import { Repository, SelectQueryBuilder } from 'typeorm';
+import { getConnection, Repository, SelectQueryBuilder } from 'typeorm';
 import { CreateActivityRouteInput } from '../dtos/create-activity-route.input';
 import { FindActivityRoutesInput } from '../dtos/find-activity-routes.input';
 import {
@@ -85,6 +85,37 @@ export class ActivityRoutesService {
     return score;
   }
 
+  async routeTouched(user: User, routeId: string) {
+    const connection = getConnection();
+
+    const query = connection
+      .createQueryBuilder()
+      .select('tried')
+      .addSelect('ticked')
+      .from(subQuery => {
+        return subQuery
+          .select('count(*) > 0', 'tried')
+          .from('activity_route', 'ar')
+          .where('ar.routeId = :routeId', { routeId: routeId })
+          .andWhere('ar.userId = :userId', { userId: user.id });
+      }, 'tried')
+      .addFrom(subQuery => {
+        return subQuery
+          .select('count(*) > 0', 'ticked')
+          .from('activity_route', 'ar')
+          .where('ar.routeId = :routeId', { routeId: routeId })
+          .andWhere('ar.userId = :userId', { userId: user.id })
+          .andWhere('ar.ascentType IN (:...aTypes)', {
+            aTypes: [...tickAscentTypes],
+          });
+      }, 'ticked')
+      .getRawMany();
+
+    const result = await query;
+
+    return result[0];
+  }
+
   async cragSummary(
     params: FindActivityRoutesInput = {},
   ): Promise<ActivityRoute[]> {
@@ -92,7 +123,7 @@ export class ActivityRoutesService {
 
     builder.distinctOn(['ar."routeId"']);
     builder.orderBy('ar."routeId"');
-    builder.addOrderBy('ar."ascentType"');
+    builder.addOrderBy('ar."ascentType"'); // note: ascentType is an enum ordered by most valued ascent type (ie onsight) toward least valued (ie t_attempt)
 
     if (params.userId != null) {
       builder.andWhere('ar."userId" = :userId', {
