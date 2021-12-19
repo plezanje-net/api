@@ -10,7 +10,7 @@ import {
 } from 'typeorm';
 import { ObjectType, Field, Int } from '@nestjs/graphql';
 import { Sector } from './sector.entity';
-import { Grade } from './grade.entity';
+import { DifficultyVote } from './difficulty-vote.entity';
 import { Comment } from './comment.entity';
 import { Pitch } from './pitch.entity';
 import { Image } from './image.entity';
@@ -54,13 +54,13 @@ export class Route extends BaseEntity {
   @Field()
   name: string;
 
-  @Column({ nullable: true })
-  @Field()
-  difficulty: string;
-
   @Column({ type: 'float', nullable: true })
   @Field({ nullable: true })
-  grade: number;
+  difficulty: number;
+
+  @Column({ nullable: true })
+  @Field({ nullable: true })
+  gradingSystem: string;
 
   @Column({ type: 'int', nullable: true })
   @Field()
@@ -108,12 +108,12 @@ export class Route extends BaseEntity {
   sectorId: string;
 
   @OneToMany(
-    () => Grade,
-    grade => grade.route,
+    () => DifficultyVote,
+    difficultyVote => difficultyVote.route,
     { nullable: true },
   )
-  @Field(() => [Grade])
-  grades: Promise<Grade[]>;
+  @Field(() => [DifficultyVote])
+  difficultyVotes: Promise<DifficultyVote[]>;
 
   @OneToMany(
     () => Rating,

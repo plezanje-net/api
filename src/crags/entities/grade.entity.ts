@@ -2,14 +2,11 @@ import {
   Entity,
   PrimaryGeneratedColumn,
   Column,
-  CreateDateColumn,
-  UpdateDateColumn,
   BaseEntity,
   ManyToOne,
 } from 'typeorm';
 import { ObjectType, Field } from '@nestjs/graphql';
-import { User } from '../../users/entities/user.entity';
-import { Route } from './route.entity';
+import { GradingSystem } from './grading-system.entity';
 
 @Entity()
 @ObjectType()
@@ -20,34 +17,12 @@ export class Grade extends BaseEntity {
 
   @Column({ type: 'float' })
   @Field()
-  grade: number;
-
-  @ManyToOne(() => User, { nullable: true })
-  @Field(() => User, { nullable: true })
-  user: Promise<User>;
-
-  @CreateDateColumn()
-  @Field()
-  created: Date;
-
-  @UpdateDateColumn()
-  @Field()
-  updated: Date;
-
-  @Column({ nullable: true })
-  legacy: string;
+  difficulty: number;
 
   @ManyToOne(
-    () => Route,
-    route => route.grades,
+    () => GradingSystem,
+    gradingSystem => gradingSystem.grades,
   )
-  @Field(() => Route)
-  route: Promise<Route>;
-
-  @Field()
-  includedInCalculation: boolean;
-
-  @Column({ nullable: true })
-  @Field()
-  isBase: boolean;
+  @Field(() => GradingSystem)
+  gradingSystem: Promise<GradingSystem>;
 }

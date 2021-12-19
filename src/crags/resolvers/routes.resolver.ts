@@ -5,8 +5,6 @@ import {
   Query,
   ResolveField,
   Parent,
-  ResolveProperty,
-  Context,
 } from '@nestjs/graphql';
 import { Route } from '../entities/route.entity';
 import { Roles } from '../../auth/decorators/roles.decorator';
@@ -17,16 +15,15 @@ import { CreateRouteInput } from '../dtos/create-route.input';
 import { UpdateRouteInput } from '../dtos/update-route.input';
 import { RoutesService } from '../services/routes.service';
 import { CommentsService } from '../services/comments.service';
-import { Comment, CommentType } from '../entities/comment.entity';
-import { Grade } from '../entities/grade.entity';
-import { GradesService } from '../services/grades.service';
-import { IGraphQLContext } from '../../types/graphql.types';
+import { Comment } from '../entities/comment.entity';
+import { DifficultyVote } from '../entities/difficulty-vote.entity';
 import { Pitch } from '../entities/pitch.entity';
 import { PitchesService } from '../services/pitches.service';
 import { RouteCommentsLoader } from '../loaders/route-comments.loader';
 import DataLoader from 'dataloader';
 import { Loader } from '../../core/interceptors/data-loader.interceptor';
 import { RoutePitchesLoader } from '../loaders/route-pitches.loader';
+import { DifficultyVotesService } from '../services/difficulty-votes.service';
 
 @Resolver(() => Route)
 export class RoutesResolver {
@@ -34,7 +31,7 @@ export class RoutesResolver {
     private routesService: RoutesService,
     private commentsService: CommentsService,
     private pitchesService: PitchesService,
-    private gradesService: GradesService,
+    private difficultyVotesService: DifficultyVotesService,
   ) {}
 
   @Mutation(() => Route)
@@ -80,9 +77,9 @@ export class RoutesResolver {
     return loader.load(route.id);
   }
 
-  @ResolveField('grades', () => [Grade])
-  async grades(@Parent() route: Route): Promise<Grade[]> {
-    return this.gradesService.findByRouteId(route.id);
+  @ResolveField('difficultyVotes', () => [DifficultyVote])
+  async difficultyVotes(@Parent() route: Route): Promise<DifficultyVote[]> {
+    return this.difficultyVotesService.findByRouteId(route.id);
   }
 
   @ResolveField('pitches', () => [Pitch])
