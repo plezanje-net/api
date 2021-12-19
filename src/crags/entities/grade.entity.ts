@@ -19,6 +19,10 @@ export class Grade extends BaseEntity {
   @Field()
   difficulty: number;
 
+  @Column()
+  @Field()
+  name: string;
+
   @ManyToOne(
     () => GradingSystem,
     gradingSystem => gradingSystem.grades,

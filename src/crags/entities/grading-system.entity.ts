@@ -20,14 +20,6 @@ export class GradingSystem extends BaseEntity {
   @Field()
   name: string;
 
-  @Column({ type: 'float', nullable: true })
-  @Field({ nullable: false })
-  difficulty: number;
-
-  @Column()
-  @Field()
-  grade: string;
-
   @Column({ type: 'int' })
   position: number;
 

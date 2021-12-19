@@ -20,7 +20,9 @@ export class RouteType extends BaseEntity {
   name: string;
 
   @ManyToMany(() => GradingSystem)
-  @JoinTable()
+  @JoinTable({
+    name: "grading_system_route_type"
+  })
   gradingSystems: GradingSystem[];
 
   @Column({ type: 'int' })
