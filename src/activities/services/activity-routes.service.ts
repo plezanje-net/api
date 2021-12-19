@@ -127,7 +127,7 @@ export class ActivityRoutesService {
     builder
       .addSelect('DATE(ar.date) AS ardate')
       .addSelect(
-        "(ar.grade + (ar.ascentType='onsight')::int * 100 + (ar.ascentType='flash')::int * 50) as score",
+        "(r.difficulty + (ar.ascentType='onsight')::int * 100 + (ar.ascentType='flash')::int * 50) as score",
       )
       .leftJoin('route', 'r', 'ar.routeId = r.id')
       .distinctOn(['ardate', 'ar.userId'])
@@ -138,7 +138,7 @@ export class ActivityRoutesService {
         publish: ['log', 'public'],
       })
       .andWhere('ar.routeId IS NOT NULL') // TODO: what are activity routes with no route id??
-      .andWhere('ar.grade IS NOT NULL') // TODO: entries with null values for grade? -> multipitch? - skip for now
+      .andWhere('r.difficulty IS NOT NULL') // TODO: entries with null values for grade? -> multipitch? - skip for now
       // .andWhere("ar.date < '2018-07-20 02:00:00.000000'") // TODO: test it
       .orderBy('ardate', 'DESC')
       .addOrderBy('ar.userId', 'DESC')
@@ -212,9 +212,10 @@ export class ActivityRoutesService {
       });
     }
 
-    if (params.orderBy != null && params.orderBy.field == 'grade') {
-      builder.andWhere('ar.grade IS NOT NULL');
-    }
+    // TODO: fix after grade->difficulty change
+    // if (params.orderBy != null && params.orderBy.field == 'grade') {
+    //   builder.andWhere('ar.grade IS NOT NULL');
+    // }
 
     if (params.userId != null) {
       builder.andWhere('ar."userId" = :userId', {
