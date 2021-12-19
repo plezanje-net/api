@@ -39,6 +39,9 @@ import { APP_INTERCEPTOR } from '@nestjs/core';
 import { RoutePitchesLoader } from './loaders/route-pitches.loader';
 import { SectorRoutesLoader } from './loaders/sector-routes.loader';
 import { DifficultyVotesService } from './services/difficulty-votes.service';
+import { Grade } from './entities/grade.entity';
+import { GradingSystem } from './entities/grading-system.entity';
+import { RouteType } from './entities/route-type.entity';
 
 @Module({
   imports: [
@@ -54,6 +57,9 @@ import { DifficultyVotesService } from './services/difficulty-votes.service';
       Peak,
       Comment,
       User,
+      Grade,
+      GradingSystem,
+      RouteType,
       DifficultyVote,
     ]),
     AuditModule,
