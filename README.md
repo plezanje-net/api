@@ -20,6 +20,7 @@ $ npm install -g @nestjs/cli
 # Start up docker container for PostgreSQL
 $ docker-compose up -d
 # Use the precreated database dump from the server
+$ mkdir db
 $ curl https://plezanje.info/storage/db.sql --output ./db/db.sql
 $ docker exec -it api_postgres_1 bash -c  "psql -U plezanjenet -f /etc/db/db.sql"
 ```
