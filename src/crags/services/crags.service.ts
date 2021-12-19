@@ -9,7 +9,6 @@ import { Route } from '../entities/route.entity';
 import { Area } from '../entities/area.entity';
 import { FindCragsInput } from '../dtos/find-crags.input';
 import { PopularCrag } from '../utils/popular-crag.class';
-import { filter, from, lastValueFrom, map, of, pipe, pluck } from 'rxjs';
 
 @Injectable()
 export class CragsService {
@@ -22,7 +21,7 @@ export class CragsService {
     private countryRepository: Repository<Country>,
     @InjectRepository(Area)
     private areasRepository: Repository<Area>,
-  ) { }
+  ) {}
 
   async findOneById(id: string): Promise<Crag> {
     return this.cragsRepository.findOneOrFail(id);
@@ -108,10 +107,12 @@ export class CragsService {
       });
     }
 
-    if (params.routeType != null) {
+    if (params.routeTypeId != null) {
       builder
         .innerJoin('c.routes', 'route')
-        .andWhere('(route.type = :routeType)', { routeType: params.routeType })
+        .andWhere('(route.routeTypeId = :routeTypeId)', {
+          routeTypeId: params.routeTypeId,
+        })
         .groupBy('c.id');
 
       builder.addSelect('COUNT(route.id)', 'routeCount');
