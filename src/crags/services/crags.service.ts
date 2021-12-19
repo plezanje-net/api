@@ -22,7 +22,7 @@ export class CragsService {
     private countryRepository: Repository<Country>,
     @InjectRepository(Area)
     private areasRepository: Repository<Area>,
-  ) {}
+  ) { }
 
   async findOneById(id: string): Promise<Crag> {
     return this.cragsRepository.findOneOrFail(id);
@@ -143,7 +143,7 @@ export class CragsService {
       .addOrderBy('route.grade', 'ASC')
       .getOne()
       .then(route => {
-        if (route != null && route.grade != null) return route.grade;
+        if (route != null && route.difficulty != null) return route.difficulty;
 
         return null;
       });
@@ -160,8 +160,8 @@ export class CragsService {
       .addOrderBy('route.grade', 'DESC')
       .getOne()
       .then(route => {
-        if (route != null && route.grade != null) {
-          return route.grade;
+        if (route != null && route.difficulty != null) {
+          return route.difficulty;
         }
 
         return null;

@@ -1,7 +1,6 @@
 import { InputType, Field } from '@nestjs/graphql';
 import { IsOptional } from 'class-validator';
 import { CragStatus } from '../entities/crag.entity';
-import { RouteType } from '../entities/route.entity';
 
 @InputType()
 export class FindCragsInput {
@@ -19,7 +18,7 @@ export class FindCragsInput {
 
   @Field({ nullable: true })
   @IsOptional()
-  routeType?: RouteType;
+  routeType?: string;
 
   @Field({ nullable: true })
   @IsOptional()
