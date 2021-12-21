@@ -1,4 +1,4 @@
-import { InputType, Field, Int } from '@nestjs/graphql';
+import { InputType, Field, Int, Float } from '@nestjs/graphql';
 import { IsOptional } from 'class-validator';
 import { AscentType, PublishType } from '../entities/activity-route.entity';
 
@@ -36,9 +36,9 @@ export class CreateActivityRouteInput {
   @IsOptional()
   grade: number;
 
-  @Field({ nullable: true })
+  @Field(type => Float, { nullable: true })
   @IsOptional()
-  difficulty: string;
+  difficulty: number;
 
   @Field({ nullable: true })
   @IsOptional()
