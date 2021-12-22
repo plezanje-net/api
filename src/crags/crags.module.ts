@@ -29,7 +29,7 @@ import { CommentsResolver } from './resolvers/comments.resolver';
 import { SearchService } from './services/search.service';
 import { SearchResolver } from './resolvers/search.resolver';
 import { GradesService } from './services/grades.service';
-import { Grade } from './entities/grade.entity';
+import { DifficultyVote } from './entities/difficulty-vote.entity';
 import { ImagesResolver } from './resolvers/images.resolver';
 import { ImagesService } from './services/images.service';
 import { PitchesService } from './services/pitches.service';
@@ -38,6 +38,12 @@ import { DataLoaderInterceptor } from '../core/interceptors/data-loader.intercep
 import { APP_INTERCEPTOR } from '@nestjs/core';
 import { RoutePitchesLoader } from './loaders/route-pitches.loader';
 import { SectorRoutesLoader } from './loaders/sector-routes.loader';
+import { DifficultyVotesService } from './services/difficulty-votes.service';
+import { Grade } from './entities/grade.entity';
+import { GradingSystem } from './entities/grading-system.entity';
+import { RouteType } from './entities/route-type.entity';
+import { GradingSystemsResolver } from './resolvers/grading-systems.resolver';
+import { GradingSystemsService } from './services/grading-systems.service';
 
 @Module({
   imports: [
@@ -54,6 +60,9 @@ import { SectorRoutesLoader } from './loaders/sector-routes.loader';
       Comment,
       User,
       Grade,
+      GradingSystem,
+      RouteType,
+      DifficultyVote,
     ]),
     AuditModule,
   ],
@@ -83,6 +92,9 @@ import { SectorRoutesLoader } from './loaders/sector-routes.loader';
       provide: APP_INTERCEPTOR,
       useClass: DataLoaderInterceptor,
     },
+    DifficultyVotesService,
+    GradingSystemsResolver,
+    GradingSystemsService,
   ],
 })
 export class CragsModule {}

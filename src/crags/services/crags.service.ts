@@ -9,7 +9,6 @@ import { Route } from '../entities/route.entity';
 import { Area } from '../entities/area.entity';
 import { FindCragsInput } from '../dtos/find-crags.input';
 import { PopularCrag } from '../utils/popular-crag.class';
-import { filter, from, lastValueFrom, map, of, pipe, pluck } from 'rxjs';
 
 @Injectable()
 export class CragsService {
@@ -124,10 +123,12 @@ export class CragsService {
       });
     }
 
-    if (params.routeType != null) {
+    if (params.routeTypeId != null) {
       builder
         .innerJoin('c.routes', 'route')
-        .andWhere('(route.type = :routeType)', { routeType: params.routeType })
+        .andWhere('(route.routeTypeId = :routeTypeId)', {
+          routeTypeId: params.routeTypeId,
+        })
         .groupBy('c.id');
 
       builder.addSelect('COUNT(route.id)', 'routeCount');
@@ -159,7 +160,7 @@ export class CragsService {
       .addOrderBy('route.grade', 'ASC')
       .getOne()
       .then(route => {
-        if (route != null && route.grade != null) return route.grade;
+        if (route != null && route.difficulty != null) return route.difficulty;
 
         return null;
       });
@@ -176,8 +177,8 @@ export class CragsService {
       .addOrderBy('route.grade', 'DESC')
       .getOne()
       .then(route => {
-        if (route != null && route.grade != null) {
-          return route.grade;
+        if (route != null && route.difficulty != null) {
+          return route.difficulty;
         }
 
         return null;

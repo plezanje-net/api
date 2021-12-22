@@ -8,7 +8,7 @@ import {
   ManyToOne,
   OneToMany,
 } from 'typeorm';
-import { ObjectType, Field, Int } from '@nestjs/graphql';
+import { ObjectType, Field } from '@nestjs/graphql';
 import { Crag } from '../../crags/entities/crag.entity';
 import { Route } from '../../crags/entities/route.entity';
 
