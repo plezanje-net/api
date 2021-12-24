@@ -9,7 +9,7 @@ import {
   OneToMany,
   Unique,
 } from 'typeorm';
-import { ObjectType, Field, Int } from '@nestjs/graphql';
+import { ObjectType, Field } from '@nestjs/graphql';
 import { Sector } from './sector.entity';
 import { DifficultyVote } from './difficulty-vote.entity';
 import { Comment } from './comment.entity';

@@ -17,7 +17,7 @@ import { NotFoundFilter } from '../filters/not-found.filter';
 import { Sector } from '../entities/sector.entity';
 import { SectorsService } from '../services/sectors.service';
 import { AuditInterceptor } from '../../audit/interceptors/audit.interceptor';
-import { Comment, CommentType } from '../entities/comment.entity';
+import { Comment } from '../entities/comment.entity';
 import { CommentsService } from '../services/comments.service';
 import { PopularCrag } from '../utils/popular-crag.class';
 import { MinCragStatus } from '../decorators/min-crag-status.decorator';
