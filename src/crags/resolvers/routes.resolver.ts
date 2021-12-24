@@ -8,7 +8,7 @@ import {
 } from '@nestjs/graphql';
 import { Route } from '../entities/route.entity';
 import { Roles } from '../../auth/decorators/roles.decorator';
-import { UseInterceptors, UseFilters } from '@nestjs/common';
+import { UseInterceptors, UseFilters, UseGuards } from '@nestjs/common';
 import { AuditInterceptor } from '../../audit/interceptors/audit.interceptor';
 import { NotFoundFilter } from '../filters/not-found.filter';
 import { CreateRouteInput } from '../dtos/create-route.input';
@@ -24,6 +24,10 @@ import DataLoader from 'dataloader';
 import { Loader } from '../../core/interceptors/data-loader.interceptor';
 import { RoutePitchesLoader } from '../loaders/route-pitches.loader';
 import { DifficultyVotesService } from '../services/difficulty-votes.service';
+import { MinCragStatus } from '../decorators/min-crag-status.decorator';
+import { CragStatus } from '../entities/crag.entity';
+import { AllowAny } from '../../auth/decorators/allow-any.decorator';
+import { UserAuthGuard } from '../../auth/guards/user-auth.guard';
 
 @Resolver(() => Route)
 export class RoutesResolver {
@@ -66,6 +70,18 @@ export class RoutesResolver {
   @UseFilters(NotFoundFilter)
   async route(@Args('id') id: string): Promise<Route> {
     return this.routesService.findOneById(id);
+  }
+
+  @Query(() => Route)
+  @UseFilters(NotFoundFilter)
+  @AllowAny()
+  @UseGuards(UserAuthGuard)
+  async routeBySlug(
+    @Args('cragSlug') cragSlug: string,
+    @Args('routeSlug') routeSlug: string,
+    @MinCragStatus() minStatus: CragStatus,
+  ): Promise<Route> {
+    return this.routesService.findOneBySlug(cragSlug, routeSlug, minStatus);
   }
 
   @ResolveField('comments', () => [Comment])

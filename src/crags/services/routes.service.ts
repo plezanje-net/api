@@ -5,6 +5,7 @@ import { Sector } from '../entities/sector.entity';
 import { In, Repository } from 'typeorm';
 import { CreateRouteInput } from '../dtos/create-route.input';
 import { UpdateRouteInput } from '../dtos/update-route.input';
+import { CragStatus } from '../entities/crag.entity';
 
 @Injectable()
 export class RoutesService {
@@ -27,6 +28,24 @@ export class RoutesService {
       where: { sectorId: In(sectorIds) },
       order: { position: 'ASC' },
     });
+  }
+
+  async findOneBySlug(
+    cragSlug: string,
+    routeSlug: string,
+    minStatus: CragStatus,
+  ): Promise<Route> {
+    const builder = this.routesRepository.createQueryBuilder('r');
+
+    builder
+      .innerJoin('crag', 'c', 'c.id = r."cragId"')
+      .where('r.slug = :routeSlug', { routeSlug: routeSlug })
+      .andWhere('c.slug = :cragSlug', { cragSlug: cragSlug })
+      .andWhere('c.status <= :minStatus', {
+        minStatus: minStatus,
+      });
+
+    return builder.getOneOrFail();
   }
 
   async create(data: CreateRouteInput): Promise<Route> {
