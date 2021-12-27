@@ -15,6 +15,13 @@ import { Image } from '../../crags/entities/image.entity';
 import { Peak } from './peak.entity';
 import { IceFall } from './ice-fall.entity';
 
+export enum AreaType {
+  REGION = 'region',
+  MOUNTAINS = 'mountains',
+  VALLEY = 'valley',
+  AREA = 'area',
+}
+
 @Entity()
 @ObjectType()
 export class Area extends BaseEntity {
@@ -25,6 +32,34 @@ export class Area extends BaseEntity {
   @Column({ collation: 'utf8_slovenian_ci' })
   @Field()
   name: string;
+
+  @Column({
+    type: 'enum',
+    enum: AreaType,
+    default: AreaType.AREA,
+  })
+  @Field()
+  type: AreaType;
+
+  @OneToMany(
+    () => Area,
+    area => area.area,
+    { nullable: true },
+  )
+  @Field(() => [Area])
+  areas: Promise<Area[]>;
+
+  @ManyToOne(
+    () => Area,
+    area => area.areas,
+    { nullable: true },
+  )
+  @Field(() => Area)
+  area: Promise<Area>;
+
+  @Column({ type: 'text', nullable: true })
+  @Field({ nullable: true })
+  description: string;
 
   @CreateDateColumn()
   created: Date;
