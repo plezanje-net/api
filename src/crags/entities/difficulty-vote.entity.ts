@@ -44,6 +44,7 @@ export class DifficultyVote extends BaseEntity {
   @Field(() => Route)
   route: Promise<Route>;
 
+  @Column({ nullable: true })
   @Field()
   includedInCalculation: boolean;
 
