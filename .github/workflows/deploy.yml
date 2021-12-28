@@ -24,7 +24,7 @@ jobs:
           cp /var/www/plezanjenet/.env /var/www/plezanjenet/api/.env
       - name: Run database migrations
         run: |
-          cd /var/www/plezanjenet/api && npm run typeorm migration:run -- --config src/ormconfig.ts
+          cd /var/www/plezanjenet/api && npm run migration:run
       - name: Start server
         run: |
           sudo supervisorctl start api

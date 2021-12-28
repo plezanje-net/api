@@ -16,7 +16,7 @@ import { User } from './users/entities/user.entity';
 import { Route } from './crags/entities/route.entity';
 import { Area } from './crags/entities/area.entity';
 import { Book } from './crags/entities/book.entity';
-import { Grade } from './crags/entities/grade.entity';
+import { DifficultyVote } from './crags/entities/difficulty-vote.entity';
 import { NotificationModule } from './notification/notification.module';
 import { Comment } from './crags/entities/comment.entity';
 import { ActivitiesModule } from './activities/activities.module';
@@ -29,8 +29,10 @@ import { IceFall } from './crags/entities/ice-fall.entity';
 import { Club } from './users/entities/club.entity';
 import { ClubMember } from './users/entities/club-member.entity';
 import { Rating } from './crags/entities/rating.entity';
-import { sectorRoutesLoader } from './crags/loaders/sector-routes.loader';
 import { userLoader } from './crags/loaders/user.loader';
+import { RouteType } from './crags/entities/route-type.entity';
+import { GradingSystem } from './crags/entities/grading-system.entity';
+import { Grade } from './crags/entities/grade.entity';
 
 @Module({
   imports: [
@@ -41,7 +43,6 @@ import { userLoader } from './crags/loaders/user.loader';
       autoSchemaFile: true,
       context: ({ req }) => ({
         ...req,
-        sectorRoutesLoader: sectorRoutesLoader(),
         userLoader: userLoader(),
       }),
     }),
@@ -62,7 +63,7 @@ import { userLoader } from './crags/loaders/user.loader';
           Book,
           Country,
           Crag,
-          Grade,
+          DifficultyVote,
           Role,
           Sector,
           User,
@@ -75,6 +76,9 @@ import { userLoader } from './crags/loaders/user.loader';
           Image,
           IceFall,
           Rating,
+          RouteType,
+          GradingSystem,
+          Grade,
         ],
         synchronize: false,
         // logging: ['query', 'error'],

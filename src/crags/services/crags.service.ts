@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { CreateCragInput } from '../dtos/create-crag.input';
-import { Crag } from '../entities/crag.entity';
+import { Crag, CragStatus } from '../entities/crag.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, SelectQueryBuilder } from 'typeorm';
 import { UpdateCragInput } from '../dtos/update-crag.input';
@@ -9,7 +9,6 @@ import { Route } from '../entities/route.entity';
 import { Area } from '../entities/area.entity';
 import { FindCragsInput } from '../dtos/find-crags.input';
 import { PopularCrag } from '../utils/popular-crag.class';
-import { filter, from, lastValueFrom, map, of, pipe, pluck } from 'rxjs';
 
 @Injectable()
 export class CragsService {
@@ -30,6 +29,10 @@ export class CragsService {
 
   async findOneBySlug(slug: string): Promise<Crag> {
     return this.cragsRepository.findOneOrFail({ slug: slug });
+  }
+
+  async findOne(params: FindCragsInput = {}): Promise<Crag> {
+    return this.buildQuery(params).getOneOrFail();
   }
 
   async find(params: FindCragsInput = {}): Promise<Crag[]> {
@@ -96,6 +99,18 @@ export class CragsService {
       });
     }
 
+    if (params.id != null) {
+      builder.andWhere('c.id = :id', {
+        id: params.id,
+      });
+    }
+
+    if (params.slug != null) {
+      builder.andWhere('c.slug = :slug', {
+        slug: params.slug,
+      });
+    }
+
     if (params.area != null) {
       builder.andWhere('c.area = :areaId', {
         areaId: params.area,
@@ -108,10 +123,12 @@ export class CragsService {
       });
     }
 
-    if (params.routeType != null) {
+    if (params.routeTypeId != null) {
       builder
         .innerJoin('c.routes', 'route')
-        .andWhere('(route.type = :routeType)', { routeType: params.routeType })
+        .andWhere('(route.routeTypeId = :routeTypeId)', {
+          routeTypeId: params.routeTypeId,
+        })
         .groupBy('c.id');
 
       builder.addSelect('COUNT(route.id)', 'routeCount');
@@ -143,7 +160,7 @@ export class CragsService {
       .addOrderBy('route.grade', 'ASC')
       .getOne()
       .then(route => {
-        if (route != null && route.grade != null) return route.grade;
+        if (route != null && route.difficulty != null) return route.difficulty;
 
         return null;
       });
@@ -160,25 +177,31 @@ export class CragsService {
       .addOrderBy('route.grade', 'DESC')
       .getOne()
       .then(route => {
-        if (route != null && route.grade != null) {
-          return route.grade;
+        if (route != null && route.difficulty != null) {
+          return route.difficulty;
         }
 
         return null;
       });
   }
 
-  async getPopularCrags(dateFrom: string, top: number): Promise<PopularCrag[]> {
+  async getPopularCrags(
+    dateFrom: string,
+    top: number,
+    minStatus: CragStatus,
+  ): Promise<PopularCrag[]> {
     const builder = this.cragsRepository
       .createQueryBuilder('c')
       .addSelect('count(c.id)', 'nrvisits')
       .leftJoin('activity', 'ac', 'ac.cragId = c.id')
-
+      .where('c.status <= :minStatus', {
+        minStatus: minStatus,
+      })
       .groupBy('c.id')
       .orderBy('nrvisits', 'DESC');
 
     if (dateFrom) {
-      builder.where('ac.date >= :dateFrom', { dateFrom: dateFrom });
+      builder.andWhere('ac.date >= :dateFrom', { dateFrom: dateFrom });
     }
 
     if (top) {

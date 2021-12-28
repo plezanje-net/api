@@ -20,6 +20,7 @@ import { Image } from '../../crags/entities/image.entity';
 import { Peak } from './peak.entity';
 import { Route } from './route.entity';
 import { Activity } from '../../activities/entities/activity.entity';
+import { GradingSystem } from './grading-system.entity';
 
 export enum CragStatus {
   PUBLIC = 'public',
@@ -121,17 +122,21 @@ export class Crag extends BaseEntity {
   @Field(() => [Route])
   routes: Promise<Route[]>;
 
+  @ManyToOne(() => GradingSystem, { nullable: true })
+  @Field(() => GradingSystem, { nullable: true })
+  defaultGradingSystem: Promise<GradingSystem>;
+
   @Column({ default: 0 })
   @Field(() => Int)
   nrRoutes: number;
 
-  @Column({ nullable: true })
-  @Field(() => String, { nullable: true })
-  minGrade: string;
+  @Column({ type: 'float', nullable: true })
+  @Field({ nullable: true })
+  minDifficulty: number;
 
-  @Column({ nullable: true })
-  @Field(() => String, { nullable: true })
-  maxGrade: string;
+  @Column({ type: 'float', nullable: true })
+  @Field({ nullable: true })
+  maxDifficulty: number;
 
   @ManyToMany(() => Book)
   @JoinTable()

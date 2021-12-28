@@ -10,21 +10,14 @@ import {
 } from 'typeorm';
 import { ObjectType, Field, Int } from '@nestjs/graphql';
 import { Sector } from './sector.entity';
-import { Grade } from './grade.entity';
+import { DifficultyVote } from './difficulty-vote.entity';
 import { Comment } from './comment.entity';
 import { Pitch } from './pitch.entity';
 import { Image } from './image.entity';
 import { Crag } from './crag.entity';
 import { Rating } from './rating.entity';
-
-export enum RouteType {
-  SPORT = 'sport',
-  MULTIPITCH = 'multipitch',
-  BOULDER = 'boulder',
-  ALPINE = 'alpine',
-  INDOOR = 'indoor',
-  COMBINED = 'combined',
-}
+import { GradingSystem } from './grading-system.entity';
+import { RouteType } from './route-type.entity';
 
 export enum RouteStatus {
   PUBLIC = 'public',
@@ -42,25 +35,23 @@ export class Route extends BaseEntity {
   @Field()
   id: string;
 
-  @Column({
-    type: 'enum',
-    enum: RouteType,
-    default: RouteType.SPORT,
-  })
-  @Field()
-  type: RouteType;
+  @ManyToOne(() => RouteType)
+  @Field(() => RouteType)
+  routeType: Promise<RouteType>;
+  @Column({ name: 'routeTypeId' })
+  routeTypeId: string;
 
   @Column()
   @Field()
   name: string;
 
-  @Column({ nullable: true })
-  @Field()
-  difficulty: string;
-
   @Column({ type: 'float', nullable: true })
   @Field({ nullable: true })
-  grade: number;
+  difficulty: number;
+
+  @ManyToOne(() => GradingSystem, { nullable: true })
+  @Field(() => GradingSystem, { nullable: true })
+  defaultGradingSystem: Promise<GradingSystem>;
 
   @Column({ type: 'int', nullable: true })
   @Field()
@@ -80,6 +71,10 @@ export class Route extends BaseEntity {
   })
   @Field()
   status: RouteStatus;
+
+  @Column({ default: false })
+  @Field()
+  isProject: boolean;
 
   @CreateDateColumn()
   created: Date;
@@ -108,12 +103,12 @@ export class Route extends BaseEntity {
   sectorId: string;
 
   @OneToMany(
-    () => Grade,
-    grade => grade.route,
+    () => DifficultyVote,
+    difficultyVote => difficultyVote.route,
     { nullable: true },
   )
-  @Field(() => [Grade])
-  grades: Promise<Grade[]>;
+  @Field(() => [DifficultyVote])
+  difficultyVotes: Promise<DifficultyVote[]>;
 
   @OneToMany(
     () => Rating,

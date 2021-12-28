@@ -45,7 +45,7 @@ export class ActivityRoutesService {
 
       const route = await activityRoute.route;
       activityRoute.score = this.calculateScore(
-        route.grade,
+        route.difficulty,
         activityRoute.ascentType,
       );
     }
@@ -63,20 +63,20 @@ export class ActivityRoutesService {
 
   /**
    * score is route's difficulty with extra points for flashing or onsighting.
-   * redpointing keeps score same as grade/difficulty
+   * redpointing keeps score same as difficulty
    * other types of ascents have score 0
    */
-  private calculateScore(grade: number, ascentType: AscentType): number {
+  private calculateScore(difficulty: number, ascentType: AscentType): number {
     let score: number;
     switch (ascentType) {
       case AscentType.ONSIGHT:
-        score = grade + 100;
+        score = difficulty + 100;
         break;
       case AscentType.FLASH:
-        score = grade + 50;
+        score = difficulty + 50;
         break;
       case AscentType.REDPOINT:
-        score = grade;
+        score = difficulty;
         break;
       default:
         // all other ascent types are not scorable
@@ -162,6 +162,9 @@ export class ActivityRoutesService {
 
     builder
       .addSelect('DATE(ar.date) AS ardate')
+      .addSelect(
+        "(r.difficulty + (ar.ascentType='onsight')::int * 100 + (ar.ascentType='flash')::int * 50) as score",
+      )
       .leftJoin('route', 'r', 'ar.routeId = r.id')
       .distinctOn(['ardate', 'ar.userId'])
       .where('ar.ascentType IN (:...aTypes)', {
@@ -171,7 +174,8 @@ export class ActivityRoutesService {
         publish: ['log', 'public'],
       })
       .andWhere('ar.routeId IS NOT NULL') // TODO: what are activity routes with no route id??
-      .andWhere('ar.grade IS NOT NULL') // TODO: entries with null values for grade? -> multipitch? - skip for now
+      .andWhere('r.difficulty IS NOT NULL') // TODO: entries with null values for difficulty? -> multipitch? - skip for now
+      // .andWhere("ar.date < '2018-07-20 02:00:00.000000'") // TODO: test it
       .orderBy('ardate', 'DESC')
       .addOrderBy('ar.userId', 'DESC')
       .addOrderBy('score', 'DESC')
@@ -236,9 +240,10 @@ export class ActivityRoutesService {
       });
     }
 
-    if (params.orderBy != null && params.orderBy.field == 'grade') {
-      builder.andWhere('ar.grade IS NOT NULL');
-    }
+    // TODO: fix after grade->difficulty change
+    // if (params.orderBy != null && params.orderBy.field == 'grade') {
+    //   builder.andWhere('ar.grade IS NOT NULL');
+    // }
 
     if (params.userId != null) {
       builder.andWhere('ar."userId" = :userId', {

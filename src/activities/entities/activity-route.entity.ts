@@ -83,18 +83,6 @@ export class ActivityRoute extends BaseEntity {
   @Field()
   ascentType: AscentType;
 
-  @Column({ nullable: true })
-  @Field()
-  name: string;
-
-  @Column({ nullable: true })
-  @Field({ nullable: true })
-  difficulty: string;
-
-  @Column({ type: 'float', nullable: true })
-  @Field({ nullable: true })
-  grade: number;
-
   @Column({
     type: 'enum',
     enum: PublishType,

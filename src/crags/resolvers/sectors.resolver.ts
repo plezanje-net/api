@@ -4,7 +4,6 @@ import {
   Args,
   ResolveField,
   Parent,
-  Context,
 } from '@nestjs/graphql';
 import { Roles } from '../../auth/decorators/roles.decorator';
 import { UseInterceptors, UseFilters } from '@nestjs/common';
@@ -16,7 +15,9 @@ import { CreateSectorInput } from '../dtos/create-sector.input';
 import { UpdateSectorInput } from '../dtos/update-sector.input';
 import { RoutesService } from '../services/routes.service';
 import { Route } from '../entities/route.entity';
-import { IGraphQLContext } from '../../types/graphql.types';
+import { Loader } from '../../core/interceptors/data-loader.interceptor';
+import { SectorRoutesLoader } from '../loaders/sector-routes.loader';
+import DataLoader from 'dataloader';
 
 @Resolver(() => Sector)
 export class SectorsResolver {
@@ -53,16 +54,12 @@ export class SectorsResolver {
     return this.sectorsService.delete(id);
   }
 
-  // @ResolveField('routes', () => [Route])
-  // async getRoutes(@Parent() sector: Sector): Promise<Route[]> {
-  //   return this.routesService.findBySector(sector.id);
-  // }
-
   @ResolveField('routes', () => [Route])
   async getRoutes(
     @Parent() sector: Sector,
-    @Context() { sectorRoutesLoader }: IGraphQLContext,
+    @Loader(SectorRoutesLoader)
+    loader: DataLoader<Route['id'], Route[]>,
   ): Promise<Route[]> {
-    return sectorRoutesLoader.load(sector.id);
+    return loader.load(sector.id);
   }
 }
