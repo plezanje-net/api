@@ -7,10 +7,20 @@ import { FindActivityRoutesInput } from '../dtos/find-activity-routes.input';
 import { ActivityRoute } from '../entities/activity-route.entity';
 import { ActivityRoutesService } from '../services/activity-routes.service';
 import { PaginatedActivityRoutes } from '../utils/paginated-activity-routes.class';
+import { RouteTouched } from '../utils/route-touched.class';
 
 @Resolver()
 export class ActivityRoutesResolver {
   constructor(private activityRoutesService: ActivityRoutesService) {}
+
+  /**
+   * find out if currently logged in user has already tried and/or ticked a certain route
+   */
+  @UseGuards(UserAuthGuard)
+  @Query(() => RouteTouched)
+  routeTouched(@CurrentUser() user: User, @Args('routeId') routeId: string) {
+    return this.activityRoutesService.routeTouched(user, routeId);
+  }
 
   @UseGuards(UserAuthGuard)
   @Query(() => PaginatedActivityRoutes)
