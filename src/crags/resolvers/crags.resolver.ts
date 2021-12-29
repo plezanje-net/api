@@ -104,7 +104,7 @@ export class CragsResolver {
 
   @ResolveField('activityByMonth', () => [Int])
   async getActivityByMonth(@Parent() crag: Crag): Promise<number[]> {
-    return this.cragsService.getAcitiviyByMonth(crag);
+    return this.cragsService.getAcitivityByMonth(crag);
   }
 
   @Query(() => [PopularCrag])

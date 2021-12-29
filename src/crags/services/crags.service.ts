@@ -220,7 +220,7 @@ export class CragsService {
     return popularCrags;
   }
 
-  async getAcitiviyByMonth(crag: Crag): Promise<number[]> {
+  async getAcitivityByMonth(crag: Crag): Promise<number[]> {
     const results = await this.routesRepository
       .createQueryBuilder('r')
       .select([
