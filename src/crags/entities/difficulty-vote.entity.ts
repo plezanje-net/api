@@ -6,12 +6,14 @@ import {
   UpdateDateColumn,
   BaseEntity,
   ManyToOne,
+  Unique,
 } from 'typeorm';
 import { ObjectType, Field } from '@nestjs/graphql';
 import { User } from '../../users/entities/user.entity';
 import { Route } from './route.entity';
 
 @Entity()
+@Unique(['route', 'user'])
 @ObjectType()
 export class DifficultyVote extends BaseEntity {
   @PrimaryGeneratedColumn('uuid')

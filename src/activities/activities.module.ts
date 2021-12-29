@@ -13,6 +13,7 @@ import { ActivityRoutesService } from './services/activity-routes.service';
 import { UsersModule } from '../users/users.module';
 import { ClubMember } from '../users/entities/club-member.entity';
 import { Club } from '../users/entities/club.entity';
+import { DifficultyVote } from '../crags/entities/difficulty-vote.entity';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { Club } from '../users/entities/club.entity';
       Pitch,
       ClubMember,
       Club,
+      DifficultyVote,
     ]),
     AuditModule,
     UsersModule,
