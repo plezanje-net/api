@@ -7,8 +7,9 @@ import {
   BaseEntity,
   ManyToOne,
   OneToMany,
+  Unique,
 } from 'typeorm';
-import { ObjectType, Field, Int } from '@nestjs/graphql';
+import { ObjectType, Field } from '@nestjs/graphql';
 import { Sector } from './sector.entity';
 import { DifficultyVote } from './difficulty-vote.entity';
 import { Comment } from './comment.entity';
@@ -29,6 +30,7 @@ export enum RouteStatus {
 }
 
 @Entity()
+@Unique(['slug', 'crag'])
 @ObjectType()
 export class Route extends BaseEntity {
   @PrimaryGeneratedColumn('uuid')
@@ -44,6 +46,10 @@ export class Route extends BaseEntity {
   @Column()
   @Field()
   name: string;
+
+  @Column({ nullable: true })
+  @Field()
+  slug: string;
 
   @Column({ type: 'float', nullable: true })
   @Field({ nullable: true })
