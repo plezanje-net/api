@@ -14,7 +14,7 @@ export class routeSlug1640288411208 implements MigrationInterface {
 
     while (await this.hasDupes(queryRunner)) {
       await queryRunner.query(`
-            update route set slug = concat(slug, '--${n}') 
+            update route set slug = concat(slug, '-${n}') 
             where id in (
                 select cast(min(cast(id as varchar)) as uuid) as id from route group by slug, "cragId" having count(id) > 1
             )
