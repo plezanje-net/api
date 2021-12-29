@@ -5,10 +5,19 @@ import { Route } from '../../crags/entities/route.entity';
 import { ClubMember } from '../../users/entities/club-member.entity';
 import { Club } from '../../users/entities/club.entity';
 import { User } from '../../users/entities/user.entity';
-import { In, Repository, SelectQueryBuilder } from 'typeorm';
+import {
+  getConnection,
+  QueryRunner,
+  Repository,
+  SelectQueryBuilder,
+} from 'typeorm';
 import { CreateActivityRouteInput } from '../dtos/create-activity-route.input';
 import { FindActivityRoutesInput } from '../dtos/find-activity-routes.input';
-import { ActivityRoute } from '../entities/activity-route.entity';
+import {
+  ActivityRoute,
+  AscentType,
+  tickAscentTypes,
+} from '../entities/activity-route.entity';
 import { Activity } from '../entities/activity.entity';
 import { PaginatedActivityRoutes } from '../utils/paginated-activity-routes.class';
 
@@ -26,6 +35,7 @@ export class ActivityRoutesService {
   ) {}
 
   async create(
+    queryRunner: QueryRunner,
     data: CreateActivityRouteInput,
     user: User,
     activity?: Activity,
@@ -36,17 +46,106 @@ export class ActivityRoutesService {
 
     activityRoute.user = Promise.resolve(user);
 
-    if (data.routeId != null) {
-      activityRoute.route = Promise.resolve(
-        await this.routesRepository.findOneOrFail(data.routeId),
+    if (data.routeId !== null) {
+      const route = await this.routesRepository.findOneOrFail(data.routeId);
+      const routeTouched = await this.routeTouched(user, data.routeId);
+      const logPossible = this.logPossible(
+        routeTouched.ticked,
+        routeTouched.tried,
+        data.ascentType,
+        route.routeTypeId,
       );
+      if (!logPossible) {
+        throw new HttpException('Impossible log', HttpStatus.NOT_ACCEPTABLE);
+      }
+
+      activityRoute.route = Promise.resolve(route);
     }
 
-    if (activity != null) {
+    // TODO: should route grade and route difficulty be added to activity route??
+    // yes, but only after a grade suggestion has been applied to the route's grade (i.e. -> grade recalculated)
+    // grade suggestions should be implemented first
+
+    if (activity !== null) {
       activityRoute.activity = Promise.resolve(activity);
     }
 
-    return this.activityRoutesRepository.save(activityRoute);
+    return queryRunner.manager.save(activityRoute);
+  }
+
+  /**
+   *
+   * check if logging a route is even possible
+   * e.g. onsighting a route already tried is impossible and so on
+   *
+   */
+  private logPossible(
+    routeTicked: boolean,
+    routeTried: boolean,
+    ascentType: string,
+    routeTypeId: string,
+  ): boolean {
+    // boulders cannot be onsighted at all
+    if (routeTypeId === 'boulder') {
+      if (
+        ascentType === AscentType.ONSIGHT ||
+        ascentType === AscentType.T_ONSIGHT
+      )
+        return false;
+    }
+
+    // already tried routes cannot be onsighted or flashed
+    if (routeTried) {
+      if (
+        ascentType === AscentType.ONSIGHT ||
+        ascentType === AscentType.T_ONSIGHT ||
+        ascentType === AscentType.FLASH ||
+        ascentType === AscentType.T_FLASH
+      )
+        return false;
+    }
+
+    // already ticked routes cannot be redpointed (flash, sight included above)
+    if (routeTicked) {
+      if (
+        ascentType === AscentType.REDPOINT ||
+        ascentType === AscentType.T_REDPOINT
+      )
+        return false;
+    }
+
+    return true;
+  }
+
+  async routeTouched(user: User, routeId: string) {
+    const connection = getConnection();
+
+    const query = connection
+      .createQueryBuilder()
+      .select('tried')
+      .addSelect('ticked')
+      .from(subQuery => {
+        return subQuery
+          .select('count(*) > 0', 'tried')
+          .from('activity_route', 'ar')
+          .where('ar.routeId = :routeId', { routeId: routeId })
+          .andWhere('ar.userId = :userId', { userId: user.id });
+      }, 'tried')
+      .addFrom(subQuery => {
+        return subQuery
+          .select('count(*) > 0', 'ticked')
+          .from('activity_route', 'ar')
+          .where('ar.routeId = :routeId', { routeId: routeId })
+          .andWhere('ar.userId = :userId', { userId: user.id })
+          .andWhere('ar.ascentType IN (:...aTypes)', {
+            aTypes: [...tickAscentTypes],
+          });
+      }, 'ticked')
+      .getRawMany();
+
+    const result = await query;
+
+    return result[0];
   }
 
   async cragSummary(
@@ -56,7 +155,7 @@ export class ActivityRoutesService {
 
     builder.distinctOn(['ar."routeId"']);
     builder.orderBy('ar."routeId"');
-    builder.addOrderBy('ar."ascentType"');
+    builder.addOrderBy('ar."ascentType"'); // note: ascentType is an enum ordered by most valued ascent type (ie onsight) toward least valued (ie t_attempt)
 
     if (params.userId != null) {
       builder.andWhere('ar."userId" = :userId', {
@@ -132,21 +231,18 @@ export class ActivityRoutesService {
       .leftJoin('route', 'r', 'ar.routeId = r.id')
       .distinctOn(['ardate', 'ar.userId'])
       .where('ar.ascentType IN (:...aTypes)', {
-        aTypes: ['redpoint', 'onsight', 'flash'],
+        aTypes: tickAscentTypes,
       })
       .andWhere('ar.publish IN (:...publish)', {
         publish: ['log', 'public'],
       })
       .andWhere('ar.routeId IS NOT NULL') // TODO: what are activity routes with no route id??
       .andWhere('r.difficulty IS NOT NULL') // TODO: entries with null values for grade? -> multipitch? - skip for now
-      // .andWhere("ar.date < '2018-07-20 02:00:00.000000'") // TODO: test it
       .orderBy('ardate', 'DESC')
       .addOrderBy('ar.userId', 'DESC')
       .addOrderBy('score', 'DESC')
       .addOrderBy('ar.ascentType', 'ASC')
       .limit(latest);
-
-    // TODO: what is a 'first' tick? should probably be defined as a group of ascentTypes somewhere
 
     /*
     comparing redpoint, flash, onsight:
