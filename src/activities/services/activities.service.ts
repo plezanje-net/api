@@ -3,11 +3,19 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { PaginationMeta } from '../../core/utils/pagination-meta.class';
 import { Crag } from '../../crags/entities/crag.entity';
 import { User } from '../../users/entities/user.entity';
-import { FindManyOptions, Repository, SelectQueryBuilder } from 'typeorm';
+import {
+  Connection,
+  FindManyOptions,
+  QueryRunner,
+  Repository,
+  SelectQueryBuilder,
+} from 'typeorm';
 import { CreateActivityInput } from '../dtos/create-activity.input';
 import { FindActivitiesInput } from '../dtos/find-activities.input';
 import { Activity } from '../entities/activity.entity';
 import { PaginatedActivities } from '../utils/paginated-activities.class';
+import { CreateActivityRouteInput } from '../dtos/create-activity-route.input';
+import { ActivityRoutesService } from './activity-routes.service';
 
 @Injectable()
 export class ActivitiesService {
@@ -16,22 +24,51 @@ export class ActivitiesService {
     private activitiesRepository: Repository<Activity>,
     @InjectRepository(Crag)
     private cragRepository: Repository<Crag>,
+    private connection: Connection,
+    private activityRoutesService: ActivityRoutesService,
   ) {}
 
-  async create(data: CreateActivityInput, user: User): Promise<Activity> {
-    const activity = new Activity();
+  async createActivityWRoutes(
+    activityIn: CreateActivityInput,
+    user: User,
+    routesIn: CreateActivityRouteInput[],
+  ): Promise<Activity> {
+    const queryRunner = this.connection.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
 
-    this.activitiesRepository.merge(activity, data);
+    try {
+      // Create new activity
+      const activity = new Activity();
+      this.activitiesRepository.merge(activity, activityIn);
+      activity.user = Promise.resolve(user);
+      if (activityIn.cragId != null) {
+        activity.crag = Promise.resolve(
+          await this.cragRepository.findOneOrFail(activityIn.cragId),
+        );
+      }
+      queryRunner.manager.save(activity);
 
-    activity.user = Promise.resolve(user);
-
-    if (data.cragId != null) {
-      activity.crag = Promise.resolve(
-        await this.cragRepository.findOneOrFail(data.cragId),
+      // Create activity-route for each route belonging to this activity
+      await Promise.all(
+        routesIn.map(async route => {
+          await this.activityRoutesService.create(
+            queryRunner,
+            route,
+            user,
+            activity,
+          );
+        }),
       );
-    }
 
-    return this.activitiesRepository.save(activity);
+      await queryRunner.commitTransaction();
+      return activity;
+    } catch (exception) {
+      await queryRunner.rollbackTransaction();
+      throw exception;
+    } finally {
+      await queryRunner.release();
+    }
   }
 
   async findOneById(id: string): Promise<Activity> {

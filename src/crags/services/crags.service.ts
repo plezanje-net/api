@@ -219,4 +219,26 @@ export class CragsService {
 
     return popularCrags;
   }
+
+  async getAcitivityByMonth(crag: Crag): Promise<number[]> {
+    const results = await this.routesRepository
+      .createQueryBuilder('r')
+      .select([
+        'EXTRACT(month FROM ar.date) -1 as month',
+        'cast (count(ar.id) as int) as visits',
+      ])
+      .innerJoin('activity_route', 'ar', 'ar.routeId = r.id')
+      .where('r.cragId = :cid', { cid: crag.id })
+      .groupBy('EXTRACT(month FROM ar.date)')
+      .orderBy('EXTRACT(month FROM ar.date)', 'ASC')
+      .getRawMany();
+
+    const response = new Array(12).fill(0);
+
+    results.forEach(r => {
+      response[r.month] = r.visits;
+    });
+
+    return response;
+  }
 }

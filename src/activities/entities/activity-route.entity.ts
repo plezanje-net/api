@@ -8,7 +8,6 @@ import {
   ManyToOne,
 } from 'typeorm';
 import { ObjectType, Field, Int } from '@nestjs/graphql';
-import { Crag } from '../../crags/entities/crag.entity';
 import { Route } from '../../crags/entities/route.entity';
 import { Activity } from './activity.entity';
 import { Pitch } from '../../crags/entities/pitch.entity';
@@ -31,6 +30,12 @@ export enum AscentType {
   T_ATTEMPT = 't_attempt',
   TICK = 'tick',
 }
+
+export const tickAscentTypes = [
+  AscentType.ONSIGHT,
+  AscentType.FLASH,
+  AscentType.REDPOINT,
+];
 
 export enum PublishType {
   PUBLIC = 'public',

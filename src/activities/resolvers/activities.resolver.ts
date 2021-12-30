@@ -14,10 +14,7 @@ import { UserAuthGuard } from '../../auth/guards/user-auth.guard';
 
 @Resolver(() => Activity)
 export class ActivitiesResolver {
-  constructor(
-    private activitiesService: ActivitiesService,
-    private activityRoutesService: ActivityRoutesService,
-  ) {}
+  constructor(private activitiesService: ActivitiesService) {}
 
   @UseGuards(UserAuthGuard)
   @Query(() => PaginatedActivities)
@@ -41,16 +38,18 @@ export class ActivitiesResolver {
   async createActivity(
     @CurrentUser() user: User,
     @Args('input', { type: () => CreateActivityInput })
-    input: CreateActivityInput,
+    activityIn: CreateActivityInput,
     @Args('routes', { type: () => [CreateActivityRouteInput] })
-    routes: CreateActivityRouteInput[],
+    routesIn: CreateActivityRouteInput[],
   ): Promise<Activity> {
-    const activity = await this.activitiesService.create(input, user);
-
-    routes.forEach(async route => {
-      await this.activityRoutesService.create(route, user, activity);
-    });
-
-    return this.activitiesService.findOneById(activity.id);
+    try {
+      return this.activitiesService.createActivityWRoutes(
+        activityIn,
+        user,
+        routesIn,
+      );
+    } catch (exception) {
+      throw exception;
+    }
   }
 }
