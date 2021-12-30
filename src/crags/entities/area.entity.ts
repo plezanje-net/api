@@ -7,6 +7,7 @@ import {
   BaseEntity,
   OneToMany,
   ManyToOne,
+  Unique,
 } from 'typeorm';
 import { ObjectType, Field, Int } from '@nestjs/graphql';
 import { Crag } from '../../crags/entities/crag.entity';
@@ -23,6 +24,7 @@ export enum AreaType {
 }
 
 @Entity()
+@Unique(['slug'])
 @ObjectType()
 export class Area extends BaseEntity {
   @PrimaryGeneratedColumn('uuid')
@@ -32,6 +34,10 @@ export class Area extends BaseEntity {
   @Column({ collation: 'utf8_slovenian_ci' })
   @Field()
   name: string;
+
+  @Column({ nullable: true })
+  @Field()
+  slug: string;
 
   @Column({
     type: 'enum',
