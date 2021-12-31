@@ -66,6 +66,14 @@ export class ActivityRoutesService {
 
       // if a vote on difficulty is passed add a new difficulty vote or update existing
       if (routeIn.votedDifficulty) {
+        // but first check if a user even can vote (can vote only if the log is a tick)
+        if (!tickAscentTypes.some(at => at === routeIn.ascentType)) {
+          throw new HttpException(
+            'Cannot vote on difficulty if not a tick',
+            HttpStatus.NOT_ACCEPTABLE,
+          );
+        }
+
         let difficultyVote = await this.difficultyVoteRepository.findOne({
           user,
           route,
