@@ -85,6 +85,13 @@ export class ActivityRoutesService {
         }
         difficultyVote.difficulty = routeIn.votedDifficulty;
 
+        // if a route that is being ticked is/was a project, then the first vote is a base vote, and the route ceases to be a project
+        if (route.isProject) {
+          difficultyVote.isBase = true;
+          route.isProject = false;
+          await queryRunner.manager.save(route);
+        }
+
         await queryRunner.manager.save(difficultyVote);
       }
     }
