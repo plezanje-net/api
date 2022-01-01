@@ -60,7 +60,9 @@ export class Area extends BaseEntity {
     area => area.areas,
     { nullable: true },
   )
-  @Field(() => Area)
+  @Field(() => Area, {
+    nullable: true,
+  })
   area: Promise<Area>;
 
   @Column({ type: 'text', nullable: true })

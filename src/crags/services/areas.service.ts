@@ -3,7 +3,7 @@ import { Area } from '../entities/area.entity';
 import { CreateAreaInput } from '../dtos/create-area.input';
 import { UpdateAreaInput } from '../dtos/update-area.input';
 import { InjectRepository } from '@nestjs/typeorm';
-import { FindManyOptions, IsNull, MoreThan, Repository } from 'typeorm';
+import { FindManyOptions, MoreThan, Repository } from 'typeorm';
 import { Country } from '../entities/country.entity';
 import { FindAreasInput } from '../dtos/find-areas.input';
 
@@ -18,6 +18,10 @@ export class AreasService {
 
   findOneById(id: string): Promise<Area> {
     return this.areasRepository.findOneOrFail(id);
+  }
+
+  findOneBySlug(slug: string): Promise<Area> {
+    return this.areasRepository.findOneOrFail({ slug: slug });
   }
 
   find(params: FindAreasInput = {}): Promise<Area[]> {
@@ -35,10 +39,6 @@ export class AreasService {
 
     if (params.hasCrags != null && params.hasCrags) {
       options.where['nrCrags'] = MoreThan(0);
-    }
-
-    if (params.areaId !== undefined) {
-      options.where['area'] = params.areaId == null ? IsNull() : params.areaId;
     }
 
     if (params.countryId != null) {
