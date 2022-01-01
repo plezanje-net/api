@@ -95,7 +95,14 @@ export class CountriesResolver {
   }
 
   @ResolveField('areas', () => [Area])
-  async getAreas(@Parent() country: Country): Promise<Area[]> {
-    return this.areaService.find({ hasCrags: true, countryId: country.id });
+  async getAreas(
+    @Parent() country: Country,
+    @Args('hasCrags', { nullable: true }) hasCrags: boolean,
+  ): Promise<Area[]> {
+    return this.areaService.find({
+      hasCrags: hasCrags,
+      countryId: country.id,
+      areaId: null,
+    });
   }
 }

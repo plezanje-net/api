@@ -1,15 +1,25 @@
-import { Resolver, Mutation, Args } from '@nestjs/graphql';
+import { Resolver, Mutation, Args, Query } from '@nestjs/graphql';
 import { Area } from '../entities/area.entity';
 import { Roles } from '../../auth/decorators/roles.decorator';
-import { UseInterceptors } from '@nestjs/common';
+import { UseFilters, UseGuards, UseInterceptors } from '@nestjs/common';
 import { AuditInterceptor } from '../../audit/interceptors/audit.interceptor';
 import { UpdateAreaInput } from '../dtos/update-area.input';
 import { CreateAreaInput } from '../dtos/create-area.input';
 import { AreasService } from '../services/areas.service';
+import { AllowAny } from '../../auth/decorators/allow-any.decorator';
+import { NotFoundFilter } from '../filters/not-found.filter';
+import { UserAuthGuard } from '../../auth/guards/user-auth.guard';
 
 @Resolver(() => Area)
 export class AreasResolver {
   constructor(private areasService: AreasService) {}
+
+  @Query(() => Area)
+  @UseFilters(NotFoundFilter)
+  @AllowAny()
+  async areaBySlug(@Args('slug') slug: string): Promise<Area> {
+    return this.areasService.findOneBySlug(slug);
+  }
 
   @Roles('admin')
   @UseInterceptors(AuditInterceptor)

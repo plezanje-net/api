@@ -8,6 +8,10 @@ export class FindAreasInput {
   @IsOptional()
   hasCrags?: boolean;
 
+  @Field({ nullable: true })
+  @IsOptional()
+  areaId?: string;
+
   @Field()
   @IsOptional()
   orderBy?: OrderByInput;
