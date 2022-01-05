@@ -20,6 +20,10 @@ export class AreasService {
     return this.areasRepository.findOneOrFail(id);
   }
 
+  findOneBySlug(slug: string): Promise<Area> {
+    return this.areasRepository.findOneOrFail({ slug: slug });
+  }
+
   find(params: FindAreasInput = {}): Promise<Area[]> {
     const options: FindManyOptions = {
       order: {},

@@ -7,6 +7,7 @@ import {
   BaseEntity,
   OneToMany,
   ManyToOne,
+  Unique,
 } from 'typeorm';
 import { ObjectType, Field, Int } from '@nestjs/graphql';
 import { Crag } from '../../crags/entities/crag.entity';
@@ -15,7 +16,15 @@ import { Image } from '../../crags/entities/image.entity';
 import { Peak } from './peak.entity';
 import { IceFall } from './ice-fall.entity';
 
+export enum AreaType {
+  REGION = 'region',
+  MOUNTAINS = 'mountains',
+  VALLEY = 'valley',
+  AREA = 'area',
+}
+
 @Entity()
+@Unique(['slug'])
 @ObjectType()
 export class Area extends BaseEntity {
   @PrimaryGeneratedColumn('uuid')
@@ -25,6 +34,40 @@ export class Area extends BaseEntity {
   @Column({ collation: 'utf8_slovenian_ci' })
   @Field()
   name: string;
+
+  @Column({ nullable: true })
+  @Field()
+  slug: string;
+
+  @Column({
+    type: 'enum',
+    enum: AreaType,
+    default: AreaType.AREA,
+  })
+  @Field()
+  type: AreaType;
+
+  @OneToMany(
+    () => Area,
+    area => area.area,
+    { nullable: true },
+  )
+  @Field(() => [Area])
+  areas: Promise<Area[]>;
+
+  @ManyToOne(
+    () => Area,
+    area => area.areas,
+    { nullable: true },
+  )
+  @Field(() => Area, {
+    nullable: true,
+  })
+  area: Promise<Area>;
+
+  @Column({ type: 'text', nullable: true })
+  @Field({ nullable: true })
+  description: string;
 
   @CreateDateColumn()
   created: Date;
