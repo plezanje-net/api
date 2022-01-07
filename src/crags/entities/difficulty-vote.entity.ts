@@ -50,7 +50,7 @@ export class DifficultyVote extends BaseEntity {
   @Field()
   includedInCalculation: boolean;
 
-  @Column({ nullable: true })
+  @Column({ default: false })
   @Field()
   isBase: boolean;
 }
