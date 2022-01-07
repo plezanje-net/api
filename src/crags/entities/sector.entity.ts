@@ -56,6 +56,9 @@ export class Sector extends BaseEntity {
   @Column({ nullable: true })
   legacy: string;
 
+  @Field()
+  bouldersOnly: boolean;
+
   @ManyToOne(
     () => Crag,
     crag => crag.sectors,

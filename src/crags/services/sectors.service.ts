@@ -1,10 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Sector } from '../entities/sector.entity';
-import { Repository } from 'typeorm';
+import { Not, Repository } from 'typeorm';
 import { UpdateSectorInput } from '../dtos/update-sector.input';
 import { CreateSectorInput } from '../dtos/create-sector.input';
 import { Crag } from '../entities/crag.entity';
+import { Route } from '../entities/route.entity';
 
 @Injectable()
 export class SectorsService {
@@ -13,6 +14,8 @@ export class SectorsService {
     private sectorsRepository: Repository<Sector>,
     @InjectRepository(Crag)
     private cragsRepository: Repository<Crag>,
+    @InjectRepository(Route)
+    private routesRepository: Repository<Route>,
   ) {}
 
   async findByCrag(cragId: string): Promise<Sector[]> {
@@ -46,5 +49,14 @@ export class SectorsService {
     const sector = await this.sectorsRepository.findOneOrFail(id);
 
     return this.sectorsRepository.remove(sector).then(() => true);
+  }
+
+  async bouldersOnly(sectorId: string): Promise<boolean> {
+    const cnt = this.routesRepository.count({
+      sectorId: sectorId,
+      routeTypeId: Not('boulder'),
+    });
+
+    return cnt.then(cnt => !cnt);
   }
 }
