@@ -32,13 +32,9 @@ export class CreateActivityRouteInput {
   @IsOptional()
   position: number;
 
-  @Field({ nullable: true })
-  @IsOptional()
-  grade: number;
-
   @Field(type => Float, { nullable: true })
   @IsOptional()
-  difficulty: number;
+  votedDifficulty: number;
 
   @Field({ nullable: true })
   @IsOptional()
