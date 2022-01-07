@@ -7,6 +7,7 @@ import {
   BaseEntity,
   ManyToOne,
   OneToMany,
+  Unique,
 } from 'typeorm';
 import { ObjectType, Field } from '@nestjs/graphql';
 import { Comment } from './comment.entity';
@@ -16,6 +17,7 @@ import { Country } from './country.entity';
 import { GradingSystem } from './grading-system.entity';
 
 @Entity()
+@Unique(['slug'])
 @ObjectType()
 export class IceFall extends BaseEntity {
   @PrimaryGeneratedColumn('uuid')
@@ -25,6 +27,10 @@ export class IceFall extends BaseEntity {
   @Column()
   @Field()
   name: string;
+
+  @Column()
+  @Field()
+  slug: string;
 
   @Column({ nullable: true })
   @Field()
