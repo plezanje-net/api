@@ -11,8 +11,10 @@ export class GradingSystemsService {
   ) {}
 
   async find(): Promise<GradingSystem[]> {
-    return this.gradingSystemRepository.find({
-      order: { position: 'ASC' },
-    });
+    return this.gradingSystemRepository
+      .createQueryBuilder('gradingSystem')
+      .leftJoinAndSelect('gradingSystem.grades', 'grades')
+      .orderBy({ 'gradingSystem.position': 'ASC', 'grades.difficulty': 'ASC' })
+      .getMany();
   }
 }
