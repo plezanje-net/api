@@ -21,8 +21,7 @@ export class CreateActivityRouteInput {
   @IsOptional()
   partner: string;
 
-  @Field({ nullable: true })
-  @IsOptional()
+  @Field()
   routeId: string;
 
   @Field(() => Int, { nullable: true })
