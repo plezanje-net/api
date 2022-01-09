@@ -8,6 +8,7 @@ import { LoginInput } from '../../users/dtos/login.input';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Role } from '../../users/entities/role.entity';
+import { LoginResponse } from '../../users/interfaces/login-response.class';
 
 @Injectable()
 export class AuthService {
@@ -43,7 +44,7 @@ export class AuthService {
     throw new UnauthorizedException(401);
   }
 
-  async login(input: LoginInput): Promise<any> {
+  async login(input: LoginInput): Promise<LoginResponse> {
     return this.validateUser(input.email, input.password).then(user => {
       const payload = {
         sub: user.id,
@@ -53,6 +54,7 @@ export class AuthService {
 
       return {
         token: this.jwtService.sign(payload),
+        user: user,
       };
     });
   }
