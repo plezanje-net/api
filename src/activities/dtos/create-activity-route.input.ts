@@ -5,9 +5,6 @@ import { AscentType, PublishType } from '../entities/activity-route.entity';
 @InputType()
 export class CreateActivityRouteInput {
   @Field()
-  name: string;
-
-  @Field()
   ascentType: AscentType;
 
   @Field()

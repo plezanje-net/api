@@ -7,7 +7,7 @@ import {
   BaseEntity,
   ManyToOne,
 } from 'typeorm';
-import { ObjectType, Field, Int } from '@nestjs/graphql';
+import { ObjectType, Field } from '@nestjs/graphql';
 import { Route } from '../../crags/entities/route.entity';
 import { Activity } from './activity.entity';
 import { Pitch } from '../../crags/entities/pitch.entity';
