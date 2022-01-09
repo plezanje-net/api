@@ -324,7 +324,7 @@ export class ActivityRoutesService {
         params.orderBy.direction || 'DESC',
       );
     } else {
-      builder.orderBy('ar.created', 'DESC');
+      builder.orderBy('ar.created', 'DESC').addOrderBy('ar.position', 'ASC');
     }
 
     if (params.cragId != null) {
