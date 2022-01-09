@@ -7,6 +7,7 @@ import { FindCommentsInput } from '../dtos/find-comments.input';
 import { UpdateCommentInput } from '../dtos/update-comment';
 import { Comment } from '../entities/comment.entity';
 import { Crag } from '../entities/crag.entity';
+import { IceFall } from '../entities/ice-fall.entity';
 
 @Injectable()
 export class CommentsService {
@@ -15,6 +16,8 @@ export class CommentsService {
     private commentsRepository: Repository<Comment>,
     @InjectRepository(Crag)
     private cragRepository: Repository<Crag>,
+    @InjectRepository(IceFall)
+    private iceFallRepository: Repository<IceFall>,
   ) {}
 
   async findOneById(id: string): Promise<Comment> {
@@ -31,6 +34,12 @@ export class CommentsService {
     if (data.cragId != null) {
       comment.crag = Promise.resolve(
         await this.cragRepository.findOneOrFail(data.cragId),
+      );
+    }
+
+    if (data.iceFallId != null) {
+      comment.iceFall = Promise.resolve(
+        await this.iceFallRepository.findOneOrFail(data.iceFallId),
       );
     }
 
