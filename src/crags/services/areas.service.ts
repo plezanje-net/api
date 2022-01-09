@@ -3,7 +3,7 @@ import { Area } from '../entities/area.entity';
 import { CreateAreaInput } from '../dtos/create-area.input';
 import { UpdateAreaInput } from '../dtos/update-area.input';
 import { InjectRepository } from '@nestjs/typeorm';
-import { FindManyOptions, MoreThan, Repository } from 'typeorm';
+import { FindManyOptions, IsNull, MoreThan, Repository } from 'typeorm';
 import { Country } from '../entities/country.entity';
 import { FindAreasInput } from '../dtos/find-areas.input';
 
@@ -43,6 +43,10 @@ export class AreasService {
 
     if (params.countryId != null) {
       options.where['country'] = params.countryId;
+    }
+
+    if (params.areaId !== undefined) {
+      options.where['area'] = params.areaId != null ? params.areaId : IsNull();
     }
 
     return this.areasRepository.find(options);

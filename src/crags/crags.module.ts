@@ -44,6 +44,8 @@ import { GradingSystem } from './entities/grading-system.entity';
 import { RouteType } from './entities/route-type.entity';
 import { GradingSystemsResolver } from './resolvers/grading-systems.resolver';
 import { GradingSystemsService } from './services/grading-systems.service';
+import { IceFallsResolver } from './resolvers/ice-falls.resolver';
+import { IceFallsService } from './services/ice-falls.service';
 
 @Module({
   imports: [
@@ -95,6 +97,8 @@ import { GradingSystemsService } from './services/grading-systems.service';
     DifficultyVotesService,
     GradingSystemsResolver,
     GradingSystemsService,
+    IceFallsResolver,
+    IceFallsService,
   ],
 })
 export class CragsModule {}

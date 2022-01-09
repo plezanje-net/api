@@ -7,14 +7,17 @@ import {
   BaseEntity,
   ManyToOne,
   OneToMany,
+  Unique,
 } from 'typeorm';
 import { ObjectType, Field } from '@nestjs/graphql';
 import { Comment } from './comment.entity';
 import { Image } from '../../crags/entities/image.entity';
 import { Area } from './area.entity';
 import { Country } from './country.entity';
+import { GradingSystem } from './grading-system.entity';
 
 @Entity()
+@Unique(['slug'])
 @ObjectType()
 export class IceFall extends BaseEntity {
   @PrimaryGeneratedColumn('uuid')
@@ -25,9 +28,21 @@ export class IceFall extends BaseEntity {
   @Field()
   name: string;
 
+  @Column()
+  @Field()
+  slug: string;
+
   @Column({ nullable: true })
   @Field()
-  difficulty: string;
+  grade: string;
+
+  @Column({ type: 'float', nullable: true })
+  @Field({ nullable: true })
+  difficulty: number;
+
+  @ManyToOne(() => GradingSystem, { nullable: true })
+  @Field(() => GradingSystem, { nullable: true })
+  defaultGradingSystem: Promise<GradingSystem>;
 
   @Column({ type: 'int', nullable: true })
   @Field()
