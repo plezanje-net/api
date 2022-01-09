@@ -100,7 +100,9 @@ export class addDifficultyCalculation1640539327798
       `DROP TRIGGER IF EXISTS route_difficulty_vote ON difficulty_vote;`,
     );
 
-    await queryRunner.query(`DROP FUNCTION recalculate_route_difficulty();`);
+    await queryRunner.query(
+      `DROP FUNCTION IF EXISTS recalculate_route_difficulty();`,
+    );
 
     await queryRunner.query(
       `ALTER TABLE "difficulty_vote" DROP COLUMN "includedInCalculation"`,

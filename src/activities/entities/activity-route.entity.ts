@@ -35,6 +35,7 @@ export const tickAscentTypes = [
   AscentType.ONSIGHT,
   AscentType.FLASH,
   AscentType.REDPOINT,
+  AscentType.REPEAT,
 ];
 
 export enum PublishType {

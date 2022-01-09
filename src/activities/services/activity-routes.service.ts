@@ -20,6 +20,7 @@ import {
 } from '../entities/activity-route.entity';
 import { Activity } from '../entities/activity.entity';
 import { PaginatedActivityRoutes } from '../utils/paginated-activity-routes.class';
+import { DifficultyVote } from '../../crags/entities/difficulty-vote.entity';
 
 @Injectable()
 export class ActivityRoutesService {
@@ -32,27 +33,29 @@ export class ActivityRoutesService {
     private clubMembersRepository: Repository<ClubMember>,
     @InjectRepository(Club)
     private clubsRepository: Repository<Club>,
+    @InjectRepository(DifficultyVote)
+    private difficultyVoteRepository: Repository<DifficultyVote>,
   ) {}
 
   async create(
     queryRunner: QueryRunner,
-    data: CreateActivityRouteInput,
+    routeIn: CreateActivityRouteInput,
     user: User,
     activity?: Activity,
   ): Promise<ActivityRoute> {
     const activityRoute = new ActivityRoute();
 
-    this.activityRoutesRepository.merge(activityRoute, data);
+    this.activityRoutesRepository.merge(activityRoute, routeIn);
 
     activityRoute.user = Promise.resolve(user);
 
-    if (data.routeId !== null) {
-      const route = await this.routesRepository.findOneOrFail(data.routeId);
-      const routeTouched = await this.routeTouched(user, data.routeId);
+    if (routeIn.routeId !== null) {
+      const route = await this.routesRepository.findOneOrFail(routeIn.routeId);
+      const routeTouched = await this.routeTouched(user, routeIn.routeId);
       const logPossible = this.logPossible(
         routeTouched.ticked,
         routeTouched.tried,
-        data.ascentType,
+        routeIn.ascentType,
         route.routeTypeId,
       );
       if (!logPossible) {
@@ -60,11 +63,38 @@ export class ActivityRoutesService {
       }
 
       activityRoute.route = Promise.resolve(route);
-    }
 
-    // TODO: should route grade and route difficulty be added to activity route??
-    // yes, but only after a grade suggestion has been applied to the route's grade (i.e. -> grade recalculated)
-    // grade suggestions should be implemented first
+      // if a vote on difficulty is passed add a new difficulty vote or update existing
+      if (routeIn.votedDifficulty) {
+        // but first check if a user even can vote (can vote only if the log is a tick)
+        if (!tickAscentTypes.some(at => at === routeIn.ascentType)) {
+          throw new HttpException(
+            'Cannot vote on difficulty if not a tick',
+            HttpStatus.NOT_ACCEPTABLE,
+          );
+        }
+
+        let difficultyVote = await this.difficultyVoteRepository.findOne({
+          user,
+          route,
+        });
+        if (!difficultyVote) {
+          difficultyVote = new DifficultyVote();
+          difficultyVote.route = Promise.resolve(route);
+          difficultyVote.user = Promise.resolve(user);
+        }
+        difficultyVote.difficulty = routeIn.votedDifficulty;
+
+        // if a route that is being ticked is/was a project, then the first vote is a base vote, and the route ceases to be a project
+        if (route.isProject) {
+          difficultyVote.isBase = true;
+          route.isProject = false;
+          await queryRunner.manager.save(route);
+        }
+
+        await queryRunner.manager.save(difficultyVote);
+      }
+    }
 
     if (activity !== null) {
       activityRoute.activity = Promise.resolve(activity);

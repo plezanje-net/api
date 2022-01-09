@@ -62,4 +62,9 @@ export class SectorsResolver {
   ): Promise<Route[]> {
     return loader.load(sector.id);
   }
+
+  @ResolveField('bouldersOnly', () => Boolean)
+  async bouldersOnly(@Parent() sector: Sector) {
+    return this.sectorsService.bouldersOnly(sector.id);
+  }
 }
