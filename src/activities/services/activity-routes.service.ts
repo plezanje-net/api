@@ -49,51 +49,49 @@ export class ActivityRoutesService {
 
     activityRoute.user = Promise.resolve(user);
 
-    if (routeIn.routeId !== null) {
-      const route = await this.routesRepository.findOneOrFail(routeIn.routeId);
-      const routeTouched = await this.routeTouched(user, routeIn.routeId);
-      const logPossible = this.logPossible(
-        routeTouched.ticked,
-        routeTouched.tried,
-        routeIn.ascentType,
-        route.routeTypeId,
-      );
-      if (!logPossible) {
-        throw new HttpException('Impossible log', HttpStatus.NOT_ACCEPTABLE);
+    const route = await this.routesRepository.findOneOrFail(routeIn.routeId);
+    const routeTouched = await this.routeTouched(user, routeIn.routeId);
+    const logPossible = this.logPossible(
+      routeTouched.ticked,
+      routeTouched.tried,
+      routeIn.ascentType,
+      route.routeTypeId,
+    );
+    if (!logPossible) {
+      throw new HttpException('Impossible log', HttpStatus.NOT_ACCEPTABLE);
+    }
+
+    activityRoute.route = Promise.resolve(route);
+
+    // if a vote on difficulty is passed add a new difficulty vote or update existing
+    if (routeIn.votedDifficulty) {
+      // but first check if a user even can vote (can vote only if the log is a tick)
+      if (!tickAscentTypes.some(at => at === routeIn.ascentType)) {
+        throw new HttpException(
+          'Cannot vote on difficulty if not a tick',
+          HttpStatus.NOT_ACCEPTABLE,
+        );
       }
 
-      activityRoute.route = Promise.resolve(route);
-
-      // if a vote on difficulty is passed add a new difficulty vote or update existing
-      if (routeIn.votedDifficulty) {
-        // but first check if a user even can vote (can vote only if the log is a tick)
-        if (!tickAscentTypes.some(at => at === routeIn.ascentType)) {
-          throw new HttpException(
-            'Cannot vote on difficulty if not a tick',
-            HttpStatus.NOT_ACCEPTABLE,
-          );
-        }
-
-        let difficultyVote = await this.difficultyVoteRepository.findOne({
-          user,
-          route,
-        });
-        if (!difficultyVote) {
-          difficultyVote = new DifficultyVote();
-          difficultyVote.route = Promise.resolve(route);
-          difficultyVote.user = Promise.resolve(user);
-        }
-        difficultyVote.difficulty = routeIn.votedDifficulty;
-
-        // if a route that is being ticked is/was a project, then the first vote is a base vote, and the route ceases to be a project
-        if (route.isProject) {
-          difficultyVote.isBase = true;
-          route.isProject = false;
-          await queryRunner.manager.save(route);
-        }
-
-        await queryRunner.manager.save(difficultyVote);
+      let difficultyVote = await this.difficultyVoteRepository.findOne({
+        user,
+        route,
+      });
+      if (!difficultyVote) {
+        difficultyVote = new DifficultyVote();
+        difficultyVote.route = Promise.resolve(route);
+        difficultyVote.user = Promise.resolve(user);
       }
+      difficultyVote.difficulty = routeIn.votedDifficulty;
+
+      // if a route that is being ticked is/was a project, then the first vote is a base vote, and the route ceases to be a project
+      if (route.isProject) {
+        difficultyVote.isBase = true;
+        route.isProject = false;
+        await queryRunner.manager.save(route);
+      }
+
+      await queryRunner.manager.save(difficultyVote);
     }
 
     if (activity !== null) {
@@ -323,8 +321,13 @@ export class ActivityRoutesService {
           : 'ar.created',
         params.orderBy.direction || 'DESC',
       );
+
+      builder.addOrderBy(
+        'ar.position',
+        params.orderBy.field === 'date' ? params.orderBy.direction : 'DESC',
+      );
     } else {
-      builder.orderBy('ar.created', 'DESC');
+      builder.orderBy('ar.created', 'DESC').addOrderBy('ar.position', 'DESC'); // TODO: can we even come here ever?
     }
 
     if (params.cragId != null) {
