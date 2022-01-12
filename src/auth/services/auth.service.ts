@@ -72,7 +72,7 @@ export class AuthService {
       return false;
     }
 
-    if (lastPasswordChange != user.lastPasswordChange.toISOString()) {
+    if (lastPasswordChange != user.lastPasswordChange?.toISOString()) {
       return false;
     }
 
