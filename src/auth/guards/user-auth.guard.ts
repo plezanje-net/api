@@ -8,6 +8,7 @@ import { GqlExecutionContext } from '@nestjs/graphql';
 import { Request } from '../../core/interfaces/request.interface';
 import { Reflector } from '@nestjs/core';
 import { TokenExpiredException } from '../exceptions/token-expired.exception';
+import { User } from '../../users/entities/user.entity';
 
 @Injectable()
 export class UserAuthGuard extends AuthGuard('jwt') {
@@ -21,15 +22,8 @@ export class UserAuthGuard extends AuthGuard('jwt') {
   }
 
   // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-  handleRequest(
-    err: any,
-    user: any,
-    info: any,
-    context: ExecutionContext,
-  ): any {
+  handleRequest(err: any, user: User, _: any, context: ExecutionContext): any {
     if (user) return user;
-
-    // if err token error throw token exception!!
 
     if (err != null && err.message == 'token_expired') {
       throw new TokenExpiredException();

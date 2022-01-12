@@ -59,24 +59,24 @@ export class AuthService {
     email,
     roles,
     lastPasswordChange,
-  }: JwtPayload): Promise<boolean> {
+  }: JwtPayload): Promise<User> {
     const user = await this.getUserByEmail(email);
 
     if (user == null) {
-      return false;
+      return null;
     }
 
     const userRoles = user.roles.map(r => r.role);
 
     if (roles.filter(r => !userRoles.includes(r)).length > 0) {
-      return false;
+      return null;
     }
 
     if (lastPasswordChange != user.lastPasswordChange?.toISOString()) {
-      return false;
+      return null;
     }
 
-    return true;
+    return user;
   }
 
   getUserByEmail(email: string): Promise<User> {

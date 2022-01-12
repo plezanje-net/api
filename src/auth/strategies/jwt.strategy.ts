@@ -2,9 +2,9 @@ import { ExtractJwt, Strategy } from 'passport-jwt';
 import { PassportStrategy } from '@nestjs/passport';
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { RequestUser } from '../../core/interfaces/request-user.interface';
 import { AuthService } from '../services/auth.service';
 import { AuthenticationError } from 'apollo-server-express';
+import { User } from '../../users/entities/user.entity';
 
 export interface JwtPayload {
   sub: string;
@@ -23,11 +23,13 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     });
   }
 
-  async validate(payload: JwtPayload): Promise<RequestUser> {
-    if (!(await this.authService.validateJwtPayload(payload))) {
+  async validate(payload: JwtPayload): Promise<User> {
+    const user = await this.authService.validateJwtPayload(payload);
+
+    if (user == null) {
       throw new AuthenticationError('token_expired');
     }
 
-    return { id: payload.sub, email: payload.email, roles: payload.roles };
+    return user;
   }
 }
