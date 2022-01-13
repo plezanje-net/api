@@ -68,6 +68,9 @@ export class User extends BaseEntity {
   @Column({ default: false })
   isPublic: boolean;
 
+  @Column({ nullable: true })
+  lastPasswordChange: Date;
+
   @CreateDateColumn()
   created: Date;
 

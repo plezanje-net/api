@@ -5,6 +5,8 @@ import {
   Args,
   ResolveField,
   Parent,
+  Context,
+  GqlExecutionContext,
 } from '@nestjs/graphql';
 import { User } from '../entities/user.entity';
 import { UsersService } from '../services/users.service';
@@ -13,11 +15,12 @@ import { ConfirmInput } from '../dtos/confirm.input';
 import { CurrentUser } from '../../auth/decorators/current-user.decorator';
 import { LoginInput } from '../dtos/login.input';
 import { AuthService } from '../../auth/services/auth.service';
-import { TokenResponse } from '../interfaces/token-response.class';
+import { LoginResponse } from '../interfaces/login-response.class';
 import { Role } from '../entities/role.entity';
 import { Roles } from '../../auth/decorators/roles.decorator';
 import { NotFoundFilter } from '../../crags/filters/not-found.filter';
 import {
+  ExecutionContext,
   InternalServerErrorException,
   UseFilters,
   UseGuards,
@@ -28,6 +31,7 @@ import { PasswordInput } from '../dtos/password.input';
 import { ClubMember } from '../entities/club-member.entity';
 import { ClubMembersService } from '../services/club-members.service';
 import { UserAuthGuard } from '../../auth/guards/user-auth.guard';
+import { response } from 'express';
 
 @Resolver(() => User)
 export class UsersResolver {
@@ -107,11 +111,18 @@ export class UsersResolver {
     );
   }
 
-  @Mutation(() => TokenResponse)
+  @Mutation(() => LoginResponse)
   async login(
     @Args('input', { type: () => LoginInput }) input: LoginInput,
-  ): Promise<boolean> {
-    return this.authService.login(input);
+    @Context('req') req,
+  ): Promise<LoginResponse> {
+    const loginResponse = await this.authService.login(input);
+
+    const { id, email, roles } = loginResponse.user;
+
+    req.user = { id, email, roles };
+
+    return loginResponse;
   }
 
   @ResolveField('roles', () => [String])
