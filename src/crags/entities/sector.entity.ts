@@ -37,6 +37,7 @@ export class Sector extends BaseEntity {
   label: string;
 
   @Column({ type: 'int' })
+  @Field()
   position: number;
 
   @Column({
