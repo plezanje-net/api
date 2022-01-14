@@ -33,7 +33,6 @@ export class RouteEvent extends BaseEntity {
   eventDate: Date;
 
   @ManyToOne(() => User)
-  @Field(() => User, { nullable: true })
   user: Promise<User>;
 
   @Column({ default: true })
