@@ -89,6 +89,7 @@ export class UsersService {
     }
 
     user.passwordToken = null;
+    user.lastPasswordChange = new Date();
     user.password = await bcrypt.hash(password, 10);
 
     return this.usersRepository.save(user).then(() => true);

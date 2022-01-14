@@ -1,5 +1,5 @@
-import { RequestUser } from './request-user.interface';
+import { User } from '../../users/entities/user.entity';
 
 export interface Request {
-  user: RequestUser;
+  user: User;
 }

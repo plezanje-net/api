@@ -8,6 +8,8 @@ import { LoginInput } from '../../users/dtos/login.input';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Role } from '../../users/entities/role.entity';
+import { LoginResponse } from '../../users/interfaces/login-response.class';
+import { JwtPayload } from '../strategies/jwt.strategy';
 
 @Injectable()
 export class AuthService {
@@ -17,13 +19,24 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
-  async validateUser(email: string, pass: string): Promise<any> {
-    const user = await this.usersRepository.findOne({
-      where: {
-        email,
-      },
-      relations: ['roles'],
+  async login(input: LoginInput): Promise<LoginResponse> {
+    return this.validateUser(input.email, input.password).then(user => {
+      const payload = {
+        sub: user.id,
+        email: user.email,
+        lastPasswordChange: user.lastPasswordChange,
+        roles: user.roles.map((role: Role) => role.role),
+      };
+
+      return {
+        token: this.jwtService.sign(payload),
+        user: user,
+      };
     });
+  }
+
+  async validateUser(email: string, pass: string): Promise<any> {
+    const user = await this.getUserByEmail(email);
 
     const inputPasswordSha = crypto
       .createHash('sha256')
@@ -32,7 +45,6 @@ export class AuthService {
 
     if (
       user &&
-      user.isActive &&
       ((await bcrypt.compare(pass, user.password)) ||
         (await bcrypt.compare(inputPasswordSha, user.password)))
     ) {
@@ -43,17 +55,37 @@ export class AuthService {
     throw new UnauthorizedException(401);
   }
 
-  async login(input: LoginInput): Promise<any> {
-    return this.validateUser(input.email, input.password).then(user => {
-      const payload = {
-        sub: user.id,
-        email: user.email,
-        roles: user.roles.map((role: Role) => role.role),
-      };
+  async validateJwtPayload({
+    email,
+    roles,
+    lastPasswordChange,
+  }: JwtPayload): Promise<User> {
+    const user = await this.getUserByEmail(email);
 
-      return {
-        token: this.jwtService.sign(payload),
-      };
+    if (user == null) {
+      return null;
+    }
+
+    const userRoles = user.roles.map(r => r.role);
+
+    if (roles.filter(r => !userRoles.includes(r)).length > 0) {
+      return null;
+    }
+
+    if (lastPasswordChange != user.lastPasswordChange?.toISOString()) {
+      return null;
+    }
+
+    return user;
+  }
+
+  getUserByEmail(email: string): Promise<User> {
+    return this.usersRepository.findOne({
+      where: {
+        email,
+        isActive: true,
+      },
+      relations: ['roles'],
     });
   }
 }
