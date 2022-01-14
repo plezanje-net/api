@@ -1,7 +1,7 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from '../../users/entities/user.entity';
-import { FindManyOptions, In, Repository, MoreThanOrEqual } from 'typeorm';
+import { FindManyOptions, In, Repository, Raw } from 'typeorm';
 import { CreateCommentInput } from '../dtos/create-comment.input';
 import { FindCommentsInput } from '../dtos/find-comments.input';
 import { UpdateCommentInput } from '../dtos/update-comment';
@@ -25,6 +25,8 @@ export class CommentsService {
   }
 
   async create(data: CreateCommentInput, user: User): Promise<Comment> {
+    this.checkExposedUntilDateValidity(data?.exposedUntil);
+
     const comment = new Comment();
 
     this.commentsRepository.merge(comment, data);
@@ -47,11 +49,21 @@ export class CommentsService {
   }
 
   async update(data: UpdateCommentInput): Promise<Comment> {
+    this.checkExposedUntilDateValidity(data?.exposedUntil);
+
     const comment = await this.commentsRepository.findOneOrFail(data.id);
 
     this.commentsRepository.merge(comment, data);
 
     return this.commentsRepository.save(comment);
+  }
+
+  checkExposedUntilDateValidity(exposedUntil: Date) {
+    const maxDate = new Date();
+    maxDate.setMonth(maxDate.getMonth() + 1);
+    if (exposedUntil && exposedUntil > maxDate) {
+      throw new HttpException('Invalid date', HttpStatus.NOT_ACCEPTABLE);
+    }
   }
 
   async delete(id: string): Promise<boolean> {
@@ -96,7 +108,7 @@ export class CommentsService {
     return this.commentsRepository.find({
       where: {
         type: 'warning',
-        exposedUntil: MoreThanOrEqual('2021-12-03'),
+        exposedUntil: Raw(exun => `${exun} > NOW()`),
       },
       order: { updated: 'DESC' },
     });

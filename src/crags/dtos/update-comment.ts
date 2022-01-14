@@ -1,4 +1,5 @@
 import { InputType, Field } from '@nestjs/graphql';
+import { IsOptional } from 'class-validator';
 
 @InputType()
 export class UpdateCommentInput {
@@ -7,4 +8,8 @@ export class UpdateCommentInput {
 
   @Field()
   content: string;
+
+  @Field({ nullable: true })
+  @IsOptional()
+  exposedUntil: Date;
 }
