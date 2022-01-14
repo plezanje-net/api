@@ -19,6 +19,7 @@ import { Crag } from './crag.entity';
 import { Rating } from './rating.entity';
 import { GradingSystem } from './grading-system.entity';
 import { RouteType } from './route-type.entity';
+import { RouteEvent } from './route-event.entity';
 
 export enum RouteStatus {
   PUBLIC = 'public',
@@ -147,4 +148,11 @@ export class Route extends BaseEntity {
   )
   @Field(() => [Image])
   images: Promise<Image[]>;
+
+  @OneToMany(
+    () => RouteEvent,
+    routeEvent => routeEvent.route,
+    { nullable: true },
+  )
+  routeEvents: Promise<RouteEvent[]>;
 }

@@ -33,6 +33,7 @@ import { userLoader } from './crags/loaders/user.loader';
 import { RouteType } from './crags/entities/route-type.entity';
 import { GradingSystem } from './crags/entities/grading-system.entity';
 import { Grade } from './crags/entities/grade.entity';
+import { RouteEvent } from './crags/entities/route-event.entity';
 
 @Module({
   imports: [
@@ -77,6 +78,7 @@ import { Grade } from './crags/entities/grade.entity';
           IceFall,
           Rating,
           RouteType,
+          RouteEvent,
           GradingSystem,
           Grade,
         ],
