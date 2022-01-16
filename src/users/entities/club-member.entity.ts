@@ -12,6 +12,10 @@ import { ObjectType, Field } from '@nestjs/graphql';
 import { User } from './user.entity';
 import { Club } from './club.entity';
 
+export enum ClubMemberStatus {
+  PENDING = 'pending',
+  ACTIVE = 'active',
+}
 @Entity()
 @Unique(['user', 'club'])
 @ObjectType()
@@ -51,4 +55,15 @@ export class ClubMember extends BaseEntity {
   )
   @Field(type => Club)
   club: Promise<Club>;
+
+  @Column({ nullable: true })
+  confirmationToken: string;
+
+  @Column({
+    type: 'enum',
+    enum: ClubMemberStatus,
+    default: ClubMemberStatus.PENDING,
+  })
+  @Field()
+  status: ClubMemberStatus;
 }

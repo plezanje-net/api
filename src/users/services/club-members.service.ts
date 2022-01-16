@@ -1,9 +1,16 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import {
+  HttpException,
+  HttpStatus,
+  Injectable,
+  NotAcceptableException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { randomBytes } from 'crypto';
 import { Repository } from 'typeorm';
+import { ConfirmInput } from '../dtos/confirm.input';
 import { CreateClubMemberByEmailInput } from '../dtos/create-club-member-by-email.input';
 import { CreateClubMemberInput } from '../dtos/create-club-member.input';
-import { ClubMember } from '../entities/club-member.entity';
+import { ClubMember, ClubMemberStatus } from '../entities/club-member.entity';
 import { Club } from '../entities/club.entity';
 import { User } from '../entities/user.entity';
 
@@ -37,8 +44,9 @@ export class ClubMembersService {
     data: CreateClubMemberByEmailInput,
   ): Promise<ClubMember> {
     // only if the logged in user is admin of this club can she add a member
-    if (!(await this.isMemberAdmin(data.clubId, currentUser.id)))
+    if (!(await this.isMemberAdmin(data.clubId, currentUser.id))) {
       throw new HttpException('Forbidden', HttpStatus.FORBIDDEN);
+    }
 
     // get user that we are adding as a new member
     const newMemberUser = Promise.resolve(
@@ -56,14 +64,38 @@ export class ClubMembersService {
     newMemberUser: Promise<User>,
     clubId: string,
     asAdmin: boolean,
-  ) {
+  ): Promise<ClubMember> {
     const clubMember = new ClubMember();
+
     clubMember.user = newMemberUser;
+
     clubMember.club = Promise.resolve(
       await this.clubRepository.findOneOrFail(clubId),
     );
+
     clubMember.admin = asAdmin;
+
+    clubMember.status = ClubMemberStatus.PENDING;
+    clubMember.confirmationToken = randomBytes(20).toString('hex');
+
     return this.clubMembersRepository.save(clubMember);
+  }
+
+  async confirmClubMembership(confirmIn: ConfirmInput): Promise<Club> {
+    const clubMember = await this.clubMembersRepository.findOneOrFail(
+      confirmIn.id,
+    );
+
+    if (clubMember.confirmationToken != confirmIn.token) {
+      throw new NotAcceptableException();
+    }
+
+    clubMember.confirmationToken = null;
+    clubMember.status = ClubMemberStatus.ACTIVE;
+
+    await this.clubMembersRepository.save(clubMember);
+
+    return clubMember.club;
   }
 
   async delete(currentUser: User, id: string): Promise<boolean> {
