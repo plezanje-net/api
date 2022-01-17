@@ -4,9 +4,10 @@ import {
   Args,
   ResolveField,
   Parent,
+  Query,
 } from '@nestjs/graphql';
 import { Roles } from '../../auth/decorators/roles.decorator';
-import { UseInterceptors, UseFilters } from '@nestjs/common';
+import { UseInterceptors, UseFilters, UseGuards } from '@nestjs/common';
 import { AuditInterceptor } from '../../audit/interceptors/audit.interceptor';
 import { NotFoundFilter } from '../filters/not-found.filter';
 import { Sector } from '../entities/sector.entity';
@@ -18,6 +19,9 @@ import { Route } from '../entities/route.entity';
 import { Loader } from '../../core/interceptors/data-loader.interceptor';
 import { SectorRoutesLoader } from '../loaders/sector-routes.loader';
 import DataLoader from 'dataloader';
+import { AllowAny } from '../../auth/decorators/allow-any.decorator';
+import { UserAuthGuard } from '../../auth/guards/user-auth.guard';
+import { MinCragStatus } from '../decorators/min-crag-status.decorator';
 
 @Resolver(() => Sector)
 export class SectorsResolver {
@@ -25,6 +29,14 @@ export class SectorsResolver {
     private sectorsService: SectorsService,
     private routesService: RoutesService,
   ) {}
+
+  @Query(() => Sector)
+  @UseFilters(NotFoundFilter)
+  @AllowAny()
+  @UseGuards(UserAuthGuard)
+  sector(@Args('id') id: string): Promise<Sector> {
+    return this.sectorsService.findOneById(id);
+  }
 
   @Mutation(() => Sector)
   @Roles('admin')
@@ -44,6 +56,17 @@ export class SectorsResolver {
     @Args('input', { type: () => UpdateSectorInput }) input: UpdateSectorInput,
   ): Promise<Sector> {
     return this.sectorsService.update(input);
+  }
+
+  @Mutation(() => [Sector])
+  @Roles('admin')
+  @UseInterceptors(AuditInterceptor)
+  @UseFilters(NotFoundFilter)
+  async updateSectors(
+    @Args('input', { type: () => [UpdateSectorInput] })
+    input: UpdateSectorInput[],
+  ): Promise<Sector[]> {
+    return Promise.all(input.map(input => this.sectorsService.update(input)));
   }
 
   @Mutation(() => Boolean)

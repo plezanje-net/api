@@ -25,6 +25,10 @@ export class SectorsService {
     });
   }
 
+  async findOneById(id: string): Promise<Sector> {
+    return this.sectorsRepository.findOneOrFail(id);
+  }
+
   async create(data: CreateSectorInput): Promise<Sector> {
     const sector = new Sector();
 
