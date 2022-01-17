@@ -39,7 +39,6 @@ export class ClubMembersResolver {
       user,
       createClubMemberByEmailInput,
     );
-    console.log(user);
     if (
       !(await this.notificationService.clubMembershipConfirmation(
         user,
