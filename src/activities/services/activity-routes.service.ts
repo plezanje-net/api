@@ -2,7 +2,10 @@ import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { PaginationMeta } from '../../core/utils/pagination-meta.class';
 import { Route } from '../../crags/entities/route.entity';
-import { ClubMember } from '../../users/entities/club-member.entity';
+import {
+  ClubMember,
+  ClubMemberStatus,
+} from '../../users/entities/club-member.entity';
 import { Club } from '../../users/entities/club.entity';
 import { User } from '../../users/entities/user.entity';
 import {
@@ -219,6 +222,7 @@ export class ActivityRoutesService {
       where: {
         user: user.id,
         club: club.id,
+        status: ClubMemberStatus.ACTIVE,
       },
     });
     if (!clubMember) throw new HttpException('Forbidden', HttpStatus.FORBIDDEN);
@@ -228,7 +232,10 @@ export class ActivityRoutesService {
       .leftJoinAndSelect('ar.user', 'user')
       .leftJoinAndSelect('user.clubs', 'clubMember')
       .leftJoinAndSelect('clubMember.club', 'club')
-      .andWhere('"club"."id" = :clubId', { clubId: club.id });
+      .andWhere('"club"."id" = :clubId', { clubId: club.id })
+      .andWhere('clubMember.status = :status', {
+        status: ClubMemberStatus.ACTIVE,
+      });
 
     const itemCount = await query.getCount();
 

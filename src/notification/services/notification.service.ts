@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { ClubMember } from '../../users/entities/club-member.entity';
 import { User } from '../../users/entities/user.entity';
 import { MailService } from './mail.service';
 
@@ -47,6 +48,45 @@ export class NotificationService {
             user.id +
             '/' +
             user.passwordToken,
+        },
+      })
+      .then(() => true)
+      .catch(() => false);
+  }
+
+  public async clubMembershipConfirmation(
+    userAdding: User, // user that triggered the action of adding a new member to the club
+    clubMember: ClubMember, // new member user-club relation
+  ): Promise<boolean> {
+    const clubMemberUser = await clubMember.user;
+    const club = await clubMember.club;
+    const webUrl = this.configService.get('WEB_URL');
+
+    return this.mailService
+      .send({
+        to: clubMemberUser.email,
+        subject: 'Potrdi članstvo v klubu',
+        template: 'club-membership-confirmation',
+        templateParams: {
+          userAdding: userAdding,
+          userAddingGender: {
+            unknown: !userAdding.gender,
+            female: userAdding.gender && userAdding.gender === 'F',
+          },
+          clubMemberUser: clubMemberUser,
+          clubMemberUserGender: {
+            unknown: !clubMemberUser.gender,
+            female: clubMemberUser.gender && clubMemberUser.gender === 'F',
+            male: clubMemberUser.gender && clubMemberUser.gender === 'M',
+          },
+          club: club,
+          webUrl: webUrl,
+          confirmationUrl:
+            webUrl +
+            'potrditev-clanstva/' +
+            clubMember.id +
+            '/' +
+            clubMember.confirmationToken,
         },
       })
       .then(() => true)
