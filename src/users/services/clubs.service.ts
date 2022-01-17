@@ -4,7 +4,7 @@ import slugify from 'slugify';
 import { Repository } from 'typeorm';
 import { CreateClubInput } from '../dtos/create-club.input';
 import { UpdateClubInput } from '../dtos/update-club.input';
-import { ClubMember } from '../entities/club-member.entity';
+import { ClubMember, ClubMemberStatus } from '../entities/club-member.entity';
 import { Club } from '../entities/club.entity';
 import { User } from '../entities/user.entity';
 
@@ -22,6 +22,9 @@ export class ClubsService {
         .createQueryBuilder('club')
         .leftJoinAndSelect('club.members', 'member')
         .where('"member"."userId" = :userId', { userId })
+        .andWhere('member.status = :status', {
+          status: ClubMemberStatus.ACTIVE,
+        })
         .getMany();
     } else {
       return this.clubsRepository.find();
@@ -44,7 +47,7 @@ export class ClubsService {
 
     // only club member can see club data
     const clubMember = await this.clubMembersRepository.findOne({
-      where: { user: user.id, club: club.id },
+      where: { user: user.id, club: club.id, status: ClubMemberStatus.ACTIVE },
     });
     if (!clubMember) throw new HttpException('Forbidden', HttpStatus.FORBIDDEN);
     return club;
@@ -52,27 +55,16 @@ export class ClubsService {
 
   async create(currentUser: User, data: CreateClubInput): Promise<Club> {
     // generate slug from club name
-    const clubName = data.name;
-    let slug = slugify(clubName, { lower: true });
-    let suffixCounter = 0;
-    let suffix = '';
-    while (
-      (await this.clubsRepository.findOne({
-        where: { slug: slug + suffix },
-      })) !== undefined
-    ) {
-      suffixCounter++;
-      suffix = '-' + suffixCounter;
-    }
-    slug += suffix;
+    const slug = await this.generateClubSlug(data.name);
 
     const newClub = await this.clubsRepository.create({ ...data, slug }).save();
 
-    // user creating the club should be automatically added as an admin member, otherwise we would get an orphaned club
+    // user creating the club should be automatically added as an active admin member, otherwise we would get an orphaned club
     const clubMember = new ClubMember();
     clubMember.user = Promise.resolve(currentUser);
     clubMember.club = Promise.resolve(newClub);
     clubMember.admin = true;
+    clubMember.status = ClubMemberStatus.ACTIVE;
     this.clubMembersRepository.save(clubMember);
 
     return newClub;
@@ -86,8 +78,25 @@ export class ClubsService {
       throw new HttpException('Forbidden', HttpStatus.FORBIDDEN);
 
     this.clubsRepository.merge(club, data);
+    club.name && (club.slug = await this.generateClubSlug(club.name));
 
     return this.clubsRepository.save(club);
+  }
+
+  private async generateClubSlug(clubName: string) {
+    let slug = slugify(clubName, { lower: true });
+    let suffixCounter = 0;
+    let suffix = '';
+    while (
+      (await this.clubsRepository.findOne({
+        where: { slug: slug + suffix },
+      })) !== undefined
+    ) {
+      suffixCounter++;
+      suffix = '-' + suffixCounter;
+    }
+    slug += suffix;
+    return slug;
   }
 
   async delete(currentUser: User, id: string): Promise<boolean> {

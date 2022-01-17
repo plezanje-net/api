@@ -92,7 +92,7 @@ export class Comment extends BaseEntity {
   routeId: string;
 
   @Column({ nullable: true }) // keep nullable, only comments of type=warning use this field
-  @Field()
+  @Field({ nullable: true })
   exposedUntil: Date;
 
   @ManyToOne(

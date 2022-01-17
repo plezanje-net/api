@@ -1,0 +1,16 @@
+Potrdi članstvo v klubu
+
+Pozdravljen{{#if clubMemberUserGender.female}}a{{/if}}{{#if clubMemberUserGender.unknown}}(a){{/if}} {{ clubMemberUser.firstname }},
+
+{{ userAdding.firstname }} {{ userAdding.lastname }} te je na portalu plezanje.net ({{ webUrl }})
+povabil{{#if userAddingGender.female}}a{{/if}}{{#if userAddingGender.unknown}}(a){{/if}} v klub <strong>{{ club.name }}</strong>.
+
+Po potrditvi članstva bodo vzponi, ki si jih vnes{{#if clubMemberUserGender.female}}la{{/if}}{{#if clubMemberUserGender.male}}el{{/if}}{{#if clubMemberUserGender.unknown}}el(la){{/if}} 'samo za prijatelje', vidni vsem članom kluba.
+Vzponi, ki si jih vnes{{#if clubMemberUserGender.female}}la{{/if}}{{#if clubMemberUserGender.male}}el{{/if}}{{#if clubMemberUserGender.unknown}}el(la){{/if}}'samo zame', pa bodo še naprej vidni samo tebi.    
+
+Če želiš sprejeti povabilo, klikni na spodnjo povezavo:
+
+{{ confirmationUrl }}
+
+Lep pozdrav,
+Plezanje.net

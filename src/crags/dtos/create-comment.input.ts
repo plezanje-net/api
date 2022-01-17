@@ -25,4 +25,8 @@ export class CreateCommentInput {
   @Field({ nullable: true })
   @IsOptional()
   peakId: string;
+
+  @Field({ nullable: true })
+  @IsOptional()
+  exposedUntil: Date;
 }
