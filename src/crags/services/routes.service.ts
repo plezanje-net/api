@@ -9,6 +9,7 @@ import { Crag, CragStatus } from '../entities/crag.entity';
 import slugify from 'slugify';
 import { GradingSystem } from '../entities/grading-system.entity';
 import { RouteType } from '../entities/route-type.entity';
+import { DifficultyVote } from '../entities/difficulty-vote.entity';
 
 @Injectable()
 export class RoutesService {
@@ -21,6 +22,8 @@ export class RoutesService {
     private gradingSystemRepository: Repository<GradingSystem>,
     @InjectRepository(RouteType)
     private routeTypeRepository: Repository<RouteType>,
+    @InjectRepository(DifficultyVote)
+    private difficultyVoteRepository: Repository<DifficultyVote>,
   ) {}
 
   async findBySector(sectorId: string): Promise<Route[]> {
@@ -73,7 +76,26 @@ export class RoutesService {
 
     route.slug = await this.generateRouteSlug(route.name, crag);
 
-    return this.routesRepository.save(route);
+    if (data.baseDifficulty == null || route.isProject) {
+      return this.routesRepository.save(route);
+    }
+
+    await this.routesRepository.save(route);
+
+    if (data.baseDifficulty != null && !route.isProject) {
+      await this.createBaseGrade(route, data.baseDifficulty);
+    }
+
+    return Promise.resolve(route);
+  }
+
+  createBaseGrade(route: Route, difficulty: number): Promise<DifficultyVote> {
+    const vote = new DifficultyVote();
+    vote.route = Promise.resolve(route);
+    vote.difficulty = difficulty;
+    vote.isBase = true;
+
+    return this.difficultyVoteRepository.save(vote);
   }
 
   async update(data: UpdateRouteInput): Promise<Route> {

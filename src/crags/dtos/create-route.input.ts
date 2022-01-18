@@ -33,4 +33,8 @@ export class CreateRouteInput {
 
   @Field()
   defaultGradingSystemId: string;
+
+  @Field({ nullable: true })
+  @IsOptional()
+  baseDifficulty: number;
 }
