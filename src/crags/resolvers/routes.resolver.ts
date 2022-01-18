@@ -58,6 +58,17 @@ export class RoutesResolver {
     return this.routesService.update(input);
   }
 
+  @Mutation(() => [Route])
+  @Roles('admin')
+  @UseInterceptors(AuditInterceptor)
+  @UseFilters(NotFoundFilter)
+  async updateRoutes(
+    @Args('input', { type: () => [UpdateRouteInput] })
+    input: UpdateRouteInput[],
+  ): Promise<Route[]> {
+    return Promise.all(input.map(input => this.routesService.update(input)));
+  }
+
   @Mutation(() => Boolean)
   @Roles('admin')
   @UseInterceptors(AuditInterceptor)
