@@ -61,7 +61,7 @@ export class Route extends BaseEntity {
   defaultGradingSystem: Promise<GradingSystem>;
 
   @Column({ type: 'int', nullable: true })
-  @Field()
+  @Field({ nullable: true })
   length: string;
 
   @Column({ nullable: true })
@@ -69,6 +69,7 @@ export class Route extends BaseEntity {
   author: string;
 
   @Column({ type: 'int' })
+  @Field()
   position: number;
 
   @Column({
