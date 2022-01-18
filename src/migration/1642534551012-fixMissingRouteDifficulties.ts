@@ -4,6 +4,55 @@ export class fixMissingRouteDifficulties1642534551012
   implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(
+      `insert into grading_system (id, name, position)
+        values ('ifas', 'IFAS', 1100)`,
+    );
+
+    await queryRunner.query(
+      `insert into route_type_grading_system ("routeTypeId", "gradingSystemId")
+        values ('combined', 'ifas')`,
+    );
+
+    await queryRunner.query(
+      `insert into grade (name, difficulty, "gradingSystemId")
+        values ('32°',225,'angle'),('45°',275,'angle'),('55°',325,'angle')`,
+    );
+
+    await queryRunner.query(
+      `insert into grade (name, difficulty, "gradingSystemId")
+        values ('F-',200,'ifas'),
+        ('F',250,'ifas'),
+        ('F+',300,'ifas'),
+        ('PD-',350,'ifas'),
+        ('PD',400,'ifas'),
+        ('PD+',450,'ifas'),
+        ('AD-',500,'ifas'),
+        ('AD',550,'ifas'),
+        ('AD+',600,'ifas'),
+        ('D-',650,'ifas'),
+        ('D',700,'ifas'),
+        ('D+',750,'ifas'),
+        ('TD-',800,'ifas'),
+        ('TD',850,'ifas'),
+        ('TD+',900,'ifas'),
+        ('ED1-',950,'ifas'),
+        ('ED1',1000,'ifas'),
+        ('ED1+',1050,'ifas'),
+        ('ED2-',1100,'ifas'),
+        ('ED2',1150,'ifas'),
+        ('ED2+',1200,'ifas'),
+        ('ED3-',1250,'ifas'),
+        ('ED3',1300,'ifas'),
+        ('ED3+',1350,'ifas'),
+        ('ED4-',1400,'ifas'),
+        ('ED4',1450,'ifas'),
+        ('ED4+',1500,'ifas'),
+        ('ABO-',1550,'ifas'),
+        ('ABO',1600,'ifas'),
+        ('ABO+',1650,'ifas')`,
+    );
+
+    await queryRunner.query(
       `update route
         set "isProject" = true, "defaultGradingSystemId"='french'
         where (legacy::json -> 'RouteID')::jsonb = '17464'`,
