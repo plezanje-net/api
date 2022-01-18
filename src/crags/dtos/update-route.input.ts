@@ -13,6 +13,10 @@ export class UpdateRouteInput {
 
   @Field({ nullable: true })
   @IsOptional()
+  length: string;
+
+  @Field({ nullable: true })
+  @IsOptional()
   author: string;
 
   @Field({ nullable: true })
@@ -30,4 +34,12 @@ export class UpdateRouteInput {
   @Field({ nullable: true })
   @IsOptional()
   sectorId: string;
+
+  @Field({ nullable: true })
+  @IsOptional()
+  routeTypeId: string;
+
+  @Field({ nullable: true })
+  @IsOptional()
+  defaultGradingSystemId: string;
 }

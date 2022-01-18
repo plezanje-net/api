@@ -2,10 +2,13 @@ import { Injectable } from '@nestjs/common';
 import { Route } from '../entities/route.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Sector } from '../entities/sector.entity';
-import { In, Repository } from 'typeorm';
+import { In, Not, Repository } from 'typeorm';
 import { CreateRouteInput } from '../dtos/create-route.input';
 import { UpdateRouteInput } from '../dtos/update-route.input';
-import { CragStatus } from '../entities/crag.entity';
+import { Crag, CragStatus } from '../entities/crag.entity';
+import slugify from 'slugify';
+import { GradingSystem } from '../entities/grading-system.entity';
+import { RouteType } from '../entities/route-type.entity';
 
 @Injectable()
 export class RoutesService {
@@ -14,6 +17,10 @@ export class RoutesService {
     private routesRepository: Repository<Route>,
     @InjectRepository(Sector)
     private sectorsRepository: Repository<Sector>,
+    @InjectRepository(GradingSystem)
+    private gradingSystemRepository: Repository<GradingSystem>,
+    @InjectRepository(RouteType)
+    private routeTypeRepository: Repository<RouteType>,
   ) {}
 
   async findBySector(sectorId: string): Promise<Route[]> {
@@ -53,9 +60,18 @@ export class RoutesService {
 
     this.routesRepository.merge(route, data);
 
-    route.sector = Promise.resolve(
-      await this.sectorsRepository.findOneOrFail(data.sectorId),
+    const sector = await this.sectorsRepository.findOneOrFail(data.sectorId);
+    const crag = await sector.crag;
+
+    route.sector = Promise.resolve(sector);
+    route.crag = Promise.resolve(crag);
+
+    route.defaultGradingSystem = this.gradingSystemRepository.findOneOrFail(
+      data.defaultGradingSystemId,
     );
+    route.routeType = this.routeTypeRepository.findOneOrFail(data.routeTypeId);
+
+    route.slug = await this.generateRouteSlug(route.name, crag);
 
     return this.routesRepository.save(route);
   }
@@ -64,6 +80,26 @@ export class RoutesService {
     const route = await this.routesRepository.findOneOrFail(data.id);
 
     this.routesRepository.merge(route, data);
+
+    if (data.defaultGradingSystemId != null) {
+      route.defaultGradingSystem = this.gradingSystemRepository.findOneOrFail(
+        data.defaultGradingSystemId,
+      );
+    }
+
+    if (data.routeTypeId != null) {
+      route.routeType = this.routeTypeRepository.findOneOrFail(
+        data.routeTypeId,
+      );
+    }
+
+    if (data.name != null) {
+      route.slug = await this.generateRouteSlug(
+        route.name,
+        await route.crag,
+        route.id,
+      );
+    }
 
     return this.routesRepository.save(route);
   }
@@ -76,5 +112,26 @@ export class RoutesService {
 
   async findOneById(id: string): Promise<Route> {
     return this.routesRepository.findOneOrFail(id);
+  }
+
+  private async generateRouteSlug(
+    routeName: string,
+    crag: Crag,
+    selfId?: string,
+  ) {
+    const selfCond = selfId != null ? { id: Not(selfId) } : {};
+    let slug = slugify(routeName, { lower: true });
+    let suffixCounter = 0;
+    let suffix = '';
+    while (
+      (await this.routesRepository.findOne({
+        where: { ...selfCond, slug: slug + suffix, crag: crag.id },
+      })) !== undefined
+    ) {
+      suffixCounter++;
+      suffix = '-' + suffixCounter;
+    }
+    slug += suffix;
+    return slug;
   }
 }

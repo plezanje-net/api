@@ -1,5 +1,5 @@
 import { InputType, Field } from '@nestjs/graphql';
-import { IsUUID } from 'class-validator';
+import { IsOptional, IsUUID } from 'class-validator';
 import { RouteStatus } from '../entities/route.entity';
 
 @InputType()
@@ -7,10 +7,12 @@ export class CreateRouteInput {
   @Field()
   name: string;
 
-  @Field()
+  @Field({ nullable: true })
+  @IsOptional()
   length: string;
 
-  @Field()
+  @Field({ nullable: true })
+  @IsOptional()
   author: string;
 
   @Field()
@@ -22,4 +24,13 @@ export class CreateRouteInput {
   @IsUUID()
   @Field()
   sectorId: string;
+
+  @Field()
+  isProject: boolean;
+
+  @Field()
+  routeTypeId: string;
+
+  @Field()
+  defaultGradingSystemId: string;
 }
