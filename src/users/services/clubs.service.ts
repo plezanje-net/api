@@ -1,7 +1,7 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import slugify from 'slugify';
-import { Repository } from 'typeorm';
+import { Not, Repository } from 'typeorm';
 import { CreateClubInput } from '../dtos/create-club.input';
 import { UpdateClubInput } from '../dtos/update-club.input';
 import { ClubMember, ClubMemberStatus } from '../entities/club-member.entity';
@@ -78,18 +78,19 @@ export class ClubsService {
       throw new HttpException('Forbidden', HttpStatus.FORBIDDEN);
 
     this.clubsRepository.merge(club, data);
-    club.name && (club.slug = await this.generateClubSlug(club.name));
+    club.name && (club.slug = await this.generateClubSlug(club.name, club.id));
 
     return this.clubsRepository.save(club);
   }
 
-  private async generateClubSlug(clubName: string) {
+  private async generateClubSlug(clubName: string, selfId?: string) {
+    const selfCond = selfId != null ? { id: Not(selfId) } : {};
     let slug = slugify(clubName, { lower: true });
     let suffixCounter = 0;
     let suffix = '';
     while (
       (await this.clubsRepository.findOne({
-        where: { slug: slug + suffix },
+        where: { ...selfCond, slug: slug + suffix },
       })) !== undefined
     ) {
       suffixCounter++;
