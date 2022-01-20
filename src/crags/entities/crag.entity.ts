@@ -31,6 +31,11 @@ export enum CragStatus {
   USER = 'user',
 }
 
+export enum CragType {
+  SPORT = 'sport',
+  ALPINE = 'alpine',
+}
+
 @Entity()
 @ObjectType()
 export class Crag extends BaseEntity {
@@ -45,6 +50,14 @@ export class Crag extends BaseEntity {
   @Column({ unique: true })
   @Field()
   slug: string;
+
+  @Column({
+    type: 'enum',
+    enum: CragType,
+    default: CragType.SPORT,
+  })
+  @Field()
+  type: CragType;
 
   @Column({
     type: 'enum',
