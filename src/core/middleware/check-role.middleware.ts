@@ -1,4 +1,5 @@
 import { FieldMiddleware, MiddlewareContext, NextFn } from '@nestjs/graphql';
+import { Role } from '../../users/entities/role.entity';
 
 export const checkRoleMiddleware: FieldMiddleware = async (
   ctx: MiddlewareContext,
@@ -17,7 +18,7 @@ export const checkRoleMiddleware: FieldMiddleware = async (
     return next();
   }
 
-  if (user.roles.some((r: string) => roles.includes(r))) {
+  if (user.roles.some((r: Role) => roles.includes(r.role))) {
     return next();
   }
 
