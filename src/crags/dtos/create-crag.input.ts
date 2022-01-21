@@ -38,4 +38,7 @@ export class CreateCragInput {
   @Field({ nullable: true })
   @IsOptional()
   orientation: string;
+
+  @Field()
+  defaultGradingSystemId: string;
 }

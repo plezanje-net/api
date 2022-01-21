@@ -45,4 +45,8 @@ export class UpdateCragInput {
   @Field({ nullable: true })
   @IsOptional()
   orientation: string;
+
+  @Field({ nullable: true })
+  @IsOptional()
+  defaultGradingSystemId: string;
 }
