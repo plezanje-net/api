@@ -2,13 +2,14 @@ import { Injectable } from '@nestjs/common';
 import { CreateCragInput } from '../dtos/create-crag.input';
 import { Crag, CragStatus } from '../entities/crag.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, SelectQueryBuilder } from 'typeorm';
+import { Not, Repository, SelectQueryBuilder } from 'typeorm';
 import { UpdateCragInput } from '../dtos/update-crag.input';
 import { Country } from '../../crags/entities/country.entity';
 import { Route } from '../entities/route.entity';
 import { Area } from '../entities/area.entity';
 import { FindCragsInput } from '../dtos/find-crags.input';
 import { PopularCrag } from '../utils/popular-crag.class';
+import slugify from 'slugify';
 
 @Injectable()
 export class CragsService {
@@ -61,6 +62,8 @@ export class CragsService {
       );
     }
 
+    crag.slug = await this.generateCragSlug(data.name);
+
     return this.cragsRepository.save(crag);
   }
 
@@ -78,6 +81,8 @@ export class CragsService {
     if (data.areaId == null) {
       crag.area = null;
     }
+
+    crag.slug = await this.generateCragSlug(crag.name);
 
     return this.cragsRepository.save(crag);
   }
@@ -240,5 +245,24 @@ export class CragsService {
     });
 
     return response;
+  }
+
+  private async generateCragSlug(cragName: string, selfId?: string) {
+    const selfCond = selfId != null ? { id: Not(selfId) } : {};
+    let slug = slugify(cragName, { lower: true });
+    let suffixCounter = 0;
+    let suffix = '';
+
+    while (
+      (await this.cragsRepository.findOne({
+        where: { ...selfCond, slug: slug + suffix },
+      })) !== undefined
+    ) {
+      suffixCounter++;
+      suffix = '-' + suffixCounter;
+    }
+    slug += suffix;
+
+    return slug;
   }
 }
