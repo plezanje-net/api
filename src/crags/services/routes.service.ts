@@ -129,6 +129,12 @@ export class RoutesService {
   async delete(id: string): Promise<boolean> {
     const route = await this.routesRepository.findOneOrFail(id);
 
+    const votes = await route.difficultyVotes;
+
+    if (votes.length == 1 && votes[0].isBase) {
+      await this.difficultyVoteRepository.remove(votes[0]);
+    }
+
     return this.routesRepository.remove(route).then(() => true);
   }
 
