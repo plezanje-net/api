@@ -10,6 +10,10 @@ export class FindCragsInput {
 
   @Field({ nullable: true })
   @IsOptional()
+  peakId?: string;
+
+  @Field({ nullable: true })
+  @IsOptional()
   area?: string;
 
   @Field({ nullable: true })

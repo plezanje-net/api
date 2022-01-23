@@ -65,6 +65,9 @@ export class Country extends BaseEntity {
   @Field(() => [Peak])
   peaks: Promise<Peak[]>;
 
+  @Field(type => Int)
+  nrPeaks: number;
+
   @OneToMany(
     () => IceFall,
     iceFall => iceFall.country,

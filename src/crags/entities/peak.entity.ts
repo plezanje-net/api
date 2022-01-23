@@ -29,6 +29,10 @@ export class Peak extends BaseEntity {
   @Field()
   name: string;
 
+  @Column({ unique: true })
+  @Field()
+  slug: string;
+
   @Column({ type: 'text', nullable: true })
   @Field({ nullable: true })
   description: string;
@@ -96,4 +100,7 @@ export class Peak extends BaseEntity {
   )
   @Field(() => [Image])
   images: Promise<Image[]>;
+
+  @Field(type => Int)
+  nrCrags: number;
 }

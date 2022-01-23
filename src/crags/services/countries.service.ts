@@ -26,21 +26,28 @@ export class CountriesService {
   }
 
   find(params: FindCountriesInput = {}): Promise<Country[]> {
-    const options: FindManyOptions = {
-      order: {},
-      where: {},
-    };
+    const qb = this.countriesRepository.createQueryBuilder('country');
 
     if (params.orderBy != null) {
-      options.order[params.orderBy.field || 'name'] =
-        params.orderBy.direction || 'ASC';
+      qb.orderBy(
+        'country.' + (params.orderBy.field || 'name'),
+        params.orderBy.direction || 'ASC',
+      );
     }
 
     if (params.hasCrags != null && params.hasCrags) {
-      options.where['nrCrags'] = MoreThan(0);
+      qb.where('"nrCrags" > 0');
     }
 
-    return this.countriesRepository.find(options);
+    if (params.hasPeaks) {
+      qb.leftJoinAndSelect('country.peaks', 'peak').andWhere(
+        'peak.id is not null',
+      );
+    } else if (params.hasPeaks != null && !params.hasPeaks) {
+      qb.leftJoinAndSelect('country.peaks', 'peak').andWhere('peak.id is null');
+    }
+
+    return qb.getMany();
   }
 
   create(data: CreateCountryInput): Promise<Country> {
