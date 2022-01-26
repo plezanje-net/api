@@ -18,10 +18,10 @@ export class Pitch extends BaseEntity {
   @Field()
   id: string;
 
-  @ManyToOne(() => Route, { nullable: false })
+  @ManyToOne(() => Route, { onDelete: 'CASCADE' })
   @Field(() => Route)
   route: Promise<Route>;
-  @Column({ name: 'routeId', nullable: false })
+  @Column({ name: 'routeId' })
   routeId: string;
 
   @Column({ type: 'int' })

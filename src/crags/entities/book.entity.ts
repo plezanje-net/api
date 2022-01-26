@@ -46,6 +46,6 @@ export class Book extends BaseEntity {
   @Column({ nullable: true })
   legacy: string;
 
-  @ManyToMany(() => Crag)
+  @ManyToMany(() => Crag, { onDelete: 'CASCADE' })
   crags: Crag[];
 }

@@ -96,6 +96,7 @@ export class Route extends BaseEntity {
   @ManyToOne(
     () => Crag,
     crag => crag.routes,
+    { onDelete: 'CASCADE' },
   )
   @Field(() => Crag)
   crag: Promise<Crag>;
@@ -103,6 +104,7 @@ export class Route extends BaseEntity {
   @ManyToOne(
     () => Sector,
     sector => sector.routes,
+    { onDelete: 'CASCADE' },
   )
   @Field(() => Sector)
   sector: Promise<Sector>;

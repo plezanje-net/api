@@ -71,7 +71,7 @@ export class Sector extends BaseEntity {
   @OneToMany(
     () => Route,
     route => route.sector,
-    { nullable: true },
+    { nullable: true, cascade: true },
   )
   @Field(() => [Route])
   routes: Promise<Route[]>;

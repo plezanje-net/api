@@ -42,6 +42,7 @@ export class DifficultyVote extends BaseEntity {
   @ManyToOne(
     () => Route,
     route => route.difficultyVotes,
+    { onDelete: 'CASCADE' },
   )
   @Field(() => Route)
   route: Promise<Route>;

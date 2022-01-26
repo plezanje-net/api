@@ -37,6 +37,7 @@ export class Rating extends BaseEntity {
   @ManyToOne(
     () => Route,
     route => route.ratings,
+    { onDelete: 'CASCADE' },
   )
   @Field(() => Route)
   route: Promise<Route>;
