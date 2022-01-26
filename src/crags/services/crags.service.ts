@@ -65,8 +65,10 @@ export class CragsService {
       );
     }
 
-    crag.defaultGradingSystem = this.gradingSystemRepository.findOneOrFail(
-      data.defaultGradingSystemId,
+    crag.defaultGradingSystem = Promise.resolve(
+      await this.gradingSystemRepository.findOneOrFail(
+        data.defaultGradingSystemId,
+      ),
     );
 
     crag.slug = await this.generateCragSlug(data.name);
@@ -89,9 +91,13 @@ export class CragsService {
       crag.area = null;
     }
 
-    crag.defaultGradingSystem = this.gradingSystemRepository.findOneOrFail(
-      data.defaultGradingSystemId,
-    );
+    if (data.defaultGradingSystemId != null) {
+      crag.defaultGradingSystem = Promise.resolve(
+        await this.gradingSystemRepository.findOneOrFail(
+          data.defaultGradingSystemId,
+        ),
+      );
+    }
 
     crag.slug = await this.generateCragSlug(crag.name);
 

@@ -103,6 +103,8 @@ export class Crag extends BaseEntity {
   )
   @Field(() => Area, { nullable: true })
   area: Promise<Area>;
+  @Column({ nullable: true })
+  areaId: string;
 
   @ManyToOne(
     () => Peak,
@@ -135,9 +137,11 @@ export class Crag extends BaseEntity {
   @Field(() => [Route])
   routes: Promise<Route[]>;
 
-  @ManyToOne(() => GradingSystem, { nullable: true })
-  @Field(() => GradingSystem, { nullable: true })
+  @ManyToOne(() => GradingSystem)
+  @Field(() => GradingSystem)
   defaultGradingSystem: Promise<GradingSystem>;
+  @Column({ nullable: true })
+  defaultGradingSystemId: string;
 
   @Column({ default: 0 })
   @Field(() => Int)

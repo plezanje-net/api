@@ -20,7 +20,7 @@ export class SectorsService {
 
   async findByCrag(cragId: string): Promise<Sector[]> {
     return this.sectorsRepository.find({
-      where: { crag: cragId },
+      where: { cragId: cragId },
       order: { position: 'ASC' },
     });
   }

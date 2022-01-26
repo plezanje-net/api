@@ -67,6 +67,8 @@ export class Sector extends BaseEntity {
   )
   @Field(() => Crag)
   crag: Promise<Crag>;
+  @Column({ name: 'cragId' })
+  cragId: string;
 
   @OneToMany(
     () => Route,
