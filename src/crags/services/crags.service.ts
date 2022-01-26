@@ -59,18 +59,6 @@ export class CragsService {
       await this.countryRepository.findOneOrFail(data.countryId),
     );
 
-    if (data.areaId != null) {
-      crag.area = Promise.resolve(
-        await this.areasRepository.findOneOrFail(data.areaId),
-      );
-    }
-
-    crag.defaultGradingSystem = Promise.resolve(
-      await this.gradingSystemRepository.findOneOrFail(
-        data.defaultGradingSystemId,
-      ),
-    );
-
     crag.slug = await this.generateCragSlug(data.name);
 
     return this.cragsRepository.save(crag);
@@ -80,24 +68,6 @@ export class CragsService {
     const crag = await this.cragsRepository.findOneOrFail(data.id);
 
     this.cragsRepository.merge(crag, data);
-
-    if (data.areaId != null) {
-      crag.area = Promise.resolve(
-        await this.areasRepository.findOneOrFail(data.areaId),
-      );
-    }
-
-    if (data.areaId == null) {
-      crag.area = null;
-    }
-
-    if (data.defaultGradingSystemId != null) {
-      crag.defaultGradingSystem = Promise.resolve(
-        await this.gradingSystemRepository.findOneOrFail(
-          data.defaultGradingSystemId,
-        ),
-      );
-    }
 
     crag.slug = await this.generateCragSlug(crag.name);
 

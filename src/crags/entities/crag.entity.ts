@@ -138,7 +138,7 @@ export class Crag extends BaseEntity {
   routes: Promise<Route[]>;
 
   @ManyToOne(() => GradingSystem)
-  @Field(() => GradingSystem)
+  @Field(() => GradingSystem, { nullable: true })
   defaultGradingSystem: Promise<GradingSystem>;
   @Column({ nullable: true })
   defaultGradingSystemId: string;
