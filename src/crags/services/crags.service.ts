@@ -10,6 +10,7 @@ import { Area } from '../entities/area.entity';
 import { FindCragsInput } from '../dtos/find-crags.input';
 import { PopularCrag } from '../utils/popular-crag.class';
 import slugify from 'slugify';
+import { GradingSystem } from '../entities/grading-system.entity';
 
 @Injectable()
 export class CragsService {
@@ -22,6 +23,8 @@ export class CragsService {
     private countryRepository: Repository<Country>,
     @InjectRepository(Area)
     private areasRepository: Repository<Area>,
+    @InjectRepository(GradingSystem)
+    private gradingSystemRepository: Repository<GradingSystem>,
   ) {}
 
   async findOneById(id: string): Promise<Crag> {
@@ -62,6 +65,10 @@ export class CragsService {
       );
     }
 
+    crag.defaultGradingSystem = this.gradingSystemRepository.findOneOrFail(
+      data.defaultGradingSystemId,
+    );
+
     crag.slug = await this.generateCragSlug(data.name);
 
     return this.cragsRepository.save(crag);
@@ -81,6 +88,10 @@ export class CragsService {
     if (data.areaId == null) {
       crag.area = null;
     }
+
+    crag.defaultGradingSystem = this.gradingSystemRepository.findOneOrFail(
+      data.defaultGradingSystemId,
+    );
 
     crag.slug = await this.generateCragSlug(crag.name);
 
