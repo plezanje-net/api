@@ -403,4 +403,12 @@ export class ActivityRoutesService {
 
     return `ar.${field}`;
   }
+
+  findOneById(id: string): Promise<ActivityRoute> {
+    return this.activityRoutesRepository.findOneOrFail(id);
+  }
+
+  async delete(activityRoute: ActivityRoute): Promise<boolean> {
+    return this.activityRoutesRepository.remove(activityRoute).then(() => true);
+  }
 }
