@@ -321,11 +321,12 @@ export class ActivityRoutesService {
   ): SelectQueryBuilder<ActivityRoute> {
     const builder = this.activityRoutesRepository.createQueryBuilder('ar');
 
+    builder.innerJoin('route', 'r', 'r.id = ar."routeId"');
+    builder.addSelect('r.difficulty');
+
     if (params.orderBy != null) {
       builder.orderBy(
-        params.orderBy.field != null
-          ? 'ar.' + params.orderBy.field
-          : 'ar.created',
+        this.orderByField(params.orderBy.field),
         params.orderBy.direction || 'DESC',
       );
 
@@ -334,7 +335,7 @@ export class ActivityRoutesService {
         params.orderBy.field === 'date' ? params.orderBy.direction : 'DESC',
       );
     } else {
-      builder.orderBy('ar.created', 'DESC').addOrderBy('ar.position', 'DESC'); // TODO: can we even come here ever?
+      builder.orderBy('ar.created', 'DESC').addOrderBy('ar.position', 'DESC');
     }
 
     if (params.cragId != null) {
@@ -347,11 +348,6 @@ export class ActivityRoutesService {
         cragId: params.cragId,
       });
     }
-
-    // TODO: fix after grade->difficulty change
-    // if (params.orderBy != null && params.orderBy.field == 'grade') {
-    //   builder.andWhere('ar.grade IS NOT NULL');
-    // }
 
     if (params.userId != null) {
       builder.andWhere('ar."userId" = :userId', {
@@ -383,6 +379,24 @@ export class ActivityRoutesService {
       builder.andWhere('ar."routeId" = :routeId', { routeId: params.routeId });
     }
 
+    if (params.activityId != null) {
+      builder.andWhere('ar."activityId" = :activityId', {
+        activityId: params.activityId,
+      });
+    }
+
     return builder;
+  }
+
+  private orderByField(field: string) {
+    if (field == null) {
+      return 'ar.created';
+    }
+
+    if (field == 'grade') {
+      return 'r.difficulty';
+    }
+
+    return `ar.${field}`;
   }
 }
