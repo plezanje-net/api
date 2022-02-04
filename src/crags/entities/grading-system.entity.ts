@@ -5,6 +5,7 @@ import {
   PrimaryColumn,
   ManyToMany,
   OneToMany,
+  JoinTable,
 } from 'typeorm';
 import { ObjectType, Field } from '@nestjs/graphql';
 import { RouteType } from './route-type.entity';
@@ -23,8 +24,12 @@ export class GradingSystem extends BaseEntity {
   @Column({ type: 'int' })
   position: number;
 
-  @ManyToMany(() => RouteType)
-  routeTypes: RouteType[];
+  @ManyToMany(() => RouteType, { nullable: true })
+  @Field(() => [RouteType])
+  @JoinTable({
+    name: 'grading_system_route_type',
+  })
+  routeTypes: Promise<RouteType[]>;
 
   @OneToMany(
     () => Grade,
