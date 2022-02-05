@@ -69,7 +69,7 @@ export class CragsService {
 
     this.cragsRepository.merge(crag, data);
 
-    crag.slug = await this.generateCragSlug(crag.name);
+    crag.slug = await this.generateCragSlug(crag.name, crag.id);
 
     return this.cragsRepository.save(crag);
   }
