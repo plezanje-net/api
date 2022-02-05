@@ -12,7 +12,7 @@ export const MinCragStatus = createParamDecorator(
     }
 
     if (user.roles.find(role => role.role == 'admin')) {
-      return CragStatus.ADMIN;
+      return CragStatus.ARCHIVE;
     }
 
     return CragStatus.HIDDEN;
