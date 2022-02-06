@@ -22,6 +22,7 @@ import DataLoader from 'dataloader';
 import { AllowAny } from '../../auth/decorators/allow-any.decorator';
 import { UserAuthGuard } from '../../auth/guards/user-auth.guard';
 import { MinCragStatus } from '../decorators/min-crag-status.decorator';
+import { ForeignKeyConstraintFilter } from '../filters/foreign-key-constraint.filter';
 
 @Resolver(() => Sector)
 export class SectorsResolver {
@@ -72,7 +73,7 @@ export class SectorsResolver {
   @Mutation(() => Boolean)
   @Roles('admin')
   @UseInterceptors(AuditInterceptor)
-  @UseFilters(NotFoundFilter)
+  @UseFilters(NotFoundFilter, ForeignKeyConstraintFilter)
   async deleteSector(@Args('id') id: string): Promise<boolean> {
     return this.sectorsService.delete(id);
   }

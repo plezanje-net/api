@@ -28,6 +28,7 @@ import { MinCragStatus } from '../decorators/min-crag-status.decorator';
 import { CragStatus } from '../entities/crag.entity';
 import { AllowAny } from '../../auth/decorators/allow-any.decorator';
 import { UserAuthGuard } from '../../auth/guards/user-auth.guard';
+import { ForeignKeyConstraintFilter } from '../filters/foreign-key-constraint.filter';
 
 @Resolver(() => Route)
 export class RoutesResolver {
@@ -72,7 +73,7 @@ export class RoutesResolver {
   @Mutation(() => Boolean)
   @Roles('admin')
   @UseInterceptors(AuditInterceptor)
-  @UseFilters(NotFoundFilter)
+  @UseFilters(NotFoundFilter, ForeignKeyConstraintFilter)
   async deleteRoute(@Args('id') id: string): Promise<boolean> {
     return this.routesService.delete(id);
   }
