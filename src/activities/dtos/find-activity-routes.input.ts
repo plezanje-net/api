@@ -7,6 +7,10 @@ import { AscentType, PublishType } from '../entities/activity-route.entity';
 export class FindActivityRoutesInput {
   @Field({ nullable: true })
   @IsOptional()
+  activityId?: string;
+
+  @Field({ nullable: true })
+  @IsOptional()
   userId?: string;
 
   @Field({ nullable: true })
