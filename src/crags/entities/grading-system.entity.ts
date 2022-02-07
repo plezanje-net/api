@@ -24,11 +24,12 @@ export class GradingSystem extends BaseEntity {
   @Column({ type: 'int' })
   position: number;
 
-  @ManyToMany(() => RouteType, { nullable: true })
+  @ManyToMany(
+    () => RouteType,
+    routeType => routeType.gradingSystems,
+    { nullable: true },
+  )
   @Field(() => [RouteType])
-  @JoinTable({
-    name: 'grading_system_route_type',
-  })
   routeTypes: Promise<RouteType[]>;
 
   @OneToMany(

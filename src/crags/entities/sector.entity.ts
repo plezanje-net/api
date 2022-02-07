@@ -37,6 +37,7 @@ export class Sector extends BaseEntity {
   label: string;
 
   @Column({ type: 'int' })
+  @Field()
   position: number;
 
   @Column({
@@ -66,11 +67,13 @@ export class Sector extends BaseEntity {
   )
   @Field(() => Crag)
   crag: Promise<Crag>;
+  @Column({ name: 'cragId' })
+  cragId: string;
 
   @OneToMany(
     () => Route,
     route => route.sector,
-    { nullable: true },
+    { nullable: true, cascade: true },
   )
   @Field(() => [Route])
   routes: Promise<Route[]>;

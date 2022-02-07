@@ -80,7 +80,7 @@ export class Image extends BaseEntity {
   @ManyToOne(
     () => Crag,
     crag => crag.images,
-    { nullable: true },
+    { nullable: true, onDelete: 'CASCADE' },
   )
   @Field(() => Crag, { nullable: true })
   crag: Promise<Crag>;
@@ -88,7 +88,7 @@ export class Image extends BaseEntity {
   @ManyToOne(
     () => Route,
     route => route.images,
-    { nullable: true },
+    { nullable: true, onDelete: 'CASCADE' },
   )
   @Field(() => Route, { nullable: true })
   route: Promise<Route>;
@@ -104,7 +104,7 @@ export class Image extends BaseEntity {
   @ManyToOne(
     () => Comment,
     comment => comment.images,
-    { nullable: true },
+    { nullable: true, onDelete: 'CASCADE' },
   )
   @Field(() => Comment, { nullable: true })
   comment: Promise<Comment>;

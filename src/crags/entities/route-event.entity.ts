@@ -22,6 +22,7 @@ export class RouteEvent extends BaseEntity {
   @ManyToOne(
     () => Route,
     route => route.routeEvents,
+    { onDelete: 'CASCADE' },
   )
   route: Promise<Route>;
 
