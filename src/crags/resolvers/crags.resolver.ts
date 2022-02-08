@@ -43,6 +43,7 @@ export class CragsResolver {
     return this.cragsService.findOne({
       id: id,
       minStatus: minStatus,
+      allowEmpty: true,
     });
   }
 
@@ -57,6 +58,7 @@ export class CragsResolver {
     return this.cragsService.findOne({
       slug: slug,
       minStatus: minStatus,
+      allowEmpty: true,
     });
   }
 

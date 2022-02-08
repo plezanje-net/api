@@ -1,5 +1,12 @@
 import { UseFilters, UseGuards } from '@nestjs/common';
-import { Resolver, Query, Args, Mutation } from '@nestjs/graphql';
+import {
+  Resolver,
+  Query,
+  Args,
+  Mutation,
+  ResolveField,
+  Parent,
+} from '@nestjs/graphql';
 import { CurrentUser } from '../../auth/decorators/current-user.decorator';
 import { User } from '../../users/entities/user.entity';
 import { Activity } from '../entities/activity.entity';
@@ -11,10 +18,14 @@ import { CreateActivityRouteInput } from '../dtos/create-activity-route.input';
 import { ActivityRoutesService } from '../services/activity-routes.service';
 import { NotFoundFilter } from '../../crags/filters/not-found.filter';
 import { UserAuthGuard } from '../../auth/guards/user-auth.guard';
+import { ActivityRoute } from '../entities/activity-route.entity';
 
 @Resolver(() => Activity)
 export class ActivitiesResolver {
-  constructor(private activitiesService: ActivitiesService) {}
+  constructor(
+    private activitiesService: ActivitiesService,
+    private activityRoutesService: ActivityRoutesService,
+  ) {}
 
   @UseGuards(UserAuthGuard)
   @Query(() => PaginatedActivities)
@@ -51,5 +62,12 @@ export class ActivitiesResolver {
     } catch (exception) {
       throw exception;
     }
+  }
+
+  @ResolveField('routes', () => [ActivityRoute])
+  async getRoutes(@Parent() activity: Activity): Promise<ActivityRoute[]> {
+    return this.activityRoutesService.find({
+      activityId: activity.id,
+    });
   }
 }

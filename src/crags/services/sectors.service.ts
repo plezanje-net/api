@@ -20,9 +20,13 @@ export class SectorsService {
 
   async findByCrag(cragId: string): Promise<Sector[]> {
     return this.sectorsRepository.find({
-      where: { crag: cragId },
+      where: { cragId: cragId },
       order: { position: 'ASC' },
     });
+  }
+
+  async findOneById(id: string): Promise<Sector> {
+    return this.sectorsRepository.findOneOrFail(id);
   }
 
   async create(data: CreateSectorInput): Promise<Sector> {

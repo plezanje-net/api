@@ -75,7 +75,7 @@ export class Comment extends BaseEntity {
   @ManyToOne(
     () => Crag,
     crag => crag.comments,
-    { nullable: true },
+    { nullable: true, onDelete: 'CASCADE' },
   )
   @Field(() => Crag, { nullable: true })
   crag: Promise<Crag>;
@@ -83,7 +83,7 @@ export class Comment extends BaseEntity {
   @ManyToOne(
     () => Route,
     route => route.comments,
-    { nullable: true },
+    { nullable: true, onDelete: 'CASCADE' },
   )
   @Field(() => Route, { nullable: true })
   route: Promise<Route>;

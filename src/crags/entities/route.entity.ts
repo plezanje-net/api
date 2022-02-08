@@ -41,7 +41,7 @@ export class Route extends BaseEntity {
   @ManyToOne(() => RouteType)
   @Field(() => RouteType)
   routeType: Promise<RouteType>;
-  @Column({ name: 'routeTypeId' })
+  @Column()
   routeTypeId: string;
 
   @Column()
@@ -56,12 +56,14 @@ export class Route extends BaseEntity {
   @Field({ nullable: true })
   difficulty: number;
 
-  @ManyToOne(() => GradingSystem, { nullable: true })
-  @Field(() => GradingSystem, { nullable: true })
+  @ManyToOne(() => GradingSystem)
+  @Field(() => GradingSystem)
   defaultGradingSystem: Promise<GradingSystem>;
+  @Column()
+  defaultGradingSystemId: string;
 
   @Column({ type: 'int', nullable: true })
-  @Field()
+  @Field({ nullable: true })
   length: string;
 
   @Column({ nullable: true })
@@ -69,6 +71,7 @@ export class Route extends BaseEntity {
   author: string;
 
   @Column({ type: 'int' })
+  @Field()
   position: number;
 
   @Column({
@@ -95,18 +98,21 @@ export class Route extends BaseEntity {
   @ManyToOne(
     () => Crag,
     crag => crag.routes,
+    { onDelete: 'CASCADE' },
   )
   @Field(() => Crag)
   crag: Promise<Crag>;
+  @Column()
+  cragId: string;
 
   @ManyToOne(
     () => Sector,
     sector => sector.routes,
+    { onDelete: 'CASCADE' },
   )
   @Field(() => Sector)
   sector: Promise<Sector>;
-
-  @Column({ name: 'sectorId' })
+  @Column()
   sectorId: string;
 
   @OneToMany(
