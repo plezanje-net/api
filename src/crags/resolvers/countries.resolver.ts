@@ -26,6 +26,8 @@ import { AllowAny } from '../../auth/decorators/allow-any.decorator';
 import { MinCragStatus } from '../decorators/min-crag-status.decorator';
 import { PeaksService } from '../services/peaks.service';
 import { Peak } from '../entities/peak.entity';
+import { IceFallsService } from '../services/ice-falls.service';
+import { IceFall } from '../entities/ice-fall.entity';
 
 @Resolver(() => Country)
 export class CountriesResolver {
@@ -34,6 +36,7 @@ export class CountriesResolver {
     private cragsService: CragsService,
     private areaService: AreasService,
     private peaksService: PeaksService,
+    private iceFallsService: IceFallsService,
   ) {}
 
   @Query(() => Country)
@@ -109,7 +112,20 @@ export class CountriesResolver {
     });
   }
 
-  @ResolveField('peaks', returns => [Peak])
+  @ResolveField('iceFalls', () => [IceFall])
+  async getIcefalls(
+    @Parent() country: Country,
+    @Args('areaSlug', { nullable: true }) areaSlug?: string,
+  ) {
+    return this.iceFallsService.getIceFalls(country.id, areaSlug);
+  }
+
+  @ResolveField('nrIceFalls', () => Number)
+  async getNumberOfIceFalls(@Parent() country: Country) {
+    return this.iceFallsService.nrIceFallsByCountry(country.id);
+  }
+
+  @ResolveField('peaks', () => [Peak])
   async getPeaks(
     @Parent() country: Country,
     @Args('areaSlug', { nullable: true }) areaSlug?: string,
@@ -117,7 +133,7 @@ export class CountriesResolver {
     return this.peaksService.getPeaks(country.id, areaSlug);
   }
 
-  @ResolveField('nrPeaks', returns => Number)
+  @ResolveField('nrPeaks', () => Number)
   async getNumberOfPeaks(@Parent() country: Country) {
     return this.peaksService.nrPeaksByCountry(country.id);
   }

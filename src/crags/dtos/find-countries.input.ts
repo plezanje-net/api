@@ -12,6 +12,10 @@ export class FindCountriesInput {
   @IsOptional()
   hasPeaks?: boolean;
 
+  @Field({ nullable: true })
+  @IsOptional()
+  hasIceFalls?: boolean;
+
   @Field()
   @IsOptional()
   orderBy?: OrderByInput;

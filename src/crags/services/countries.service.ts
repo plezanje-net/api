@@ -39,6 +39,10 @@ export class CountriesService {
       qb.where('"nrCrags" > 0');
     }
 
+    if (params.hasIceFalls != null && params.hasIceFalls) {
+      qb.innerJoin('country.iceFalls', 'iceFall');
+    }
+
     if (params.hasPeaks) {
       qb.leftJoinAndSelect('country.peaks', 'peak').andWhere(
         'peak.id is not null',
