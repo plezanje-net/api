@@ -109,6 +109,12 @@ export class CragsService {
       });
     }
 
+    if (params.areaSlug != null) {
+      builder.innerJoin('c.area', 'area', 'area.slug = :areaSlug', {
+        areaSlug: params.areaSlug,
+      });
+    }
+
     if (params.minStatus != null) {
       builder.andWhere('c.status <= :minStatus', {
         minStatus: params.minStatus,

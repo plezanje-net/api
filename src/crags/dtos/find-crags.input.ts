@@ -14,6 +14,10 @@ export class FindCragsInput {
 
   @Field({ nullable: true })
   @IsOptional()
+  areaSlug?: string;
+
+  @Field({ nullable: true })
+  @IsOptional()
   minStatus?: CragStatus;
 
   @Field({ nullable: true })
