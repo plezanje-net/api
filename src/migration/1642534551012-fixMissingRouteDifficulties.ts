@@ -5,17 +5,17 @@ export class fixMissingRouteDifficulties1642534551012
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(
       `insert into grading_system (id, name, position)
-        values ('ifas', 'IFAS', 1100)`,
+        values ('ifas', 'IFAS', 1100) on conflict do nothing`,
     );
 
     await queryRunner.query(
       `insert into route_type_grading_system ("routeTypeId", "gradingSystemId")
-        values ('combined', 'ifas')`,
+        values ('combined', 'ifas') on conflict do nothing`,
     );
 
     await queryRunner.query(
       `insert into grade (name, difficulty, "gradingSystemId")
-        values ('32°',225,'angle'),('45°',275,'angle'),('55°',325,'angle')`,
+        values ('32°',225,'angle'),('45°',275,'angle'),('55°',325,'angle') on conflict do nothing`,
     );
 
     await queryRunner.query(
