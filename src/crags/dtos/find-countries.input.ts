@@ -8,6 +8,10 @@ export class FindCountriesInput {
   @IsOptional()
   hasCrags?: boolean;
 
+  @Field({ nullable: true })
+  @IsOptional()
+  hasPeaks?: boolean;
+
   @Field()
   @IsOptional()
   orderBy?: OrderByInput;

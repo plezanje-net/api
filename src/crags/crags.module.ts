@@ -46,6 +46,8 @@ import { GradingSystemsResolver } from './resolvers/grading-systems.resolver';
 import { GradingSystemsService } from './services/grading-systems.service';
 import { IceFallsResolver } from './resolvers/ice-falls.resolver';
 import { IceFallsService } from './services/ice-falls.service';
+import { PeaksService } from './services/peaks.service';
+import { PeaksResolver } from './resolvers/peaks.resolver';
 
 @Module({
   imports: [
@@ -99,6 +101,8 @@ import { IceFallsService } from './services/ice-falls.service';
     GradingSystemsService,
     IceFallsResolver,
     IceFallsService,
+    PeaksResolver,
+    PeaksService,
   ],
 })
 export class CragsModule {}

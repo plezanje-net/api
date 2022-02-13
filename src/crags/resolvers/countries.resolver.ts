@@ -24,6 +24,8 @@ import { FindCragsInput } from '../dtos/find-crags.input';
 import { UserAuthGuard } from '../../auth/guards/user-auth.guard';
 import { AllowAny } from '../../auth/decorators/allow-any.decorator';
 import { MinCragStatus } from '../decorators/min-crag-status.decorator';
+import { PeaksService } from '../services/peaks.service';
+import { Peak } from '../entities/peak.entity';
 
 @Resolver(() => Country)
 export class CountriesResolver {
@@ -31,6 +33,7 @@ export class CountriesResolver {
     private countriesService: CountriesService,
     private cragsService: CragsService,
     private areaService: AreasService,
+    private peaksService: PeaksService,
   ) {}
 
   @Query(() => Country)
@@ -104,5 +107,18 @@ export class CountriesResolver {
       countryId: country.id,
       areaId: null,
     });
+  }
+
+  @ResolveField('peaks', returns => [Peak])
+  async getPeaks(
+    @Parent() country: Country,
+    @Args('areaSlug', { nullable: true }) areaSlug?: string,
+  ) {
+    return this.peaksService.getPeaks(country.id, areaSlug);
+  }
+
+  @ResolveField('nrPeaks', returns => Number)
+  async getNumberOfPeaks(@Parent() country: Country) {
+    return this.peaksService.nrPeaksByCountry(country.id);
   }
 }
