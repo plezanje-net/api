@@ -42,6 +42,10 @@ export class NotificationService {
         template: 'password-recovery',
         templateParams: {
           user: user,
+          userGender: {
+            unknown: !user.gender,
+            female: user.gender && user.gender === 'F',
+          },
           url:
             this.configService.get('WEB_URL') +
             'menjava-gesla/' +
