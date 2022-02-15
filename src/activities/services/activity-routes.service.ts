@@ -324,6 +324,10 @@ export class ActivityRoutesService {
     builder.innerJoin('route', 'r', 'r.id = ar."routeId"');
     builder.addSelect('r.difficulty');
 
+    builder.leftJoin('pitch', 'p', 'p.id = ar."pitchId"');
+    builder.addSelect('p.difficulty');
+    builder.addSelect('coalesce(p.difficulty, r.difficulty)', 'difficulty');
+
     if (params.orderBy != null) {
       builder.orderBy(
         this.orderByField(params.orderBy.field),
@@ -394,7 +398,7 @@ export class ActivityRoutesService {
     }
 
     if (field == 'grade') {
-      return 'r.difficulty';
+      return 'difficulty';
     }
 
     return `ar.${field}`;

@@ -74,6 +74,7 @@ export class ActivityRoute extends BaseEntity {
   route: Promise<Route>;
 
   @ManyToOne(() => Pitch, { nullable: true })
+  @Field(type => Pitch, { nullable: true })
   pitch: Promise<Route>;
 
   @Column({

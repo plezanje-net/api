@@ -28,9 +28,13 @@ export class Pitch extends BaseEntity {
   @Field()
   number: number;
 
-  @Column({ nullable: true })
+  @Column({ type: 'float', nullable: true })
+  @Field({ nullable: true })
+  difficulty: number;
+
+  @Column({ default: false })
   @Field()
-  difficulty: string;
+  isProject: boolean;
 
   @Column({ type: 'int', nullable: true })
   @Field()
