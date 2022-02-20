@@ -6,7 +6,6 @@ import {
   ResolveField,
   Parent,
   Context,
-  GqlExecutionContext,
 } from '@nestjs/graphql';
 import { User } from '../entities/user.entity';
 import { UsersService } from '../services/users.service';
@@ -20,7 +19,8 @@ import { Role } from '../entities/role.entity';
 import { Roles } from '../../auth/decorators/roles.decorator';
 import { NotFoundFilter } from '../../crags/filters/not-found.filter';
 import {
-  ExecutionContext,
+  HttpException,
+  HttpStatus,
   InternalServerErrorException,
   UseFilters,
   UseGuards,
@@ -31,7 +31,6 @@ import { PasswordInput } from '../dtos/password.input';
 import { ClubMember } from '../entities/club-member.entity';
 import { ClubMembersService } from '../services/club-members.service';
 import { UserAuthGuard } from '../../auth/guards/user-auth.guard';
-import { response } from 'express';
 
 @Resolver(() => User)
 export class UsersResolver {
@@ -138,7 +137,14 @@ export class UsersResolver {
   }
 
   @ResolveField('clubs', returns => [ClubMember])
-  async getClubs(@Parent() user: User): Promise<ClubMember[]> {
+  async getClubs(
+    @Parent() user: User,
+    @CurrentUser() currentUser: User,
+  ): Promise<ClubMember[]> {
+    // list of clubs that a user is a member of can be shown only to oneself (ie. to the logged in user). Should change this if we later decide that clubs that one is a member of is public.
+    if (user.id !== currentUser.id) {
+      throw new HttpException('Forbidden', HttpStatus.FORBIDDEN);
+    }
     return this.clubMembersService.findByUser(user.id);
   }
 }
