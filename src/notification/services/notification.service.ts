@@ -20,7 +20,7 @@ export class NotificationService {
         templateParams: {
           user: user,
           userGender: {
-            unknown: !user.gender,
+            unknown: !user.gender || user.gender === 'O',
             female: user.gender && user.gender === 'F',
           },
           url:
@@ -47,7 +47,7 @@ export class NotificationService {
         templateParams: {
           user: user,
           userGender: {
-            unknown: !user.gender,
+            unknown: !user.gender || user.gender === 'O',
             female: user.gender && user.gender === 'F',
           },
           url:
@@ -78,12 +78,12 @@ export class NotificationService {
         templateParams: {
           userAdding: userAdding,
           userAddingGender: {
-            unknown: !userAdding.gender,
+            unknown: !userAdding.gender || userAdding.gender === 'O',
             female: userAdding.gender && userAdding.gender === 'F',
           },
           clubMemberUser: clubMemberUser,
           clubMemberUserGender: {
-            unknown: !clubMemberUser.gender,
+            unknown: !clubMemberUser.gender || clubMemberUser.gender === 'O',
             female: clubMemberUser.gender && clubMemberUser.gender === 'F',
             male: clubMemberUser.gender && clubMemberUser.gender === 'M',
           },
