@@ -7,18 +7,18 @@ import { User } from '../../users/entities/user.entity';
 
 @ObjectType()
 export class SearchResults {
-  @Field(() => [Crag])
-  crags: Crag[];
+  @Field(() => [Crag], { nullable: true })
+  crags?: Crag[];
 
-  @Field(() => [Route])
-  routes: Route[];
+  @Field(() => [Route], { nullable: true })
+  routes?: Route[];
 
-  @Field(() => [Sector])
-  sectors: Sector[];
+  @Field(() => [Sector], { nullable: true })
+  sectors?: Sector[];
 
-  @Field(() => [Comment])
-  comments: Comment[];
+  @Field(() => [Comment], { nullable: true })
+  comments?: Comment[];
 
-  @Field(() => [User])
-  users: User[];
+  @Field(() => [User], { nullable: true })
+  users?: User[];
 }
