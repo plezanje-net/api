@@ -145,6 +145,14 @@ export class ActivityRoutesService {
         return false;
     }
 
+    // a route cannot be repeated if it hasn't been previously ticked
+    if (
+      !routeTicked &&
+      (ascentType === AscentType.REPEAT || ascentType === AscentType.T_REPEAT)
+    ) {
+      return false;
+    }
+
     return true;
   }
 
