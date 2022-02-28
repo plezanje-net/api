@@ -49,17 +49,15 @@ export class ActivitiesService {
       }
       queryRunner.manager.save(activity);
 
-      // Create activity-route for each route belonging to this activity
-      await Promise.all(
-        routesIn.map(async route => {
-          await this.activityRoutesService.create(
-            queryRunner,
-            route,
-            user,
-            activity,
-          );
-        }),
-      );
+      // Create activity-route for each route belonging to this activity. Process them in sequential order because one can log a single route more than once in a single post, and should take that into account when validating the logs
+      for (const routeIn of routesIn) {
+        await this.activityRoutesService.create(
+          queryRunner,
+          routeIn,
+          user,
+          activity,
+        );
+      }
 
       await queryRunner.commitTransaction();
       return activity;
