@@ -37,7 +37,7 @@ export class Pitch extends BaseEntity {
   isProject: boolean;
 
   @Column({ type: 'int', nullable: true })
-  @Field()
+  @Field({ nullable: true })
   height: number;
 
   @CreateDateColumn()
