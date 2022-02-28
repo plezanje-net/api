@@ -8,6 +8,7 @@ import { Sector } from '../entities/sector.entity';
 import { Comment } from '../entities/comment.entity';
 import { User } from '../../users/entities/user.entity';
 import { SearchResults } from '../utils/search-results.class';
+import { FieldNode, GraphQLResolveInfo } from 'graphql';
 
 @Injectable()
 export class SearchService {
@@ -27,20 +28,40 @@ export class SearchService {
   async find(
     searchString: string,
     cragParams: FindCragsInput,
+    gqlInfo: GraphQLResolveInfo,
   ): Promise<SearchResults> {
-    const crags = await this.findCrags(searchString, cragParams);
-    const routes = await this.findRoutes(searchString, cragParams);
-    const sectors = await this.findSectors(searchString, cragParams);
-    const comments = await this.findComments(searchString, cragParams);
-    const users = await this.findUsers(searchString);
+    // get the fields that were requested by the graphql query
+    const selectedFields = gqlInfo.fieldNodes[0].selectionSet.selections.map(
+      (item: FieldNode) => item.name.value,
+    );
 
-    return {
-      crags,
-      routes,
-      sectors,
-      comments,
-      users,
-    };
+    // make search only on fields that were actually requested by graphql query
+    let result: SearchResults = {};
+
+    result = selectedFields.includes('crags')
+      ? { ...result, crags: await this.findCrags(searchString, cragParams) }
+      : result;
+
+    result = selectedFields.includes('routes')
+      ? { ...result, routes: await this.findRoutes(searchString, cragParams) }
+      : result;
+
+    result = selectedFields.includes('sectors')
+      ? { ...result, sectors: await this.findSectors(searchString, cragParams) }
+      : result;
+
+    result = selectedFields.includes('comments')
+      ? {
+          ...result,
+          comments: await this.findComments(searchString, cragParams),
+        }
+      : result;
+
+    result = selectedFields.includes('users')
+      ? { ...result, users: await this.findUsers(searchString) }
+      : result;
+
+    return result;
   }
 
   findCrags(searchString: string, cragParams: FindCragsInput): Promise<Crag[]> {
