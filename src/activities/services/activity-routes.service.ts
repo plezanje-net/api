@@ -195,12 +195,8 @@ export class ActivityRoutesService {
     }
 
     if (params.cragId != null) {
-      builder.innerJoin(
-        'activity',
-        'activity',
-        'ar."activityId" = activity.id',
-      );
-      builder.andWhere('activity."cragId" = :cragId', {
+      builder.innerJoin('route', 'route', 'ar."routeId" = route.id');
+      builder.andWhere('route."cragId" = :cragId', {
         cragId: params.cragId,
       });
     }
