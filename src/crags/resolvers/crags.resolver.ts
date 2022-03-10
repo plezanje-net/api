@@ -23,6 +23,12 @@ import { PopularCrag } from '../utils/popular-crag.class';
 import { MinCragStatus } from '../decorators/min-crag-status.decorator';
 import { AllowAny } from '../../auth/decorators/allow-any.decorator';
 import { UserAuthGuard } from '../../auth/guards/user-auth.guard';
+import { GradingSystem } from '../entities/grading-system.entity';
+import { RouteType } from '../entities/route-type.entity';
+import { RouteTypeLoader } from '../loaders/route-type.loader';
+import { GradingSystemLoader } from '../loaders/grading-system.loader';
+import { Loader } from '../../core/interceptors/data-loader.interceptor';
+import DataLoader from 'dataloader';
 
 @Resolver(() => Crag)
 export class CragsResolver {
@@ -95,6 +101,15 @@ export class CragsResolver {
   @ResolveField('sectors', () => [Sector])
   async getSectors(@Parent() crag: Crag): Promise<Sector[]> {
     return this.sectorsService.findByCrag(crag.id);
+  }
+
+  @ResolveField('defaultGradingSystem', () => GradingSystem)
+  async defaultGradingSystem(
+    @Parent() crag: Crag,
+    @Loader(GradingSystemLoader)
+    loader: DataLoader<GradingSystem['id'], GradingSystem>,
+  ): Promise<GradingSystem> {
+    return loader.load(crag.defaultGradingSystemId);
   }
 
   @ResolveField('comments', () => [Comment])
