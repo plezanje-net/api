@@ -1,4 +1,9 @@
-import { UseFilters, UseGuards } from '@nestjs/common';
+import {
+  ForbiddenException,
+  UseFilters,
+  UseGuards,
+  UseInterceptors,
+} from '@nestjs/common';
 import {
   Resolver,
   Query,
@@ -19,6 +24,7 @@ import { ActivityRoutesService } from '../services/activity-routes.service';
 import { NotFoundFilter } from '../../crags/filters/not-found.filter';
 import { UserAuthGuard } from '../../auth/guards/user-auth.guard';
 import { ActivityRoute } from '../entities/activity-route.entity';
+import { AuditInterceptor } from '../../audit/interceptors/audit.interceptor';
 
 @Resolver(() => Activity)
 export class ActivitiesResolver {
@@ -62,6 +68,22 @@ export class ActivitiesResolver {
     } catch (exception) {
       throw exception;
     }
+  }
+
+  @Mutation(() => Boolean)
+  @UseInterceptors(AuditInterceptor)
+  @UseGuards(UserAuthGuard)
+  async deleteActivity(
+    @CurrentUser() user: User,
+    @Args('id') id: string,
+  ): Promise<boolean> {
+    const activity = await this.activitiesService.findOneById(id);
+
+    if (activity.userId != user.id) {
+      throw new ForbiddenException();
+    }
+
+    return this.activitiesService.delete(activity);
   }
 
   @ResolveField('routes', () => [ActivityRoute])

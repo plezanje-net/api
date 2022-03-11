@@ -30,6 +30,11 @@ export enum RouteStatus {
   USER = 'user',
 }
 
+/**
+ * Has Triggers:
+ *  - crag_min_max_route_difficulty
+ *  - crag_route_count
+ */
 @Entity()
 @Unique(['slug', 'crag'])
 @ObjectType()

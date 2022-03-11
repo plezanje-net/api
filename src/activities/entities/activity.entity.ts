@@ -91,4 +91,6 @@ export class Activity extends BaseEntity {
   @ManyToOne(() => User, { nullable: false })
   @Field(() => User)
   user: Promise<User>;
+  @Column()
+  userId: string;
 }
