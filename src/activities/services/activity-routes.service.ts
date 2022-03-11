@@ -20,6 +20,7 @@ import {
   ActivityRoute,
   AscentType,
   tickAscentTypes,
+  trTickAscentTypes,
 } from '../entities/activity-route.entity';
 import { Activity } from '../entities/activity.entity';
 import { PaginatedActivityRoutes } from '../utils/paginated-activity-routes.class';
@@ -57,6 +58,7 @@ export class ActivityRoutesService {
     const logPossible = this.logPossible(
       routeTouched.ticked,
       routeTouched.tried,
+      routeTouched.trticked,
       routeIn.ascentType,
       route.routeTypeId,
     );
@@ -113,6 +115,7 @@ export class ActivityRoutesService {
   private logPossible(
     routeTicked: boolean,
     routeTried: boolean,
+    routeTrTicked: boolean,
     ascentType: string,
     routeTypeId: string,
   ): boolean {
@@ -145,11 +148,20 @@ export class ActivityRoutesService {
         return false;
     }
 
-    // a route cannot be repeated if it hasn't been previously ticked
-    if (
-      !routeTicked &&
-      (ascentType === AscentType.REPEAT || ascentType === AscentType.T_REPEAT)
-    ) {
+    // routes one already 'ticked' on toprope cannot be tr redpointed
+    if (routeTrTicked) {
+      if (ascentType === AscentType.T_REDPOINT) {
+        return false;
+      }
+    }
+
+    // routes not ticked before cannot be repeated
+    if (ascentType === AscentType.REPEAT && !routeTicked) {
+      return false;
+    }
+
+    // routes not ticked (real or tr) before cannot be toprope repeated
+    if (ascentType === AscentType.T_REPEAT && !(routeTicked || routeTrTicked)) {
       return false;
     }
 
@@ -163,6 +175,7 @@ export class ActivityRoutesService {
       .createQueryBuilder()
       .select('tried')
       .addSelect('ticked')
+      .addSelect('trticked')
       .from(subQuery => {
         return subQuery
           .select('count(*) > 0', 'tried')
@@ -180,6 +193,16 @@ export class ActivityRoutesService {
             aTypes: [...tickAscentTypes],
           });
       }, 'ticked')
+      .addFrom(subQuery => {
+        return subQuery
+          .select('count(*) > 0', 'trticked')
+          .from('activity_route', 'ar')
+          .where('ar.routeId = :routeId', { routeId: routeId })
+          .andWhere('ar.userId = :userId', { userId: user.id })
+          .andWhere('ar.ascentType IN (:...aTypes2)', {
+            aTypes2: [...trTickAscentTypes],
+          });
+      }, 'trticked')
       .getRawMany();
 
     const result = await query;

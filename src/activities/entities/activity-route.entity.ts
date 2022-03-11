@@ -38,6 +38,13 @@ export const tickAscentTypes = [
   AscentType.REPEAT,
 ];
 
+export const trTickAscentTypes = [
+  AscentType.T_ONSIGHT,
+  AscentType.T_FLASH,
+  AscentType.T_REDPOINT,
+  AscentType.T_REPEAT,
+];
+
 export enum PublishType {
   PUBLIC = 'public',
   CLUB = 'club',
