@@ -45,6 +45,11 @@ export enum PublishType {
   PRIVATE = 'private',
 }
 
+/**
+ * Has Triggers:
+ *  - convert_first_repeat_to_redpoint
+ *  - delete_difficulty_and_beauty_vote
+ */
 @Entity()
 @ObjectType()
 export class ActivityRoute extends BaseEntity {
