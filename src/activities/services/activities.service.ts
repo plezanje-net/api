@@ -117,6 +117,13 @@ export class ActivitiesService {
     } else {
       builder.orderBy('a.created', 'DESC');
     }
+    // add order by last modification datetime in all cases so that ordering activities within the same day is right
+    builder.addOrderBy(
+      'a.updated',
+      params.orderBy.direction && params.orderBy.field === 'date'
+        ? params.orderBy.direction
+        : 'DESC',
+    );
 
     if (params.orderBy != null && params.orderBy.field == 'grade') {
       builder.andWhere('a.grade IS NOT NULL');
