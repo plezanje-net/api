@@ -29,6 +29,10 @@ import { CragStatus } from '../entities/crag.entity';
 import { AllowAny } from '../../auth/decorators/allow-any.decorator';
 import { UserAuthGuard } from '../../auth/guards/user-auth.guard';
 import { ForeignKeyConstraintFilter } from '../filters/foreign-key-constraint.filter';
+import { GradingSystem } from '../entities/grading-system.entity';
+import { GradingSystemLoader } from '../loaders/grading-system.loader';
+import { RouteType } from '../entities/route-type.entity';
+import { RouteTypeLoader } from '../loaders/route-type.loader';
 
 @Resolver(() => Route)
 export class RoutesResolver {
@@ -117,5 +121,23 @@ export class RoutesResolver {
     loader: DataLoader<Pitch['id'], Pitch[]>,
   ): Promise<Pitch[]> {
     return loader.load(route.id);
+  }
+
+  @ResolveField('defaultGradingSystem', () => GradingSystem)
+  async defaultGradingSystem(
+    @Parent() route: Route,
+    @Loader(GradingSystemLoader)
+    loader: DataLoader<GradingSystem['id'], GradingSystem>,
+  ): Promise<GradingSystem> {
+    return loader.load(route.defaultGradingSystemId);
+  }
+
+  @ResolveField('routeType', () => RouteType)
+  async routeType(
+    @Parent() route: Route,
+    @Loader(RouteTypeLoader)
+    loader: DataLoader<RouteType['id'], RouteType>,
+  ): Promise<RouteType> {
+    return loader.load(route.routeTypeId);
   }
 }

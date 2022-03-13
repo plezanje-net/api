@@ -48,6 +48,9 @@ import { IceFallsResolver } from './resolvers/ice-falls.resolver';
 import { IceFallsService } from './services/ice-falls.service';
 import { PeaksService } from './services/peaks.service';
 import { PeaksResolver } from './resolvers/peaks.resolver';
+import { GradingSystemLoader } from './loaders/grading-system.loader';
+import { RouteTypesService } from './services/route-types.service';
+import { RouteTypeLoader } from './loaders/route-type.loader';
 
 @Module({
   imports: [
@@ -92,6 +95,8 @@ import { PeaksResolver } from './resolvers/peaks.resolver';
     RouteCommentsLoader,
     RoutePitchesLoader,
     SectorRoutesLoader,
+    GradingSystemLoader,
+    RouteTypeLoader,
     {
       provide: APP_INTERCEPTOR,
       useClass: DataLoaderInterceptor,
@@ -103,6 +108,7 @@ import { PeaksResolver } from './resolvers/peaks.resolver';
     IceFallsService,
     PeaksResolver,
     PeaksService,
+    RouteTypesService,
   ],
 })
 export class CragsModule {}
