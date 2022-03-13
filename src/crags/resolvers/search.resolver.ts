@@ -1,5 +1,6 @@
 import { UseGuards } from '@nestjs/common';
-import { Args, Query, Resolver } from '@nestjs/graphql';
+import { Args, Info, Query, Resolver } from '@nestjs/graphql';
+import { GraphQLResolveInfo } from 'graphql';
 import { AllowAny } from '../../auth/decorators/allow-any.decorator';
 import { CurrentUser } from '../../auth/decorators/current-user.decorator';
 import { UserAuthGuard } from '../../auth/guards/user-auth.guard';
@@ -18,11 +19,12 @@ export class SearchResolver {
   @UseGuards(UserAuthGuard)
   search(
     @CurrentUser() user: User,
+    @Info() gqlInfo: GraphQLResolveInfo,
     @Args('input', { nullable: true }) input?: string,
   ): Promise<SearchResults> {
     const cragsInput = new FindCragsInput();
     cragsInput.minStatus = user != null ? CragStatus.HIDDEN : CragStatus.PUBLIC;
 
-    return this.searchService.find(input, cragsInput);
+    return this.searchService.find(input, cragsInput, gqlInfo);
   }
 }

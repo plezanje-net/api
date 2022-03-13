@@ -16,4 +16,7 @@ export class RegisterInput {
 
   @Field()
   lastname: string;
+
+  @Field({ nullable: true })
+  gender?: string;
 }

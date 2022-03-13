@@ -52,6 +52,11 @@ export enum PublishType {
   PRIVATE = 'private',
 }
 
+/**
+ * Has Triggers:
+ *  - convert_first_repeat_to_redpoint
+ *  - delete_difficulty_and_beauty_vote
+ */
 @Entity()
 @ObjectType()
 export class ActivityRoute extends BaseEntity {
@@ -71,7 +76,7 @@ export class ActivityRoute extends BaseEntity {
   @ManyToOne(
     () => Activity,
     activity => activity.routes,
-    { nullable: true },
+    { nullable: true, onDelete: 'CASCADE' },
   )
   @Field(() => Activity, { nullable: true })
   activity: Promise<Activity>;
@@ -118,4 +123,6 @@ export class ActivityRoute extends BaseEntity {
   @ManyToOne(() => User, { nullable: false })
   @Field(() => User)
   user: Promise<User>;
+  @Column()
+  userId: string;
 }

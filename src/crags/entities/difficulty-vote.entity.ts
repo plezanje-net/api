@@ -12,6 +12,10 @@ import { ObjectType, Field } from '@nestjs/graphql';
 import { User } from '../../users/entities/user.entity';
 import { Route } from './route.entity';
 
+/**
+ * Has Triggers:
+ *  - route_difficulty_vote
+ */
 @Entity()
 @Unique(['route', 'user'])
 @ObjectType()

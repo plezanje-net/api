@@ -1,7 +1,14 @@
-import { UseGuards } from '@nestjs/common';
-import { Args, Int, Query, Resolver } from '@nestjs/graphql';
+import {
+  ForbiddenException,
+  UseFilters,
+  UseGuards,
+  UseInterceptors,
+} from '@nestjs/common';
+import { Args, Int, Mutation, Query, Resolver } from '@nestjs/graphql';
+import { AuditInterceptor } from '../../audit/interceptors/audit.interceptor';
 import { CurrentUser } from '../../auth/decorators/current-user.decorator';
 import { UserAuthGuard } from '../../auth/guards/user-auth.guard';
+import { NotFoundFilter } from '../../crags/filters/not-found.filter';
 import { User } from '../../users/entities/user.entity';
 import { FindActivityRoutesInput } from '../dtos/find-activity-routes.input';
 import { ActivityRoute } from '../entities/activity-route.entity';
@@ -12,6 +19,12 @@ import { RouteTouched } from '../utils/route-touched.class';
 @Resolver()
 export class ActivityRoutesResolver {
   constructor(private activityRoutesService: ActivityRoutesService) {}
+
+  @Query(() => ActivityRoute)
+  @UseFilters(NotFoundFilter)
+  async activityRoute(@Args('id') id: string): Promise<ActivityRoute> {
+    return this.activityRoutesService.findOneById(id);
+  }
 
   /**
    * find out if currently logged in user has already tried and/or ticked a certain route
@@ -40,6 +53,22 @@ export class ActivityRoutesResolver {
   ): Promise<ActivityRoute[]> {
     input.userId = user.id;
     return this.activityRoutesService.cragSummary(input);
+  }
+
+  @Mutation(() => Boolean)
+  @UseInterceptors(AuditInterceptor)
+  @UseGuards(UserAuthGuard)
+  async deleteActivityRoute(
+    @CurrentUser() user: User,
+    @Args('id') id: string,
+  ): Promise<boolean> {
+    const activityRoute = await this.activityRoutesService.findOneById(id);
+
+    if (activityRoute.userId != user.id) {
+      throw new ForbiddenException();
+    }
+
+    return this.activityRoutesService.delete(activityRoute);
   }
 
   // TODO: add clubId to input?

@@ -47,7 +47,7 @@ export class ActivitiesService {
           await this.cragRepository.findOneOrFail(activityIn.cragId),
         );
       }
-      queryRunner.manager.save(activity);
+      await queryRunner.manager.save(activity);
 
       // Create activity-route for each route belonging to this activity. Process them in sequential order because one can log a single route more than once in a single post, and should take that into account when validating the logs
       for (const routeIn of routesIn) {
@@ -115,6 +115,13 @@ export class ActivitiesService {
     } else {
       builder.orderBy('a.created', 'DESC');
     }
+    // add order by last modification datetime in all cases so that ordering activities within the same day is right
+    builder.addOrderBy(
+      'a.updated',
+      params.orderBy.direction && params.orderBy.field === 'date'
+        ? params.orderBy.direction
+        : 'DESC',
+    );
 
     if (params.orderBy != null && params.orderBy.field == 'grade') {
       builder.andWhere('a.grade IS NOT NULL');
@@ -145,5 +152,9 @@ export class ActivitiesService {
     }
 
     return builder;
+  }
+
+  async delete(activity: Activity): Promise<boolean> {
+    return this.activitiesRepository.remove(activity).then(() => true);
   }
 }
