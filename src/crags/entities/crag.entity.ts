@@ -120,6 +120,8 @@ export class Crag extends BaseEntity {
   )
   @Field(() => Country)
   country: Promise<Country>;
+  @Column({ nullable: true })
+  countryId: string;
 
   @OneToMany(
     () => Sector,

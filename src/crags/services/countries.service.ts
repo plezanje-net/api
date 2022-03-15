@@ -25,6 +25,11 @@ export class CountriesService {
     return this.countriesRepository.findOneOrFail(id);
   }
 
+  findByIds(ids: string[]): Promise<Country[]> {
+    const qb = this.countriesRepository.createQueryBuilder('country');
+    return qb.whereInIds(ids).getMany();
+  }
+
   find(params: FindCountriesInput = {}): Promise<Country[]> {
     const qb = this.countriesRepository.createQueryBuilder('country');
 

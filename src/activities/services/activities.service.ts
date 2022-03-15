@@ -3,13 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { PaginationMeta } from '../../core/utils/pagination-meta.class';
 import { Crag } from '../../crags/entities/crag.entity';
 import { User } from '../../users/entities/user.entity';
-import {
-  Connection,
-  FindManyOptions,
-  QueryRunner,
-  Repository,
-  SelectQueryBuilder,
-} from 'typeorm';
+import { Connection, Repository, SelectQueryBuilder } from 'typeorm';
 import { CreateActivityInput } from '../dtos/create-activity.input';
 import { FindActivitiesInput } from '../dtos/find-activities.input';
 import { Activity } from '../entities/activity.entity';
@@ -100,6 +94,12 @@ export class ActivitiesService {
     return this.buildQuery(params).getMany();
   }
 
+  async findByIds(ids: string[]): Promise<Activity[]> {
+    return this.buildQuery()
+      .whereInIds(ids)
+      .getMany();
+  }
+
   private buildQuery(
     params: FindActivitiesInput = {},
   ): SelectQueryBuilder<Activity> {
@@ -118,7 +118,9 @@ export class ActivitiesService {
     // add order by last modification datetime in all cases so that ordering activities within the same day is right
     builder.addOrderBy(
       'a.updated',
-      params.orderBy.direction && params.orderBy.field === 'date'
+      params.orderBy &&
+        params.orderBy.direction &&
+        params.orderBy.field === 'date'
         ? params.orderBy.direction
         : 'DESC',
     );

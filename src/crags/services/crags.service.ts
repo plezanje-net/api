@@ -35,6 +35,10 @@ export class CragsService {
     return this.cragsRepository.findOneOrFail({ slug: slug });
   }
 
+  async findByIds(ids: string[]): Promise<Crag[]> {
+    return this.cragsRepository.findByIds(ids);
+  }
+
   async findOne(params: FindCragsInput = {}): Promise<Crag> {
     return this.buildQuery(params).getOneOrFail();
   }
