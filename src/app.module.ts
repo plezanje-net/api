@@ -96,24 +96,3 @@ import { RouteEvent } from './crags/entities/route-event.entity';
   controllers: [],
 })
 export class AppModule {}
-
-/*
-{
-      type: 'postgres',
-
-
-      // host: 'localhost',
-      // host: '/cloudsql/plezanjenet-server:europe-west2:db',
-      //35.246.30.8
-      port: 5432,
-      // username: 'plezanjenet',
-      // password: 'plezanjenet',
-      // database: 'plezanjenet',
-      // username: 'postgres',
-      // password: 'vCeMJJvmaKjFOzOE',
-      // database: 'plezanjenet',
-      entities: [Area, Audit, Book, Country, Crag, Grade, Role, Sector, User, Route],
-      synchronize: true,
-      // logging: ["query", "error"]
-    }
-*/
