@@ -25,6 +25,7 @@ import {
 import { Activity } from '../entities/activity.entity';
 import { PaginatedActivityRoutes } from '../utils/paginated-activity-routes.class';
 import { DifficultyVote } from '../../crags/entities/difficulty-vote.entity';
+import { CragStatus } from '../../crags/entities/crag.entity';
 
 @Injectable()
 export class ActivityRoutesService {
@@ -282,7 +283,10 @@ export class ActivityRoutesService {
     });
   }
 
-  async latestTicks(latest: number): Promise<ActivityRoute[]> {
+  async latestTicks(
+    latest: number,
+    minStatus: CragStatus,
+  ): Promise<ActivityRoute[]> {
     const builder = this.activityRoutesRepository.createQueryBuilder('ar');
 
     builder
@@ -290,7 +294,8 @@ export class ActivityRoutesService {
       .addSelect(
         "(r.difficulty + (ar.ascentType='onsight')::int * 100 + (ar.ascentType='flash')::int * 50) as score",
       )
-      .leftJoin('route', 'r', 'ar.routeId = r.id')
+      .innerJoin('route', 'r', 'ar.routeId = r.id')
+      .innerJoin('crag', 'c', 'r.cragId = c.id')
       .distinctOn(['ardate', 'ar.userId'])
       .where('ar.ascentType IN (:...aTypes)', {
         aTypes: tickAscentTypes,
@@ -300,6 +305,7 @@ export class ActivityRoutesService {
       })
       .andWhere('ar.routeId IS NOT NULL') // TODO: what are activity routes with no route id??
       .andWhere('r.difficulty IS NOT NULL') // TODO: entries with null values for grade? -> multipitch? - skip for now
+      .where('c.status <= :minStatus', { minStatus })
       .orderBy('ardate', 'DESC')
       .addOrderBy('ar.userId', 'DESC')
       .addOrderBy('score', 'DESC')

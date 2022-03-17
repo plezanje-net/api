@@ -6,8 +6,11 @@ import {
 } from '@nestjs/common';
 import { Args, Int, Mutation, Query, Resolver } from '@nestjs/graphql';
 import { AuditInterceptor } from '../../audit/interceptors/audit.interceptor';
+import { AllowAny } from '../../auth/decorators/allow-any.decorator';
 import { CurrentUser } from '../../auth/decorators/current-user.decorator';
 import { UserAuthGuard } from '../../auth/guards/user-auth.guard';
+import { MinCragStatus } from '../../crags/decorators/min-crag-status.decorator';
+import { CragStatus } from '../../crags/entities/crag.entity';
 import { NotFoundFilter } from '../../crags/filters/not-found.filter';
 import { User } from '../../users/entities/user.entity';
 import { FindActivityRoutesInput } from '../dtos/find-activity-routes.input';
@@ -71,7 +74,6 @@ export class ActivityRoutesResolver {
     return this.activityRoutesService.delete(activityRoute);
   }
 
-  // TODO: add clubId to input?
   @UseGuards(UserAuthGuard)
   @Query(returns => PaginatedActivityRoutes)
   activityRoutesByClubSlug(
@@ -82,10 +84,14 @@ export class ActivityRoutesResolver {
     return this.activityRoutesService.finbByClubSlug(user, clubSlug, input);
   }
 
+  @AllowAny()
+  @UseGuards(UserAuthGuard)
   @Query(returns => [ActivityRoute])
   latestTicks(
     @Args('latest', { type: () => Int }) latest: number,
+    @CurrentUser() user: User,
+    @MinCragStatus() minStatus: CragStatus,
   ): Promise<ActivityRoute[]> {
-    return this.activityRoutesService.latestTicks(latest);
+    return this.activityRoutesService.latestTicks(latest, minStatus);
   }
 }
