@@ -89,7 +89,6 @@ export class ActivityRoutesResolver {
   @Query(returns => [ActivityRoute])
   latestTicks(
     @Args('latest', { type: () => Int }) latest: number,
-    @CurrentUser() user: User,
     @MinCragStatus() minStatus: CragStatus,
   ): Promise<ActivityRoute[]> {
     return this.activityRoutesService.latestTicks(latest, minStatus);

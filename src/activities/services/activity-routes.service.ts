@@ -305,7 +305,7 @@ export class ActivityRoutesService {
       })
       .andWhere('ar.routeId IS NOT NULL') // TODO: what are activity routes with no route id??
       .andWhere('r.difficulty IS NOT NULL') // TODO: entries with null values for grade? -> multipitch? - skip for now
-      .where('c.status <= :minStatus', { minStatus })
+      .andWhere('c.status <= :minStatus', { minStatus })
       .orderBy('ardate', 'DESC')
       .addOrderBy('ar.userId', 'DESC')
       .addOrderBy('score', 'DESC')
