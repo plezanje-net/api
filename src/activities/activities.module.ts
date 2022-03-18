@@ -14,6 +14,7 @@ import { UsersModule } from '../users/users.module';
 import { ClubMember } from '../users/entities/club-member.entity';
 import { Club } from '../users/entities/club.entity';
 import { DifficultyVote } from '../crags/entities/difficulty-vote.entity';
+import { ActivityLoader } from './loaders/activity.loader';
 
 @Module({
   imports: [
@@ -35,6 +36,7 @@ import { DifficultyVote } from '../crags/entities/difficulty-vote.entity';
     ActivitiesService,
     ActivityRoutesResolver,
     ActivityRoutesService,
+    ActivityLoader,
   ],
 })
 export class ActivitiesModule {}

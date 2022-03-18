@@ -25,7 +25,7 @@ import { Loader } from '../../core/interceptors/data-loader.interceptor';
 import { RoutePitchesLoader } from '../loaders/route-pitches.loader';
 import { DifficultyVotesService } from '../services/difficulty-votes.service';
 import { MinCragStatus } from '../decorators/min-crag-status.decorator';
-import { CragStatus } from '../entities/crag.entity';
+import { Crag, CragStatus } from '../entities/crag.entity';
 import { AllowAny } from '../../auth/decorators/allow-any.decorator';
 import { UserAuthGuard } from '../../auth/guards/user-auth.guard';
 import { ForeignKeyConstraintFilter } from '../filters/foreign-key-constraint.filter';
@@ -33,6 +33,7 @@ import { GradingSystem } from '../entities/grading-system.entity';
 import { GradingSystemLoader } from '../loaders/grading-system.loader';
 import { RouteType } from '../entities/route-type.entity';
 import { RouteTypeLoader } from '../loaders/route-type.loader';
+import { CragLoader } from '../loaders/crag.loader';
 
 @Resolver(() => Route)
 export class RoutesResolver {
@@ -112,6 +113,15 @@ export class RoutesResolver {
   @ResolveField('difficultyVotes', () => [DifficultyVote])
   async difficultyVotes(@Parent() route: Route): Promise<DifficultyVote[]> {
     return this.difficultyVotesService.findByRouteId(route.id);
+  }
+
+  @ResolveField('crag', () => Crag)
+  async getCrag(
+    @Parent() route: Route,
+    @Loader(CragLoader)
+    loader: DataLoader<Crag['id'], Crag>,
+  ): Promise<Crag> {
+    return loader.load(route.cragId);
   }
 
   @ResolveField('pitches', () => [Pitch])

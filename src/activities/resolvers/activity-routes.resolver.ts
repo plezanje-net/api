@@ -4,19 +4,34 @@ import {
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
-import { Args, Int, Mutation, Query, Resolver } from '@nestjs/graphql';
+import {
+  Args,
+  Int,
+  Mutation,
+  Parent,
+  Query,
+  ResolveField,
+  Resolver,
+} from '@nestjs/graphql';
+import DataLoader from 'dataloader';
 import { AuditInterceptor } from '../../audit/interceptors/audit.interceptor';
 import { CurrentUser } from '../../auth/decorators/current-user.decorator';
 import { UserAuthGuard } from '../../auth/guards/user-auth.guard';
+import { Loader } from '../../core/interceptors/data-loader.interceptor';
+import { Route } from '../../crags/entities/route.entity';
 import { NotFoundFilter } from '../../crags/filters/not-found.filter';
+import { RouteLoader } from '../../crags/loaders/route.loader';
 import { User } from '../../users/entities/user.entity';
+import { UserLoader } from '../../users/loaders/user.loader';
 import { FindActivityRoutesInput } from '../dtos/find-activity-routes.input';
 import { ActivityRoute } from '../entities/activity-route.entity';
+import { Activity } from '../entities/activity.entity';
+import { ActivityLoader } from '../loaders/activity.loader';
 import { ActivityRoutesService } from '../services/activity-routes.service';
 import { PaginatedActivityRoutes } from '../utils/paginated-activity-routes.class';
 import { RouteTouched } from '../utils/route-touched.class';
 
-@Resolver()
+@Resolver(() => ActivityRoute)
 export class ActivityRoutesResolver {
   constructor(private activityRoutesService: ActivityRoutesService) {}
 
@@ -24,6 +39,33 @@ export class ActivityRoutesResolver {
   @UseFilters(NotFoundFilter)
   async activityRoute(@Args('id') id: string): Promise<ActivityRoute> {
     return this.activityRoutesService.findOneById(id);
+  }
+
+  @ResolveField('activity', () => Activity)
+  async getActivity(
+    @Parent() activityRoute: ActivityRoute,
+    @Loader(ActivityLoader)
+    loader: DataLoader<Activity['id'], Activity>,
+  ): Promise<Activity> {
+    return loader.load(activityRoute.activityId);
+  }
+
+  @ResolveField('route', () => Route)
+  async getRoute(
+    @Parent() activityRoute: ActivityRoute,
+    @Loader(RouteLoader)
+    loader: DataLoader<Route['id'], Route>,
+  ): Promise<Route> {
+    return loader.load(activityRoute.routeId);
+  }
+
+  @ResolveField('user', () => User)
+  async getUser(
+    @Parent() activityRoute: ActivityRoute,
+    @Loader(UserLoader)
+    loader: DataLoader<Route['id'], User>,
+  ): Promise<User> {
+    return loader.load(activityRoute.userId);
   }
 
   /**

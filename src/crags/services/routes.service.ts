@@ -34,6 +34,10 @@ export class RoutesService {
     });
   }
 
+  async findByIds(ids: string[]): Promise<Route[]> {
+    return this.routesRepository.findByIds(ids);
+  }
+
   async findOneBySlug(
     cragSlug: string,
     routeSlug: string,
