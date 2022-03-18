@@ -6,7 +6,7 @@ import { CreateCommentInput } from '../dtos/create-comment.input';
 import { FindCommentsInput } from '../dtos/find-comments.input';
 import { UpdateCommentInput } from '../dtos/update-comment';
 import { Comment } from '../entities/comment.entity';
-import { Crag } from '../entities/crag.entity';
+import { Crag, CragStatus } from '../entities/crag.entity';
 import { IceFall } from '../entities/ice-fall.entity';
 
 @Injectable()
@@ -104,13 +104,17 @@ export class CommentsService {
    *
    * @returns Comment[]
    */
-  getExposedWarnings() {
-    return this.commentsRepository.find({
-      where: {
-        type: 'warning',
-        exposedUntil: Raw(exun => `${exun} > NOW()`),
-      },
-      order: { updated: 'DESC' },
-    });
+  getExposedWarnings(minStatus: CragStatus) {
+    const builder = this.commentsRepository.createQueryBuilder('co');
+
+    builder
+      .leftJoin('route', 'r', 'co.routeId = r.id')
+      .leftJoin('crag', 'cr', 'COALESCE(co.cragId, r.cragId) = cr.id')
+      .where('co.type = :type', { type: 'warning' })
+      .andWhere('"exposedUntil" > NOW()')
+      .andWhere('cr.status <= :minStatus', { minStatus })
+      .orderBy('co.updated', 'DESC');
+
+    return builder.getMany();
   }
 }
