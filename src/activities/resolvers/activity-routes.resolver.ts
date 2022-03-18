@@ -88,9 +88,15 @@ export class ActivityRoutesResolver {
   @UseGuards(UserAuthGuard)
   @Query(returns => [ActivityRoute])
   latestTicks(
-    @Args('latest', { type: () => Int }) latest: number,
     @MinCragStatus() minStatus: CragStatus,
+    @Args('latestN', { type: () => Int, nullable: true }) latestN: number,
+    @Args('inLastNDays', { type: () => Int, nullable: true })
+    inLastNDays: number,
   ): Promise<ActivityRoute[]> {
-    return this.activityRoutesService.latestTicks(latest, minStatus);
+    return this.activityRoutesService.latestTicks(
+      minStatus,
+      latestN,
+      inLastNDays,
+    );
   }
 }

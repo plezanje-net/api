@@ -14,7 +14,7 @@ export class ImagesService {
       .leftJoin('route', 'r', 'i.routeId = r.id')
       .leftJoin('crag', 'c', 'c.id = COALESCE(i.cragId, r.cragId)')
       .where('c.status <= :minStatus', { minStatus })
-      .andWhere('i.type = :type', { type: 'photo' })
+      .andWhere('i.type = :type', { type: 'photo' }) // Comment this out if you want to show all types of images
       .orderBy('i.created', 'DESC')
       .limit(latest);
 
