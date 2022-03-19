@@ -29,6 +29,8 @@ import { RouteTypeLoader } from '../loaders/route-type.loader';
 import { GradingSystemLoader } from '../loaders/grading-system.loader';
 import { Loader } from '../../core/interceptors/data-loader.interceptor';
 import DataLoader from 'dataloader';
+import { Country } from '../entities/country.entity';
+import { CountryLoader } from '../loaders/country.loader';
 
 @Resolver(() => Crag)
 export class CragsResolver {
@@ -117,6 +119,15 @@ export class CragsResolver {
     return this.commentsService.find({
       cragId: crag.id,
     });
+  }
+
+  @ResolveField('country', () => Country)
+  async getCountry(
+    @Parent() crag: Crag,
+    @Loader(CountryLoader)
+    loader: DataLoader<Country['id'], Country>,
+  ): Promise<Country> {
+    return loader.load(crag.countryId);
   }
 
   @ResolveField('activityByMonth', () => [Int])

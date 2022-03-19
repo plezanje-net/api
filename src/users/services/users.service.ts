@@ -29,6 +29,10 @@ export class UsersService {
     return this.usersRepository.findOne(id);
   }
 
+  findByIds(ids: string[]): Promise<User[]> {
+    return this.usersRepository.findByIds(ids);
+  }
+
   findOneByEmail(email: string): Promise<User> {
     return this.usersRepository.findOneOrFail({
       where: {

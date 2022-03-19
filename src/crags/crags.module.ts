@@ -51,6 +51,9 @@ import { PeaksResolver } from './resolvers/peaks.resolver';
 import { GradingSystemLoader } from './loaders/grading-system.loader';
 import { RouteTypesService } from './services/route-types.service';
 import { RouteTypeLoader } from './loaders/route-type.loader';
+import { CountryLoader } from './loaders/country.loader';
+import { RouteLoader } from './loaders/route.loader';
+import { CragLoader } from './loaders/crag.loader';
 
 @Module({
   imports: [
@@ -97,6 +100,9 @@ import { RouteTypeLoader } from './loaders/route-type.loader';
     SectorRoutesLoader,
     GradingSystemLoader,
     RouteTypeLoader,
+    CountryLoader,
+    RouteLoader,
+    CragLoader,
     {
       provide: APP_INTERCEPTOR,
       useClass: DataLoaderInterceptor,

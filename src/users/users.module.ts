@@ -12,6 +12,7 @@ import { ClubsService } from './services/clubs.service';
 import { ClubsResolver } from './resolvers/clubs.resolver';
 import { ClubMembersService } from './services/club-members.service';
 import { ClubMembersResolver } from './resolvers/club-members.resolver';
+import { UserLoader } from './loaders/user.loader';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { ClubMembersResolver } from './resolvers/club-members.resolver';
     ClubsResolver,
     ClubMembersService,
     ClubMembersResolver,
+    UserLoader,
   ],
   exports: [UsersService, ClubMembersService],
 })
