@@ -101,6 +101,12 @@ export class CragsService {
       });
     }
 
+    if (params.type != null) {
+      builder.andWhere('c.type = :type', {
+        type: params.type,
+      });
+    }
+
     if (params.id != null) {
       builder.andWhere('c.id = :id', {
         id: params.id,
