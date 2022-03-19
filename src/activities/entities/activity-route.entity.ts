@@ -38,6 +38,12 @@ export const tickAscentTypes = [
   AscentType.REPEAT,
 ];
 
+export const firstTickAscentTypes = [
+  AscentType.ONSIGHT,
+  AscentType.FLASH,
+  AscentType.REDPOINT,
+];
+
 export const trTickAscentTypes = [
   AscentType.T_ONSIGHT,
   AscentType.T_FLASH,

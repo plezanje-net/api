@@ -20,11 +20,13 @@ import {
   ActivityRoute,
   AscentType,
   tickAscentTypes,
+  firstTickAscentTypes,
   trTickAscentTypes,
 } from '../entities/activity-route.entity';
 import { Activity } from '../entities/activity.entity';
 import { PaginatedActivityRoutes } from '../utils/paginated-activity-routes.class';
 import { DifficultyVote } from '../../crags/entities/difficulty-vote.entity';
+import { CragStatus } from '../../crags/entities/crag.entity';
 
 @Injectable()
 export class ActivityRoutesService {
@@ -282,29 +284,44 @@ export class ActivityRoutesService {
     });
   }
 
-  async latestTicks(latest: number): Promise<ActivityRoute[]> {
+  async latestTicks(
+    minStatus: CragStatus,
+    latestN: number = null,
+    inLastNDays: number = null,
+  ): Promise<ActivityRoute[]> {
     const builder = this.activityRoutesRepository.createQueryBuilder('ar');
 
+    // Build query that returns (only 'best' -> see comment bellow) 'new tick' ascent(s) of a user per day
     builder
       .addSelect('DATE(ar.date) AS ardate')
       .addSelect(
         "(r.difficulty + (ar.ascentType='onsight')::int * 100 + (ar.ascentType='flash')::int * 50) as score",
       )
-      .leftJoin('route', 'r', 'ar.routeId = r.id')
-      .distinctOn(['ardate', 'ar.userId'])
+      .innerJoin('route', 'r', 'ar.routeId = r.id')
+      .innerJoin('crag', 'c', 'r.cragId = c.id')
+      // .distinctOn(['ardate', 'ar.userId']) // use this if you want to return only one (best) ascent per user per day
       .where('ar.ascentType IN (:...aTypes)', {
-        aTypes: tickAscentTypes,
+        aTypes: firstTickAscentTypes,
       })
       .andWhere('ar.publish IN (:...publish)', {
-        publish: ['log', 'public'],
+        publish: ['log', 'public'], // public is public, log is 'javno na mojem profilu'
       })
       .andWhere('ar.routeId IS NOT NULL') // TODO: what are activity routes with no route id??
       .andWhere('r.difficulty IS NOT NULL') // TODO: entries with null values for grade? -> multipitch? - skip for now
+      .andWhere('c.status <= :minStatus', { minStatus }) // hide ticks from hidden crags if dictated so by crag status
       .orderBy('ardate', 'DESC')
       .addOrderBy('ar.userId', 'DESC')
       .addOrderBy('score', 'DESC')
-      .addOrderBy('ar.ascentType', 'ASC')
-      .limit(latest);
+      .addOrderBy('ar.ascentType', 'ASC');
+
+    if (inLastNDays) {
+      builder.andWhere(
+        `ar.date > current_date - interval '${inLastNDays}' day`,
+      );
+    }
+    if (latestN) {
+      builder.limit(latestN);
+    }
 
     /*
     comparing redpoint, flash, onsight:

@@ -6,11 +6,9 @@ import {
   ResolveField,
   Parent,
   Context,
-  Int,
 } from '@nestjs/graphql';
 import { CommentsService } from '../services/comments.service';
 import { Comment } from '../entities/comment.entity';
-import { CragsService } from '../services/crags.service';
 import { CreateCommentInput } from '../dtos/create-comment.input';
 import { UnauthorizedException, UseGuards } from '@nestjs/common';
 import { User } from '../../users/entities/user.entity';
@@ -18,13 +16,13 @@ import { CurrentUser } from '../../auth/decorators/current-user.decorator';
 import { UpdateCommentInput } from '../dtos/update-comment';
 import { IGraphQLContext } from '../../types/graphql.types';
 import { UserAuthGuard } from '../../auth/guards/user-auth.guard';
+import { AllowAny } from '../../auth/decorators/allow-any.decorator';
+import { MinCragStatus } from '../decorators/min-crag-status.decorator';
+import { CragStatus } from '../entities/crag.entity';
 
 @Resolver(() => Comment)
 export class CommentsResolver {
-  constructor(
-    private commentsService: CommentsService,
-    private cragsService: CragsService,
-  ) {}
+  constructor(private commentsService: CommentsService) {}
 
   @Mutation(() => Comment)
   @UseGuards(UserAuthGuard)
@@ -77,8 +75,10 @@ export class CommentsResolver {
     return comment.userId != null ? userLoader.load(comment.userId) : null;
   }
 
+  @AllowAny()
+  @UseGuards(UserAuthGuard)
   @Query(returns => [Comment], { name: 'exposedWarnings' })
-  getExposedWarnings() {
-    return this.commentsService.getExposedWarnings();
+  getExposedWarnings(@MinCragStatus() minStatus: CragStatus) {
+    return this.commentsService.getExposedWarnings(minStatus);
   }
 }

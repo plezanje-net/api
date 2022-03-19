@@ -15,8 +15,11 @@ import {
 } from '@nestjs/graphql';
 import DataLoader from 'dataloader';
 import { AuditInterceptor } from '../../audit/interceptors/audit.interceptor';
+import { AllowAny } from '../../auth/decorators/allow-any.decorator';
 import { CurrentUser } from '../../auth/decorators/current-user.decorator';
 import { UserAuthGuard } from '../../auth/guards/user-auth.guard';
+import { MinCragStatus } from '../../crags/decorators/min-crag-status.decorator';
+import { CragStatus } from '../../crags/entities/crag.entity';
 import { Loader } from '../../core/interceptors/data-loader.interceptor';
 import { Route } from '../../crags/entities/route.entity';
 import { NotFoundFilter } from '../../crags/filters/not-found.filter';
@@ -113,7 +116,6 @@ export class ActivityRoutesResolver {
     return this.activityRoutesService.delete(activityRoute);
   }
 
-  // TODO: add clubId to input?
   @UseGuards(UserAuthGuard)
   @Query(returns => PaginatedActivityRoutes)
   activityRoutesByClubSlug(
@@ -124,10 +126,19 @@ export class ActivityRoutesResolver {
     return this.activityRoutesService.finbByClubSlug(user, clubSlug, input);
   }
 
+  @AllowAny()
+  @UseGuards(UserAuthGuard)
   @Query(returns => [ActivityRoute])
   latestTicks(
-    @Args('latest', { type: () => Int }) latest: number,
+    @MinCragStatus() minStatus: CragStatus,
+    @Args('latestN', { type: () => Int, nullable: true }) latestN: number,
+    @Args('inLastNDays', { type: () => Int, nullable: true })
+    inLastNDays: number,
   ): Promise<ActivityRoute[]> {
-    return this.activityRoutesService.latestTicks(latest);
+    return this.activityRoutesService.latestTicks(
+      minStatus,
+      latestN,
+      inLastNDays,
+    );
   }
 }
