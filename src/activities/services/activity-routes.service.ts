@@ -105,7 +105,7 @@ export class ActivityRoutesService {
     }
 
     // if a vote on star rating (route beauty) is passed add a new star rating vote or update existing one
-    if (routeIn.votedStarRating) {
+    if (routeIn.votedStarRating !== null) {
       // but first check if a user even can vote (can vote only if the log is a tick)
       if (!tickAscentTypes.some(at => at === routeIn.ascentType)) {
         throw new HttpException(
@@ -127,8 +127,6 @@ export class ActivityRoutesService {
 
       await queryRunner.manager.save(starRatingVote);
     }
-
-    console.log(routeIn);
 
     if (activity !== null) {
       activityRoute.activity = Promise.resolve(activity);
