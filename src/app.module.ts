@@ -33,13 +33,12 @@ import { RouteType } from './crags/entities/route-type.entity';
 import { GradingSystem } from './crags/entities/grading-system.entity';
 import { Grade } from './crags/entities/grade.entity';
 import { RouteEvent } from './crags/entities/route-event.entity';
-import { BaseRedisCache } from 'apollo-server-cache-redis';
-import Redis from 'ioredis';
 import responseCachePlugin from 'apollo-server-plugin-response-cache';
 import { ApolloServerPluginCacheControl } from 'apollo-server-core';
 import { AuthService } from './auth/services/auth.service';
 import { AuthModule } from './auth/auth.module';
-import { JwtService } from '@nestjs/jwt';
+import { CacheControlService } from './core/services/cache-control.service';
+import Redis from 'ioredis';
 
 @Module({
   imports: [
@@ -85,34 +84,57 @@ import { JwtService } from '@nestjs/jwt';
       inject: [ConfigService],
     }),
     GraphQLModule.forRootAsync({
-      imports: [ConfigModule, TypeOrmModule.forFeature([User])],
-      inject: [ConfigService],
-      useFactory: async (configService: ConfigService) => {
-        return {
-          debug: true,
-          playground: true,
-          autoSchemaFile: true,
-          plugins: [
-            responseCachePlugin({
-              cache: new BaseRedisCache({
-                client: new Redis({
-                  host: configService.get('REDIS_HOST'),
-                  port: configService.get('REDIS_PORT'),
-                }),
+      imports: [ConfigModule, AuthModule],
+      inject: [ConfigService, AuthService, CacheControlService],
+      useFactory: async (
+        configService: ConfigService,
+        authService: AuthService,
+        cacheControlService: CacheControlService,
+      ) => ({
+        debug: true,
+        playground: true,
+        autoSchemaFile: true,
+        plugins: [
+          responseCachePlugin({
+            cache: cacheControlService.init({
+              client: new Redis({
+                host: configService.get('REDIS_HOST'),
+                port: configService.get('REDIS_PORT'),
               }),
-              shouldWriteToCache: requestContext =>
-                requestContext.request.http.headers.get('Authorization') ==
-                null,
-              shouldReadFromCache: requestContext =>
-                requestContext.request.http.headers.get('Authorization') ==
-                null,
             }),
-            ApolloServerPluginCacheControl({
-              defaultMaxAge: configService.get('REDIS_TTL'),
-            }),
-          ],
-        };
-      },
+            shouldWriteToCache: () => true,
+            shouldReadFromCache: () => true,
+            sessionId: requestContext =>
+              requestContext.request.http.headers.get('Authorization'),
+            extraCacheKeyData: async requestContext => {
+              if (requestContext.request.http.headers.get('Authorization')) {
+                const jwt = authService.decodeJwt(
+                  requestContext.request.http.headers
+                    .get('Authorization')
+                    .split(' ')[1],
+                );
+
+                const user = await authService.validateJwtPayload(jwt);
+                return { roles: user.roles.map(role => role.role) };
+              }
+            },
+          }),
+          ApolloServerPluginCacheControl({
+            defaultMaxAge: configService.get('REDIS_TTL'),
+          }),
+          {
+            async requestDidStart() {
+              return {
+                async willSendResponse(m) {
+                  if (m.operation.operation == 'mutation') {
+                    cacheControlService.flush();
+                  }
+                },
+              };
+            },
+          },
+        ],
+      }),
     }),
     UsersModule,
     CragsModule,

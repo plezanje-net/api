@@ -55,6 +55,10 @@ export class AuthService {
     throw new UnauthorizedException(401);
   }
 
+  decodeJwt(token: string): JwtPayload {
+    return <JwtPayload>this.jwtService.decode(token);
+  }
+
   async validateJwtPayload({
     email,
     roles,

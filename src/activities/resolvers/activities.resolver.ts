@@ -11,6 +11,7 @@ import {
   Mutation,
   ResolveField,
   Parent,
+  Info,
 } from '@nestjs/graphql';
 import { CurrentUser } from '../../auth/decorators/current-user.decorator';
 import { User } from '../../users/entities/user.entity';
@@ -25,6 +26,8 @@ import { NotFoundFilter } from '../../crags/filters/not-found.filter';
 import { UserAuthGuard } from '../../auth/guards/user-auth.guard';
 import { ActivityRoute } from '../entities/activity-route.entity';
 import { AuditInterceptor } from '../../audit/interceptors/audit.interceptor';
+import { GraphQLResolveInfo } from 'graphql';
+import { CacheScope } from 'apollo-server-types';
 
 @Resolver(() => Activity)
 export class ActivitiesResolver {
@@ -38,7 +41,9 @@ export class ActivitiesResolver {
   myActivities(
     @CurrentUser() user: User,
     @Args('input', { nullable: true }) input: FindActivitiesInput = {},
+    @Info() info: GraphQLResolveInfo,
   ): Promise<PaginatedActivities> {
+    info.cacheControl.setCacheHint({ scope: CacheScope.Private });
     input.userId = user.id;
 
     return this.activitiesService.paginate(input);
@@ -46,7 +51,11 @@ export class ActivitiesResolver {
 
   @Query(() => Activity)
   @UseFilters(NotFoundFilter)
-  async activity(@Args('id') id: string): Promise<Activity> {
+  async activity(
+    @Args('id') id: string,
+    @Info() info: GraphQLResolveInfo,
+  ): Promise<Activity> {
+    info.cacheControl.setCacheHint({ scope: CacheScope.Private });
     return this.activitiesService.findOneById(id);
   }
 

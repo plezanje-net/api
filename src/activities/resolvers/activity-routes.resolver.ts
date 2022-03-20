@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 import {
   Args,
+  Info,
   Int,
   Mutation,
   Parent,
@@ -33,6 +34,8 @@ import { ActivityLoader } from '../loaders/activity.loader';
 import { ActivityRoutesService } from '../services/activity-routes.service';
 import { PaginatedActivityRoutes } from '../utils/paginated-activity-routes.class';
 import { RouteTouched } from '../utils/route-touched.class';
+import { GraphQLResolveInfo } from 'graphql';
+import { CacheScope } from 'apollo-server-types';
 
 @Resolver(() => ActivityRoute)
 export class ActivityRoutesResolver {
@@ -76,7 +79,12 @@ export class ActivityRoutesResolver {
    */
   @UseGuards(UserAuthGuard)
   @Query(() => RouteTouched)
-  routeTouched(@CurrentUser() user: User, @Args('routeId') routeId: string) {
+  routeTouched(
+    @CurrentUser() user: User,
+    @Args('routeId') routeId: string,
+    @Info() info: GraphQLResolveInfo,
+  ) {
+    info.cacheControl.setCacheHint({ scope: CacheScope.Private });
     return this.activityRoutesService.routeTouched(user, routeId);
   }
 
@@ -85,7 +93,10 @@ export class ActivityRoutesResolver {
   myActivityRoutes(
     @CurrentUser() user: User,
     @Args('input', { nullable: true }) input: FindActivityRoutesInput = {},
+    @Info() info: GraphQLResolveInfo,
   ): Promise<PaginatedActivityRoutes> {
+    info.cacheControl.setCacheHint({ scope: CacheScope.Private });
+
     input.userId = user.id;
     return this.activityRoutesService.paginate(input);
   }
@@ -95,7 +106,10 @@ export class ActivityRoutesResolver {
   myCragSummary(
     @CurrentUser() user: User,
     @Args('input', { nullable: true }) input: FindActivityRoutesInput = {},
+    @Info() info: GraphQLResolveInfo,
   ): Promise<ActivityRoute[]> {
+    info.cacheControl.setCacheHint({ scope: CacheScope.Private });
+
     input.userId = user.id;
     return this.activityRoutesService.cragSummary(input);
   }
@@ -122,7 +136,9 @@ export class ActivityRoutesResolver {
     @CurrentUser() user: User,
     @Args('clubSlug') clubSlug: string,
     @Args('input', { nullable: true }) input: FindActivityRoutesInput = {},
+    @Info() info: GraphQLResolveInfo,
   ): Promise<PaginatedActivityRoutes> {
+    info.cacheControl.setCacheHint({ scope: CacheScope.Private });
     return this.activityRoutesService.finbByClubSlug(user, clubSlug, input);
   }
 
