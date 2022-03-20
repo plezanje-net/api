@@ -29,7 +29,6 @@ import { IceFall } from './crags/entities/ice-fall.entity';
 import { Club } from './users/entities/club.entity';
 import { ClubMember } from './users/entities/club-member.entity';
 import { Rating } from './crags/entities/rating.entity';
-import { userLoader } from './crags/loaders/user.loader';
 import { RouteType } from './crags/entities/route-type.entity';
 import { GradingSystem } from './crags/entities/grading-system.entity';
 import { Grade } from './crags/entities/grade.entity';
@@ -42,10 +41,6 @@ import { RouteEvent } from './crags/entities/route-event.entity';
       debug: true,
       playground: true,
       autoSchemaFile: true,
-      context: ({ req }) => ({
-        ...req,
-        userLoader: userLoader(),
-      }),
     }),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],

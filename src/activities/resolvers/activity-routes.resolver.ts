@@ -66,7 +66,7 @@ export class ActivityRoutesResolver {
   async getUser(
     @Parent() activityRoute: ActivityRoute,
     @Loader(UserLoader)
-    loader: DataLoader<Route['id'], User>,
+    loader: DataLoader<ActivityRoute['userId'], User>,
   ): Promise<User> {
     return loader.load(activityRoute.userId);
   }
