@@ -15,6 +15,7 @@ import { ClubMember } from '../users/entities/club-member.entity';
 import { Club } from '../users/entities/club.entity';
 import { DifficultyVote } from '../crags/entities/difficulty-vote.entity';
 import { ActivityLoader } from './loaders/activity.loader';
+import { StarRatingVote } from '../crags/entities/star-rating-vote.entity';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { ActivityLoader } from './loaders/activity.loader';
       ClubMember,
       Club,
       DifficultyVote,
+      StarRatingVote,
     ]),
     AuditModule,
     UsersModule,
