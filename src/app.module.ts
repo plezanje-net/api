@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { GraphQLModule } from '@nestjs/graphql';
+import { GqlExecutionContext, GraphQLModule } from '@nestjs/graphql';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 
@@ -33,15 +33,17 @@ import { RouteType } from './crags/entities/route-type.entity';
 import { GradingSystem } from './crags/entities/grading-system.entity';
 import { Grade } from './crags/entities/grade.entity';
 import { RouteEvent } from './crags/entities/route-event.entity';
+import { BaseRedisCache } from 'apollo-server-cache-redis';
+import Redis from 'ioredis';
+import responseCachePlugin from 'apollo-server-plugin-response-cache';
+import { ApolloServerPluginCacheControl } from 'apollo-server-core';
+import { AuthService } from './auth/services/auth.service';
+import { AuthModule } from './auth/auth.module';
+import { JwtService } from '@nestjs/jwt';
 
 @Module({
   imports: [
     ConfigModule.forRoot(),
-    GraphQLModule.forRoot({
-      debug: true,
-      playground: true,
-      autoSchemaFile: true,
-    }),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => ({
@@ -82,12 +84,42 @@ import { RouteEvent } from './crags/entities/route-event.entity';
       }),
       inject: [ConfigService],
     }),
+    GraphQLModule.forRootAsync({
+      imports: [ConfigModule, TypeOrmModule.forFeature([User])],
+      inject: [ConfigService],
+      useFactory: async (configService: ConfigService) => {
+        return {
+          debug: true,
+          playground: true,
+          autoSchemaFile: true,
+          plugins: [
+            responseCachePlugin({
+              cache: new BaseRedisCache({
+                client: new Redis({
+                  host: configService.get('REDIS_HOST'),
+                  port: configService.get('REDIS_PORT'),
+                }),
+              }),
+              shouldWriteToCache: requestContext =>
+                requestContext.request.http.headers.get('Authorization') ==
+                null,
+              shouldReadFromCache: requestContext =>
+                requestContext.request.http.headers.get('Authorization') ==
+                null,
+            }),
+            ApolloServerPluginCacheControl({
+              defaultMaxAge: configService.get('REDIS_TTL'),
+            }),
+          ],
+        };
+      },
+    }),
     UsersModule,
     CragsModule,
     AuditModule,
     NotificationModule,
     ActivitiesModule,
   ],
-  controllers: [],
+  providers: [],
 })
 export class AppModule {}
