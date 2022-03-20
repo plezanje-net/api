@@ -27,6 +27,7 @@ import { Activity } from '../entities/activity.entity';
 import { PaginatedActivityRoutes } from '../utils/paginated-activity-routes.class';
 import { DifficultyVote } from '../../crags/entities/difficulty-vote.entity';
 import { CragStatus } from '../../crags/entities/crag.entity';
+import { StarRatingVote } from '../../crags/entities/star-rating-vote.entity';
 
 @Injectable()
 export class ActivityRoutesService {
@@ -41,6 +42,8 @@ export class ActivityRoutesService {
     private clubsRepository: Repository<Club>,
     @InjectRepository(DifficultyVote)
     private difficultyVoteRepository: Repository<DifficultyVote>,
+    @InjectRepository(StarRatingVote)
+    private starRatingVoteRepository: Repository<StarRatingVote>,
   ) {}
 
   async create(
@@ -75,7 +78,7 @@ export class ActivityRoutesService {
       // but first check if a user even can vote (can vote only if the log is a tick)
       if (!tickAscentTypes.some(at => at === routeIn.ascentType)) {
         throw new HttpException(
-          'Cannot vote on difficulty if not a tick',
+          'Cannot vote on difficulty if not logging a tick',
           HttpStatus.NOT_ACCEPTABLE,
         );
       }
@@ -100,6 +103,32 @@ export class ActivityRoutesService {
 
       await queryRunner.manager.save(difficultyVote);
     }
+
+    // if a vote on star rating (route beauty) is passed add a new star rating vote or update existing one
+    if (routeIn.votedStarRating) {
+      // but first check if a user even can vote (can vote only if the log is a tick)
+      if (!tickAscentTypes.some(at => at === routeIn.ascentType)) {
+        throw new HttpException(
+          'Cannot vote on star rating (beauty) if not logging a tick',
+          HttpStatus.NOT_ACCEPTABLE,
+        );
+      }
+
+      let starRatingVote = await this.starRatingVoteRepository.findOne({
+        user,
+        route,
+      });
+      if (!starRatingVote) {
+        starRatingVote = new StarRatingVote();
+        starRatingVote.route = Promise.resolve(route);
+        starRatingVote.user = Promise.resolve(user);
+      }
+      starRatingVote.stars = routeIn.votedStarRating;
+
+      await queryRunner.manager.save(starRatingVote);
+    }
+
+    console.log(routeIn);
 
     if (activity !== null) {
       activityRoute.activity = Promise.resolve(activity);
