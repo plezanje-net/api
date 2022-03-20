@@ -28,7 +28,7 @@ import { Peak } from './crags/entities/peak.entity';
 import { IceFall } from './crags/entities/ice-fall.entity';
 import { Club } from './users/entities/club.entity';
 import { ClubMember } from './users/entities/club-member.entity';
-import { Rating } from './crags/entities/rating.entity';
+import { StarRatingVote } from './crags/entities/star-rating-vote.entity';
 import { RouteType } from './crags/entities/route-type.entity';
 import { GradingSystem } from './crags/entities/grading-system.entity';
 import { Grade } from './crags/entities/grade.entity';
@@ -72,7 +72,7 @@ import Redis from 'ioredis';
           ClubMember,
           Image,
           IceFall,
-          Rating,
+          StarRatingVote,
           RouteType,
           RouteEvent,
           GradingSystem,

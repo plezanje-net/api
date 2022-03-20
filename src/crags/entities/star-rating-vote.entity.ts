@@ -13,7 +13,7 @@ import { Route } from './route.entity';
 
 @Entity()
 @ObjectType()
-export class Rating extends BaseEntity {
+export class StarRatingVote extends BaseEntity {
   @PrimaryGeneratedColumn('uuid')
   @Field()
   id: string;
@@ -36,9 +36,9 @@ export class Rating extends BaseEntity {
 
   @ManyToOne(
     () => Route,
-    route => route.ratings,
+    route => route.starRatingVotes,
     { onDelete: 'CASCADE' },
   )
-  @Field(() => Route)
+  @Field(type => Route)
   route: Promise<Route>;
 }

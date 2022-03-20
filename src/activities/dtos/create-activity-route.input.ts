@@ -32,7 +32,7 @@ export class CreateActivityRouteInput {
   @IsOptional()
   votedDifficulty: number;
 
-  @Field({ nullable: true })
+  @Field(type => Int, { nullable: true })
   @IsOptional()
-  stars: number;
+  votedStarRating: number;
 }
