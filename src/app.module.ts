@@ -126,7 +126,10 @@ import Redis from 'ioredis';
             async requestDidStart() {
               return {
                 async willSendResponse(m) {
-                  if (m.operation.operation == 'mutation') {
+                  if (
+                    m.operation.operation == 'mutation' &&
+                    m.operationName != 'Login'
+                  ) {
                     cacheControlService.flush();
                   }
                 },
