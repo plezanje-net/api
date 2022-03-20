@@ -16,7 +16,7 @@ import { Comment } from './comment.entity';
 import { Pitch } from './pitch.entity';
 import { Image } from './image.entity';
 import { Crag } from './crag.entity';
-import { Rating } from './rating.entity';
+import { StarRatingVote } from './star-rating-vote.entity';
 import { GradingSystem } from './grading-system.entity';
 import { RouteType } from './route-type.entity';
 import { RouteEvent } from './route-event.entity';
@@ -129,12 +129,12 @@ export class Route extends BaseEntity {
   difficultyVotes: Promise<DifficultyVote[]>;
 
   @OneToMany(
-    () => Rating,
-    rating => rating.route,
+    () => StarRatingVote,
+    starRatingVote => starRatingVote.route,
     { nullable: true },
   )
-  @Field(() => [Rating])
-  ratings: Promise<Rating[]>;
+  @Field(type => [StarRatingVote])
+  starRatingVotes: Promise<StarRatingVote[]>;
 
   @OneToMany(
     () => Pitch,
