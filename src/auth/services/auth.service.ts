@@ -36,7 +36,7 @@ export class AuthService {
   }
 
   async validateUser(email: string, pass: string): Promise<any> {
-    const user = await this.getUserByEmail(email);
+    const user = await this.getUserByEmail(email.toLowerCase());
 
     const inputPasswordSha = crypto
       .createHash('sha256')
