@@ -5,7 +5,6 @@ import {
   Args,
   ResolveField,
   Parent,
-  Context,
 } from '@nestjs/graphql';
 import { CommentsService } from '../services/comments.service';
 import { Comment } from '../entities/comment.entity';
@@ -14,11 +13,13 @@ import { UnauthorizedException, UseGuards } from '@nestjs/common';
 import { User } from '../../users/entities/user.entity';
 import { CurrentUser } from '../../auth/decorators/current-user.decorator';
 import { UpdateCommentInput } from '../dtos/update-comment';
-import { IGraphQLContext } from '../../types/graphql.types';
 import { UserAuthGuard } from '../../auth/guards/user-auth.guard';
 import { AllowAny } from '../../auth/decorators/allow-any.decorator';
 import { MinCragStatus } from '../decorators/min-crag-status.decorator';
 import { CragStatus } from '../entities/crag.entity';
+import { UserLoader } from '../../users/loaders/user.loader';
+import { Loader } from '../../core/interceptors/data-loader.interceptor';
+import DataLoader from 'dataloader';
 
 @Resolver(() => Comment)
 export class CommentsResolver {
@@ -70,9 +71,10 @@ export class CommentsResolver {
   @ResolveField('user', () => User, { nullable: true })
   async getUser(
     @Parent() comment: Comment,
-    @Context() { userLoader }: IGraphQLContext,
+    @Loader(UserLoader)
+    loader: DataLoader<Comment['userId'], User>,
   ): Promise<User> {
-    return comment.userId != null ? userLoader.load(comment.userId) : null;
+    return loader.load(comment.userId);
   }
 
   @AllowAny()

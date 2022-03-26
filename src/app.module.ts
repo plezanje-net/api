@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { GraphQLModule } from '@nestjs/graphql';
+import { GqlExecutionContext, GraphQLModule } from '@nestjs/graphql';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 
@@ -29,24 +29,20 @@ import { IceFall } from './crags/entities/ice-fall.entity';
 import { Club } from './users/entities/club.entity';
 import { ClubMember } from './users/entities/club-member.entity';
 import { StarRatingVote } from './crags/entities/star-rating-vote.entity';
-import { userLoader } from './crags/loaders/user.loader';
 import { RouteType } from './crags/entities/route-type.entity';
 import { GradingSystem } from './crags/entities/grading-system.entity';
 import { Grade } from './crags/entities/grade.entity';
 import { RouteEvent } from './crags/entities/route-event.entity';
+import responseCachePlugin from 'apollo-server-plugin-response-cache';
+import { ApolloServerPluginCacheControl } from 'apollo-server-core';
+import { AuthService } from './auth/services/auth.service';
+import { AuthModule } from './auth/auth.module';
+import { CacheControlService } from './core/services/cache-control.service';
+import Redis from 'ioredis';
 
 @Module({
   imports: [
     ConfigModule.forRoot(),
-    GraphQLModule.forRoot({
-      debug: true,
-      playground: true,
-      autoSchemaFile: true,
-      context: ({ req }) => ({
-        ...req,
-        userLoader: userLoader(),
-      }),
-    }),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => ({
@@ -87,12 +83,68 @@ import { RouteEvent } from './crags/entities/route-event.entity';
       }),
       inject: [ConfigService],
     }),
+    GraphQLModule.forRootAsync({
+      imports: [ConfigModule, AuthModule],
+      inject: [ConfigService, AuthService, CacheControlService],
+      useFactory: async (
+        configService: ConfigService,
+        authService: AuthService,
+        cacheControlService: CacheControlService,
+      ) => ({
+        debug: true,
+        playground: true,
+        autoSchemaFile: true,
+        plugins: [
+          responseCachePlugin({
+            cache: cacheControlService.init({
+              client: new Redis({
+                host: configService.get('REDIS_HOST'),
+                port: configService.get('REDIS_PORT'),
+              }),
+            }),
+            shouldWriteToCache: () => true,
+            shouldReadFromCache: () => true,
+            sessionId: requestContext =>
+              requestContext.request.http.headers.get('Authorization'),
+            extraCacheKeyData: async requestContext => {
+              if (requestContext.request.http.headers.get('Authorization')) {
+                const jwt = authService.decodeJwt(
+                  requestContext.request.http.headers
+                    .get('Authorization')
+                    .split(' ')[1],
+                );
+
+                const user = await authService.validateJwtPayload(jwt);
+                return { roles: user.roles.map(role => role.role) };
+              }
+            },
+          }),
+          ApolloServerPluginCacheControl({
+            defaultMaxAge: configService.get('REDIS_TTL'),
+          }),
+          {
+            async requestDidStart() {
+              return {
+                async willSendResponse(m) {
+                  if (
+                    m.operation.operation == 'mutation' &&
+                    m.operationName != 'Login'
+                  ) {
+                    cacheControlService.flush();
+                  }
+                },
+              };
+            },
+          },
+        ],
+      }),
+    }),
     UsersModule,
     CragsModule,
     AuditModule,
     NotificationModule,
     ActivitiesModule,
   ],
-  controllers: [],
+  providers: [],
 })
 export class AppModule {}
