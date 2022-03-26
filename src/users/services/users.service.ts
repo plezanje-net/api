@@ -54,6 +54,7 @@ export class UsersService {
 
     this.usersRepository.merge(user, data);
 
+    user.email = user.email.toLowerCase();
     user.password = await bcrypt.hash(data.password, 10);
     user.confirmationToken = randomBytes(20).toString('hex');
 
