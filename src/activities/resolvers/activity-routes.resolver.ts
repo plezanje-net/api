@@ -38,6 +38,7 @@ import { GraphQLResolveInfo } from 'graphql';
 import { CacheScope } from 'apollo-server-types';
 import { CreateActivityRouteInput } from '../dtos/create-activity-route.input';
 import { ActivitiesService } from '../services/activities.service';
+import { UpdateActivityRouteInput } from '../dtos/update-activity-route.input';
 
 @Resolver(() => ActivityRoute)
 export class ActivityRoutesResolver {
@@ -133,6 +134,25 @@ export class ActivityRoutesResolver {
     } catch (exception) {
       throw exception;
     }
+  }
+
+  @Mutation(() => ActivityRoute)
+  @UseInterceptors(AuditInterceptor)
+  @UseGuards(UserAuthGuard)
+  async updateActivityRoute(
+    @CurrentUser() user: User,
+    @Args('input', { type: () => UpdateActivityRouteInput })
+    input: UpdateActivityRouteInput,
+  ): Promise<ActivityRoute> {
+    const activityRoute = await this.activityRoutesService.findOneById(
+      input.id,
+    );
+
+    if (activityRoute.userId != user.id) {
+      throw new ForbiddenException();
+    }
+
+    return this.activityRoutesService.update(input);
   }
 
   @Mutation(() => Boolean)
