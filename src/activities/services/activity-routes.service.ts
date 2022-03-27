@@ -29,6 +29,7 @@ import { PaginatedActivityRoutes } from '../utils/paginated-activity-routes.clas
 import { DifficultyVote } from '../../crags/entities/difficulty-vote.entity';
 import { CragStatus } from '../../crags/entities/crag.entity';
 import { StarRatingVote } from '../../crags/entities/star-rating-vote.entity';
+import { UpdateActivityRouteInput } from '../dtos/update-activity-route.input';
 
 @Injectable()
 export class ActivityRoutesService {
@@ -503,6 +504,16 @@ export class ActivityRoutesService {
 
   findOneById(id: string): Promise<ActivityRoute> {
     return this.activityRoutesRepository.findOneOrFail(id);
+  }
+
+  async update(data: UpdateActivityRouteInput): Promise<ActivityRoute> {
+    const activityRoute = await this.activityRoutesRepository.findOneOrFail(
+      data.id,
+    );
+
+    this.activityRoutesRepository.merge(activityRoute, data);
+
+    return this.activityRoutesRepository.save(activityRoute);
   }
 
   async delete(activityRoute: ActivityRoute): Promise<boolean> {
