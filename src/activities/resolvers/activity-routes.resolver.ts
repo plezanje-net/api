@@ -36,10 +36,15 @@ import { PaginatedActivityRoutes } from '../utils/paginated-activity-routes.clas
 import { RouteTouched } from '../utils/route-touched.class';
 import { GraphQLResolveInfo } from 'graphql';
 import { CacheScope } from 'apollo-server-types';
+import { CreateActivityRouteInput } from '../dtos/create-activity-route.input';
+import { ActivitiesService } from '../services/activities.service';
 
 @Resolver(() => ActivityRoute)
 export class ActivityRoutesResolver {
-  constructor(private activityRoutesService: ActivityRoutesService) {}
+  constructor(
+    private activityRoutesService: ActivityRoutesService,
+    private activitiesService: ActivitiesService,
+  ) {}
 
   @Query(() => ActivityRoute)
   @UseFilters(NotFoundFilter)
@@ -47,13 +52,15 @@ export class ActivityRoutesResolver {
     return this.activityRoutesService.findOneById(id);
   }
 
-  @ResolveField('activity', () => Activity)
+  @ResolveField('activity', () => Activity, { nullable: true })
   async getActivity(
     @Parent() activityRoute: ActivityRoute,
     @Loader(ActivityLoader)
     loader: DataLoader<Activity['id'], Activity>,
   ): Promise<Activity> {
-    return loader.load(activityRoute.activityId);
+    return activityRoute.activityId != null
+      ? loader.load(activityRoute.activityId)
+      : null;
   }
 
   @ResolveField('route', () => Route)
@@ -112,6 +119,20 @@ export class ActivityRoutesResolver {
 
     input.userId = user.id;
     return this.activityRoutesService.cragSummary(input);
+  }
+
+  @Mutation(() => [ActivityRoute])
+  @UseGuards(UserAuthGuard)
+  async createActivityRoutes(
+    @CurrentUser() user: User,
+    @Args('routes', { type: () => [CreateActivityRouteInput] })
+    routesIn: CreateActivityRouteInput[],
+  ): Promise<ActivityRoute[]> {
+    try {
+      return this.activityRoutesService.createBatch(user, routesIn);
+    } catch (exception) {
+      throw exception;
+    }
   }
 
   @Mutation(() => Boolean)

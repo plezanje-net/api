@@ -9,6 +9,7 @@ import {
 import { Club } from '../../users/entities/club.entity';
 import { User } from '../../users/entities/user.entity';
 import {
+  Connection,
   getConnection,
   QueryRunner,
   Repository,
@@ -32,6 +33,7 @@ import { StarRatingVote } from '../../crags/entities/star-rating-vote.entity';
 @Injectable()
 export class ActivityRoutesService {
   constructor(
+    private connection: Connection,
     @InjectRepository(ActivityRoute)
     private activityRoutesRepository: Repository<ActivityRoute>,
     @InjectRepository(Route)
@@ -45,6 +47,34 @@ export class ActivityRoutesService {
     @InjectRepository(StarRatingVote)
     private starRatingVoteRepository: Repository<StarRatingVote>,
   ) {}
+
+  async createBatch(
+    user: User,
+    routesIn: CreateActivityRouteInput[],
+  ): Promise<ActivityRoute[]> {
+    const queryRunner = this.connection.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    const createdActivityRoutes: ActivityRoute[] = [];
+
+    try {
+      // Create activity-route for each route. Process them in sequential order because one can log a single route more than once in a single post, and should take that into account when validating the logs
+      for (const routeIn of routesIn) {
+        createdActivityRoutes.push(
+          await this.create(queryRunner, routeIn, user),
+        );
+      }
+
+      await queryRunner.commitTransaction();
+      return createdActivityRoutes;
+    } catch (exception) {
+      await queryRunner.rollbackTransaction();
+      throw exception;
+    } finally {
+      await queryRunner.release();
+    }
+  }
 
   async create(
     queryRunner: QueryRunner,
