@@ -169,5 +169,6 @@ export class Route extends BaseEntity {
     routeEvent => routeEvent.route,
     { nullable: true },
   )
+  @Field(() => [RouteEvent])
   routeEvents: Promise<RouteEvent[]>;
 }
