@@ -12,11 +12,14 @@ import { Route } from './route.entity';
 import { User } from '../../users/entities/user.entity';
 
 @Entity()
+@ObjectType()
 export class RouteEvent extends BaseEntity {
   @PrimaryColumn()
+  @Field()
   id: string;
 
   @Column()
+  @Field()
   author: string;
 
   @ManyToOne(
@@ -28,15 +31,18 @@ export class RouteEvent extends BaseEntity {
 
   // this can be converted to enum when we start actually using this entity
   @Column({ nullable: true })
+  @Field({ nullable: true })
   eventType: string;
 
   @Column()
+  @Field({ nullable: true })
   eventDate: Date;
 
   @ManyToOne(() => User)
   user: Promise<User>;
 
   @Column({ default: true })
+  @Field({ nullable: true })
   showFullDate: boolean;
 
   @CreateDateColumn()
