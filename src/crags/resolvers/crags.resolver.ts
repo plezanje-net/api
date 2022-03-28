@@ -111,7 +111,9 @@ export class CragsResolver {
     @Loader(GradingSystemLoader)
     loader: DataLoader<GradingSystem['id'], GradingSystem>,
   ): Promise<GradingSystem> {
-    return loader.load(crag.defaultGradingSystemId);
+    return crag.defaultGradingSystemId != null
+      ? loader.load(crag.defaultGradingSystemId)
+      : null;
   }
 
   @ResolveField('comments', () => [Comment])
