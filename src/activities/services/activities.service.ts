@@ -10,6 +10,7 @@ import { Activity } from '../entities/activity.entity';
 import { PaginatedActivities } from '../utils/paginated-activities.class';
 import { CreateActivityRouteInput } from '../dtos/create-activity-route.input';
 import { ActivityRoutesService } from './activity-routes.service';
+import { SideEffect } from '../utils/side-effect.class';
 
 @Injectable()
 export class ActivitiesService {
@@ -26,7 +27,8 @@ export class ActivitiesService {
     activityIn: CreateActivityInput,
     user: User,
     routesIn: CreateActivityRouteInput[],
-  ): Promise<Activity> {
+    dryRun = false,
+  ): Promise<Activity | SideEffect[]> {
     const queryRunner = this.connection.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
@@ -43,6 +45,7 @@ export class ActivitiesService {
       }
       await queryRunner.manager.save(activity);
 
+      let sideEffects = [];
       // Create activity-route for each route belonging to this activity. Process them in sequential order because one can log a single route more than once in a single post, and should take that into account when validating the logs
       for (const routeIn of routesIn) {
         await this.activityRoutesService.create(
@@ -50,11 +53,18 @@ export class ActivitiesService {
           routeIn,
           user,
           activity,
+          sideEffects,
         );
       }
+      sideEffects = sideEffects.filter(se => !!se); // clean up empty entries (no side effect)
 
-      await queryRunner.commitTransaction();
-      return activity;
+      if (dryRun) {
+        await queryRunner.rollbackTransaction();
+        return sideEffects;
+      } else {
+        await queryRunner.commitTransaction();
+        return activity;
+      }
     } catch (exception) {
       await queryRunner.rollbackTransaction();
       throw exception;

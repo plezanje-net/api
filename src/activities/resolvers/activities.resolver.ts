@@ -28,6 +28,7 @@ import { ActivityRoute } from '../entities/activity-route.entity';
 import { AuditInterceptor } from '../../audit/interceptors/audit.interceptor';
 import { GraphQLResolveInfo } from 'graphql';
 import { CacheScope } from 'apollo-server-types';
+import { SideEffect } from '../utils/side-effect.class';
 
 @Resolver(() => Activity)
 export class ActivitiesResolver {
@@ -69,10 +70,42 @@ export class ActivitiesResolver {
     routesIn: CreateActivityRouteInput[],
   ): Promise<Activity> {
     try {
-      return this.activitiesService.createActivityWRoutes(
-        activityIn,
-        user,
-        routesIn,
+      return <Activity>(
+        (<unknown>(
+          this.activitiesService.createActivityWRoutes(
+            activityIn,
+            user,
+            routesIn,
+          )
+        ))
+      );
+    } catch (exception) {
+      throw exception;
+    }
+  }
+
+  /**
+   * Because creating activity with routes can produce side effects, this query will simulate it, and return what will be changed if the mutation was actually ran
+   */
+  @Query(() => [SideEffect])
+  @UseGuards(UserAuthGuard)
+  async dryRunCreateActivity(
+    @CurrentUser() user: User,
+    @Args('input', { type: () => CreateActivityInput })
+    activityIn: CreateActivityInput,
+    @Args('routes', { type: () => [CreateActivityRouteInput] })
+    routesIn: CreateActivityRouteInput[],
+  ): Promise<SideEffect[]> {
+    try {
+      return <SideEffect[]>(
+        (<unknown>(
+          this.activitiesService.createActivityWRoutes(
+            activityIn,
+            user,
+            routesIn,
+            true,
+          )
+        ))
       );
     } catch (exception) {
       throw exception;

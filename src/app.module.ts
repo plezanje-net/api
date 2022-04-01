@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { GqlExecutionContext, GraphQLModule } from '@nestjs/graphql';
+import { GraphQLModule } from '@nestjs/graphql';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 

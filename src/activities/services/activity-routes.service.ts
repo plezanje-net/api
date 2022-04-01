@@ -40,16 +40,10 @@ export class ActivityRoutesService {
     private connection: Connection,
     @InjectRepository(ActivityRoute)
     private activityRoutesRepository: Repository<ActivityRoute>,
-    @InjectRepository(Route)
-    private routesRepository: Repository<Route>,
     @InjectRepository(ClubMember)
     private clubMembersRepository: Repository<ClubMember>,
     @InjectRepository(Club)
     private clubsRepository: Repository<Club>,
-    @InjectRepository(DifficultyVote)
-    private difficultyVoteRepository: Repository<DifficultyVote>,
-    @InjectRepository(StarRatingVote)
-    private starRatingVoteRepository: Repository<StarRatingVote>,
   ) {}
 
   async createBatch(
@@ -85,6 +79,7 @@ export class ActivityRoutesService {
     routeIn: CreateActivityRouteInput,
     user: User,
     activity?: Activity,
+    sideEffects = [],
   ): Promise<ActivityRoute> {
     const activityRoute = new ActivityRoute();
 
@@ -97,6 +92,7 @@ export class ActivityRoutesService {
       routeIn.routeId,
     );
 
+    // TODO: should make final decision on wether the routes can be logged without activity. Date here depends on activity!
     const routeTouched = await this.getTouchesForRoutes(
       new FindRoutesTouchesInput([routeIn.routeId], user.id, activity.date),
       queryRunner,
@@ -121,17 +117,25 @@ export class ActivityRoutesService {
       queryRunner,
     ];
     if (this.isTick(routeIn.ascentType)) {
-      await this.convertFirstTickAfterToRepeat(...args);
-      await this.convertFirstTrTickAfterToTrRepeat(...args);
-      await this.convertFirstTrSightOrFlashAfterToTrRedpoint(...args);
+      sideEffects.push(await this.convertFirstTickAfterToRepeat(...args));
+      sideEffects.push(await this.convertFirstTrTickAfterToTrRepeat(...args));
+      sideEffects.push(
+        await this.convertFirstTrSightOrFlashAfterToTrRedpoint(...args),
+      );
     } else if (this.isTrTick(routeIn.ascentType)) {
-      await this.convertFirstSightOrFlashAfterToRedpoint(...args);
-      await this.convertFirstTrTickAfterToTrRepeat(...args);
+      sideEffects.push(
+        await this.convertFirstSightOrFlashAfterToRedpoint(...args),
+      );
+      sideEffects.push(await this.convertFirstTrTickAfterToTrRepeat(...args));
     } else {
       // it is only a try
       // there can really only be one of the below, so one of theese will do nothing. and also could do it in a single query, but leave as is for readability reasons
-      await this.convertFirstSightOrFlashAfterToRedpoint(...args);
-      await this.convertFirstTrSightOrFlashAfterToTrRedpoint(...args);
+      sideEffects.push(
+        await this.convertFirstSightOrFlashAfterToRedpoint(...args),
+      );
+      sideEffects.push(
+        await this.convertFirstTrSightOrFlashAfterToTrRedpoint(...args),
+      );
     }
 
     activityRoute.route = Promise.resolve(route);
@@ -168,7 +172,7 @@ export class ActivityRoutesService {
     }
 
     // if a vote on star rating (route beauty) is passed add a new star rating vote or update existing one
-    if (routeIn.votedStarRating !== null) {
+    if (routeIn.votedStarRating || routeIn.votedStarRating === 0) {
       // but first check if a user even can vote (can vote only if the log is a tick)
       if (!this.isTick(routeIn.ascentType)) {
         throw new HttpException(
@@ -191,7 +195,7 @@ export class ActivityRoutesService {
       await queryRunner.manager.save(starRatingVote);
     }
 
-    // Deprecated: unnecessary if statement -> activity should not be null anymore ??
+    // Deprecated: unnecessary if statement -> activity should not be null anymore ?? // TODO: make final decision on this!
     if (activity !== null) {
       activityRoute.activity = Promise.resolve(activity);
     }
@@ -229,10 +233,20 @@ export class ActivityRoutesService {
 
     // We do have a tick in the future
     if (futureTick) {
+      // Remember current activity route state
+      const futureTickBeforeChange = new ActivityRoute();
+      queryRunner.manager.merge(
+        ActivityRoute,
+        futureTickBeforeChange,
+        futureTick,
+      );
+
       // Convert it to repeat
       futureTick.ascentType = AscentType.REPEAT;
       await queryRunner.manager.save(futureTick);
+      return { before: futureTickBeforeChange, after: futureTick };
     }
+    return false;
   }
 
   /**
@@ -256,10 +270,20 @@ export class ActivityRoutesService {
 
     // We do have a toprope tick in the future
     if (futureTrTick) {
+      // Remember current activity route state
+      const futureTrTickBeforeChange = new ActivityRoute();
+      queryRunner.manager.merge(
+        ActivityRoute,
+        futureTrTickBeforeChange,
+        futureTrTick,
+      );
+
       // Convert it to toprope repeat
       futureTrTick.ascentType = AscentType.T_REPEAT;
       await queryRunner.manager.save(futureTrTick);
+      return { before: futureTrTickBeforeChange, after: futureTrTick };
     }
+    return false;
   }
 
   /**
@@ -283,10 +307,23 @@ export class ActivityRoutesService {
 
     // We do have a flash/onsight in the future
     if (futureSightOrFlash) {
+      // Remember current activity route state
+      const futureSightOrFlashBeforeChange = new ActivityRoute();
+      queryRunner.manager.merge(
+        ActivityRoute,
+        futureSightOrFlashBeforeChange,
+        futureSightOrFlash,
+      );
+
       // Convert it to redpoint
       futureSightOrFlash.ascentType = AscentType.REDPOINT;
       await queryRunner.manager.save(futureSightOrFlash);
+      return {
+        before: futureSightOrFlashBeforeChange,
+        after: futureSightOrFlash,
+      };
     }
+    return false;
   }
 
   /**
@@ -310,10 +347,23 @@ export class ActivityRoutesService {
 
     // We do have a toprope flash/onsight in the future
     if (futureTrSightOrFlash) {
+      // Remember current activity route state
+      const futureTrSightOrFlashBeforeChange = new ActivityRoute();
+      queryRunner.manager.merge(
+        ActivityRoute,
+        futureTrSightOrFlashBeforeChange,
+        futureTrSightOrFlash,
+      );
+
       // Convert it to toprope redpoint
       futureTrSightOrFlash.ascentType = AscentType.T_REDPOINT;
       await queryRunner.manager.save(futureTrSightOrFlash);
+      return {
+        before: futureTrSightOrFlashBeforeChange,
+        after: futureTrSightOrFlash,
+      };
     }
+    return false;
   }
 
   /**
