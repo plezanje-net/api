@@ -45,7 +45,7 @@ export class ActivitiesService {
       }
       await queryRunner.manager.save(activity);
 
-      let sideEffects = [];
+      const sideEffects = [];
       // Create activity-route for each route belonging to this activity. Process them in sequential order because one can log a single route more than once in a single post, and should take that into account when validating the logs
       for (const routeIn of routesIn) {
         await this.activityRoutesService.create(
@@ -56,7 +56,6 @@ export class ActivitiesService {
           sideEffects,
         );
       }
-      sideEffects = sideEffects.filter(se => !!se); // clean up empty entries (no side effect)
 
       if (dryRun) {
         await queryRunner.rollbackTransaction();

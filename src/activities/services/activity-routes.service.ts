@@ -33,6 +33,7 @@ import { StarRatingVote } from '../../crags/entities/star-rating-vote.entity';
 import { UpdateActivityRouteInput } from '../dtos/update-activity-route.input';
 import { RoutesTouches } from '../utils/routes-touches.class';
 import { FindRoutesTouchesInput } from '../dtos/find-routes-touches.input';
+import { SideEffect } from '../utils/side-effect.class';
 
 @Injectable()
 export class ActivityRoutesService {
@@ -79,7 +80,7 @@ export class ActivityRoutesService {
     routeIn: CreateActivityRouteInput,
     user: User,
     activity?: Activity,
-    sideEffects = [],
+    sideEffects: SideEffect[] = [],
   ): Promise<ActivityRoute> {
     const activityRoute = new ActivityRoute();
 
@@ -110,32 +111,25 @@ export class ActivityRoutesService {
     }
 
     // If after the date of this log more logs of the same route exist, their ascent types might need to be changed (eg. redpoint -> repeat etc.)
-    const args: [string, string, Date, QueryRunner] = [
+    const args: [string, string, Date, QueryRunner, SideEffect[]] = [
       routeIn.routeId,
       user.id,
       activity.date,
       queryRunner,
+      sideEffects,
     ];
     if (this.isTick(routeIn.ascentType)) {
-      sideEffects.push(await this.convertFirstTickAfterToRepeat(...args));
-      sideEffects.push(await this.convertFirstTrTickAfterToTrRepeat(...args));
-      sideEffects.push(
-        await this.convertFirstTrSightOrFlashAfterToTrRedpoint(...args),
-      );
+      await this.convertFirstTickAfterToRepeat(...args);
+      await this.convertFirstTrTickAfterToTrRepeat(...args);
+      await this.convertFirstTrSightOrFlashAfterToTrRedpoint(...args);
     } else if (this.isTrTick(routeIn.ascentType)) {
-      sideEffects.push(
-        await this.convertFirstSightOrFlashAfterToRedpoint(...args),
-      );
-      sideEffects.push(await this.convertFirstTrTickAfterToTrRepeat(...args));
+      await this.convertFirstSightOrFlashAfterToRedpoint(...args);
+      await this.convertFirstTrTickAfterToTrRepeat(...args);
     } else {
       // it is only a try
       // there can really only be one of the below, so one of theese will do nothing. and also could do it in a single query, but leave as is for readability reasons
-      sideEffects.push(
-        await this.convertFirstSightOrFlashAfterToRedpoint(...args),
-      );
-      sideEffects.push(
-        await this.convertFirstTrSightOrFlashAfterToTrRedpoint(...args),
-      );
+      await this.convertFirstSightOrFlashAfterToRedpoint(...args);
+      await this.convertFirstTrSightOrFlashAfterToTrRedpoint(...args);
     }
 
     activityRoute.route = Promise.resolve(route);
@@ -219,6 +213,7 @@ export class ActivityRoutesService {
     userId: string,
     date: Date,
     queryRunner: QueryRunner,
+    sideEffects: SideEffect[] = [],
   ) {
     const futureTick = await queryRunner.manager
       .createQueryBuilder(ActivityRoute, 'ar')
@@ -244,9 +239,8 @@ export class ActivityRoutesService {
       // Convert it to repeat
       futureTick.ascentType = AscentType.REPEAT;
       await queryRunner.manager.save(futureTick);
-      return { before: futureTickBeforeChange, after: futureTick };
+      sideEffects.push({ before: futureTickBeforeChange, after: futureTick });
     }
-    return false;
   }
 
   /**
@@ -257,6 +251,7 @@ export class ActivityRoutesService {
     userId: string,
     date: Date,
     queryRunner: QueryRunner,
+    sideEffects: SideEffect[] = [],
   ) {
     const futureTrTick = await queryRunner.manager
       .createQueryBuilder(ActivityRoute, 'ar')
@@ -281,9 +276,11 @@ export class ActivityRoutesService {
       // Convert it to toprope repeat
       futureTrTick.ascentType = AscentType.T_REPEAT;
       await queryRunner.manager.save(futureTrTick);
-      return { before: futureTrTickBeforeChange, after: futureTrTick };
+      sideEffects.push({
+        before: futureTrTickBeforeChange,
+        after: futureTrTick,
+      });
     }
-    return false;
   }
 
   /**
@@ -294,6 +291,7 @@ export class ActivityRoutesService {
     userId: string,
     date: Date,
     queryRunner: QueryRunner,
+    sideEffects: SideEffect[] = [],
   ) {
     const futureSightOrFlash = await queryRunner.manager
       .createQueryBuilder(ActivityRoute, 'ar')
@@ -318,12 +316,11 @@ export class ActivityRoutesService {
       // Convert it to redpoint
       futureSightOrFlash.ascentType = AscentType.REDPOINT;
       await queryRunner.manager.save(futureSightOrFlash);
-      return {
+      sideEffects.push({
         before: futureSightOrFlashBeforeChange,
         after: futureSightOrFlash,
-      };
+      });
     }
-    return false;
   }
 
   /**
@@ -334,6 +331,7 @@ export class ActivityRoutesService {
     userId: string,
     date: Date,
     queryRunner: QueryRunner,
+    sideEffects: SideEffect[] = [],
   ) {
     const futureTrSightOrFlash = await queryRunner.manager
       .createQueryBuilder(ActivityRoute, 'ar')
@@ -358,12 +356,11 @@ export class ActivityRoutesService {
       // Convert it to toprope redpoint
       futureTrSightOrFlash.ascentType = AscentType.T_REDPOINT;
       await queryRunner.manager.save(futureTrSightOrFlash);
-      return {
+      sideEffects.push({
         before: futureTrSightOrFlashBeforeChange,
         after: futureTrSightOrFlash,
-      };
+      });
     }
-    return false;
   }
 
   /**
