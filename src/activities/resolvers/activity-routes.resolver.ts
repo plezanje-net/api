@@ -33,12 +33,14 @@ import { Activity } from '../entities/activity.entity';
 import { ActivityLoader } from '../loaders/activity.loader';
 import { ActivityRoutesService } from '../services/activity-routes.service';
 import { PaginatedActivityRoutes } from '../utils/paginated-activity-routes.class';
-import { RouteTouched } from '../utils/route-touched.class';
 import { GraphQLResolveInfo } from 'graphql';
 import { CacheScope } from 'apollo-server-types';
 import { CreateActivityRouteInput } from '../dtos/create-activity-route.input';
 import { ActivitiesService } from '../services/activities.service';
 import { UpdateActivityRouteInput } from '../dtos/update-activity-route.input';
+import { FindRoutesTouchesInput } from '../dtos/find-routes-touches.input';
+import { RoutesTouches } from '../utils/routes-touches.class';
+import { RouteTouched } from '../utils/route-touched.class';
 
 @Resolver(() => ActivityRoute)
 export class ActivityRoutesResolver {
@@ -85,6 +87,7 @@ export class ActivityRoutesResolver {
   /**
    * find out if currently logged in user has already tried and/or ticked a certain route
    */
+  // Deprecated: Noone uses this. Remove leftover query file on FE then remove.
   @UseGuards(UserAuthGuard)
   @Query(() => RouteTouched)
   routeTouched(
@@ -94,6 +97,17 @@ export class ActivityRoutesResolver {
   ) {
     info.cacheControl.setCacheHint({ scope: CacheScope.Private });
     return this.activityRoutesService.routeTouched(user, routeId);
+  }
+
+  /**
+   * For an array of route ids check which routes has a user already tried, ticked or ticked on toprope before (or on) a given date
+   */
+  @Query(returns => RoutesTouches)
+  async routesTouches(
+    @Args('input') input: FindRoutesTouchesInput,
+  ): Promise<RoutesTouches> {
+    console.log(input);
+    return await this.activityRoutesService.getTouchesForRoutes(input);
   }
 
   @UseGuards(UserAuthGuard)

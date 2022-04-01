@@ -31,25 +31,31 @@ export enum AscentType {
   TICK = 'tick',
 }
 
-export const tickAscentTypes = [
+export const tickAscentTypes = new Set([
   AscentType.ONSIGHT,
   AscentType.FLASH,
   AscentType.REDPOINT,
   AscentType.REPEAT,
-];
+]);
 
-export const firstTickAscentTypes = [
+export const firstTickAscentTypes = new Set([
   AscentType.ONSIGHT,
   AscentType.FLASH,
   AscentType.REDPOINT,
-];
+]);
 
-export const trTickAscentTypes = [
+export const trTickAscentTypes = new Set([
   AscentType.T_ONSIGHT,
   AscentType.T_FLASH,
   AscentType.T_REDPOINT,
   AscentType.T_REPEAT,
-];
+]);
+
+export const firstTrTickAscentTypes = new Set([
+  AscentType.T_ONSIGHT,
+  AscentType.T_FLASH,
+  AscentType.T_REDPOINT,
+]);
 
 export enum PublishType {
   PUBLIC = 'public',

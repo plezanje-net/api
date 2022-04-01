@@ -102,8 +102,8 @@ import Redis from 'ioredis';
                 port: configService.get('REDIS_PORT'),
               }),
             }),
-            shouldWriteToCache: () => true,
-            shouldReadFromCache: () => true,
+            shouldWriteToCache: () => configService.get('CACHE_ENABLED'),
+            shouldReadFromCache: () => configService.get('CACHE_ENABLED'),
             sessionId: requestContext =>
               requestContext.request.http.headers.get('Authorization'),
             extraCacheKeyData: async requestContext => {
