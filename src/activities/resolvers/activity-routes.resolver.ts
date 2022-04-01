@@ -106,7 +106,6 @@ export class ActivityRoutesResolver {
   async routesTouches(
     @Args('input') input: FindRoutesTouchesInput,
   ): Promise<RoutesTouches> {
-    console.log(input);
     return await this.activityRoutesService.getTouchesForRoutes(input);
   }
 

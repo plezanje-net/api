@@ -93,9 +93,8 @@ export class ActivityRoutesService {
       routeIn.routeId,
     );
 
-    // TODO: should make final decision on wether the routes can be logged without activity. Date here depends on activity!
     const routeTouched = await this.getTouchesForRoutes(
-      new FindRoutesTouchesInput([routeIn.routeId], user.id, activity.date),
+      new FindRoutesTouchesInput([routeIn.routeId], user.id, routeIn.date),
       queryRunner,
     );
 
