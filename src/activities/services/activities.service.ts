@@ -10,6 +10,7 @@ import { Activity } from '../entities/activity.entity';
 import { PaginatedActivities } from '../utils/paginated-activities.class';
 import { CreateActivityRouteInput } from '../dtos/create-activity-route.input';
 import { ActivityRoutesService } from './activity-routes.service';
+import { UpdateActivityInput } from '../dtos/update-activity.input';
 
 @Injectable()
 export class ActivitiesService {
@@ -44,6 +45,46 @@ export class ActivitiesService {
       await queryRunner.manager.save(activity);
 
       // Create activity-route for each route belonging to this activity. Process them in sequential order because one can log a single route more than once in a single post, and should take that into account when validating the logs
+      for (const routeIn of routesIn) {
+        await this.activityRoutesService.create(
+          queryRunner,
+          routeIn,
+          user,
+          activity,
+        );
+      }
+
+      await queryRunner.commitTransaction();
+      return activity;
+    } catch (exception) {
+      await queryRunner.rollbackTransaction();
+      throw exception;
+    } finally {
+      await queryRunner.release();
+    }
+  }
+
+  async updateActivityWithRoutes(
+    activityIn: UpdateActivityInput,
+    user: User,
+    routesIn: CreateActivityRouteInput[],
+  ): Promise<Activity> {
+    const queryRunner = this.connection.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    try {
+      // TODO: refactor as it breaks DRY heavily, make sure that date did not change, update AR dates from activity date
+      // Create new activity
+      const activity = await this.activitiesRepository.findOneOrFail(
+        activityIn.id,
+      );
+      this.activitiesRepository.merge(activity, activityIn);
+
+      activity.user = Promise.resolve(user);
+
+      await queryRunner.manager.save(activity);
+
       for (const routeIn of routesIn) {
         await this.activityRoutesService.create(
           queryRunner,
