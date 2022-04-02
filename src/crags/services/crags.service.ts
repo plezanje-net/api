@@ -87,7 +87,7 @@ export class CragsService {
   private buildQuery(params: FindCragsInput = {}): SelectQueryBuilder<Crag> {
     const builder = this.cragsRepository.createQueryBuilder('c');
 
-    builder.orderBy('c.name', 'ASC');
+    builder.orderBy('c.name COLLATE "utf8_slovenian_ci"', 'ASC');
 
     if (params.country != null) {
       builder.andWhere('c.country = :countryId', {
