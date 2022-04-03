@@ -611,7 +611,7 @@ export class ActivityRoutesService {
       .innerJoin('crag', 'c', 'r.cragId = c.id')
       // .distinctOn(['ardate', 'ar.userId']) // use this if you want to return only one (best) ascent per user per day
       .where('ar.ascentType IN (:...aTypes)', {
-        aTypes: firstTickAscentTypes,
+        aTypes: [...firstTickAscentTypes],
       })
       .andWhere('ar.publish IN (:...publish)', {
         publish: ['log', 'public'], // public is public, log is 'javno na mojem profilu'
