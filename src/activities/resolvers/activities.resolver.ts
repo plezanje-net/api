@@ -29,6 +29,7 @@ import { AuditInterceptor } from '../../audit/interceptors/audit.interceptor';
 import { GraphQLResolveInfo } from 'graphql';
 import { CacheScope } from 'apollo-server-types';
 import { SideEffect } from '../utils/side-effect.class';
+import { UpdateActivityInput } from '../dtos/update-activity.input';
 
 @Resolver(() => Activity)
 export class ActivitiesResolver {
@@ -106,6 +107,32 @@ export class ActivitiesResolver {
             true,
           )
         ))
+      );
+    } catch (exception) {
+      throw exception;
+    }
+  }
+
+  @Mutation(() => Activity)
+  @UseGuards(UserAuthGuard)
+  async updateActivity(
+    @CurrentUser() user: User,
+    @Args('input', { type: () => UpdateActivityInput })
+    activityIn: UpdateActivityInput,
+    @Args('routes', { type: () => [CreateActivityRouteInput] })
+    routesIn: CreateActivityRouteInput[],
+  ): Promise<Activity> {
+    const activity = await this.activitiesService.findOneById(activityIn.id);
+
+    if (activity.userId != user.id) {
+      throw new ForbiddenException();
+    }
+
+    try {
+      return this.activitiesService.updateActivityWithRoutes(
+        activityIn,
+        user,
+        routesIn,
       );
     } catch (exception) {
       throw exception;
