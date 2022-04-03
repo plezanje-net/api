@@ -10,7 +10,6 @@ import { Club } from '../../users/entities/club.entity';
 import { User } from '../../users/entities/user.entity';
 import {
   Connection,
-  getConnection,
   QueryRunner,
   Repository,
   SelectQueryBuilder,
@@ -83,7 +82,6 @@ export class ActivityRoutesService {
     sideEffects: SideEffect[] = [],
   ): Promise<ActivityRoute> {
     const activityRoute = new ActivityRoute();
-
     queryRunner.manager.merge(ActivityRoute, activityRoute, routeIn);
 
     activityRoute.user = Promise.resolve(user);
@@ -97,7 +95,6 @@ export class ActivityRoutesService {
       new FindRoutesTouchesInput([routeIn.routeId], user.id, routeIn.date),
       queryRunner,
     );
-
     const logPossible = this.logPossible(
       routeTouched.ticked.some(ar => ar.routeId === routeIn.routeId),
       routeTouched.tried.some(ar => ar.routeId === routeIn.routeId),
@@ -363,10 +360,8 @@ export class ActivityRoutesService {
   }
 
   /**
-   *
    * check if logging a route is even possible
    * e.g. onsighting a route already tried is impossible and so on
-   *
    */
   private logPossible(
     routeTicked: boolean,
@@ -425,10 +420,8 @@ export class ActivityRoutesService {
   }
 
   // Deprecated, use getTouchesForRoutes instead
-  async routeTouched(user: User, routeId: string) {
-    const connection = getConnection();
-
-    const query = connection
+  async routeTouched(user: User, routeId: string, queryRunner: QueryRunner) {
+    const query = queryRunner.manager
       .createQueryBuilder()
       .select('tried')
       .addSelect('ticked')
@@ -468,14 +461,14 @@ export class ActivityRoutesService {
   }
 
   /**
-   * For an array of route ids check which routes has a user already tried, ticked or ticked on toprope before (or on) a given date
+   * For an array of route ids check which of the routes has a user already tried, ticked or ticked on toprope before (or on) a given date
    * (Pass in a queryRunner instance if you are inside a transaction)
    */
   async getTouchesForRoutes(
     input: FindRoutesTouchesInput,
     queryRunner: QueryRunner = null,
   ): Promise<RoutesTouches> {
-    // Use queryRunner if in a transaction. otherwise get repository as ususal
+    // Use queryRunner if in a transaction. otherwise get qb from repository as ususal
     const qb =
       queryRunner?.manager.createQueryBuilder(ActivityRoute, 'ar') ??
       this.activityRoutesRepository.createQueryBuilder('ar');
@@ -498,8 +491,7 @@ export class ActivityRoutesService {
       .getMany();
 
     // Which of the passed routes have been ticked on top rope before (or on) the passed date?
-    const trTicked = await this.activityRoutesRepository
-      .createQueryBuilder('ar')
+    const trTicked = await qb
       .addSelect('"routeId"') // need to add column to get the correct distinct
       .distinctOn(['ar.routeId'])
       .orderBy('ar.routeId')
@@ -513,8 +505,7 @@ export class ActivityRoutesService {
       .getMany();
 
     // Which of the passed routes have been tried before (or on) the passed date?
-    const tried = await this.activityRoutesRepository
-      .createQueryBuilder('ar')
+    const tried = await qb
       .addSelect('"routeId"') // need to add column to get the correct distinct
       .distinctOn(['ar.routeId'])
       .orderBy('ar.routeId')

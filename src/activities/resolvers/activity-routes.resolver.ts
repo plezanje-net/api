@@ -87,7 +87,7 @@ export class ActivityRoutesResolver {
   /**
    * find out if currently logged in user has already tried and/or ticked a certain route
    */
-  // Deprecated: Noone uses this. Remove leftover query file on FE then remove.
+  // Deprecated: Noone uses this. First remove leftover query file on FE then remove.
   @UseGuards(UserAuthGuard)
   @Query(() => RouteTouched)
   routeTouched(
@@ -96,7 +96,7 @@ export class ActivityRoutesResolver {
     @Info() info: GraphQLResolveInfo,
   ) {
     info.cacheControl.setCacheHint({ scope: CacheScope.Private });
-    return this.activityRoutesService.routeTouched(user, routeId);
+    // return this.activityRoutesService.routeTouched(user, routeId);
   }
 
   /**
