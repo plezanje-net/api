@@ -29,7 +29,8 @@ export class ActivitiesService {
     user: User,
     routesIn: CreateActivityRouteInput[],
     dryRun = false,
-  ): Promise<Activity | SideEffect[]> {
+    sideEffects = [],
+  ): Promise<Activity> {
     const queryRunner = this.connection.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
@@ -46,7 +47,6 @@ export class ActivitiesService {
       }
       await queryRunner.manager.save(activity);
 
-      const sideEffects = [];
       // Create activity-route for each route belonging to this activity. Process them in sequential order because one can log a single route more than once in a single post, and should take that into account when validating the logs
       for (const routeIn of routesIn) {
         await this.activityRoutesService.create(
@@ -60,7 +60,7 @@ export class ActivitiesService {
 
       if (dryRun) {
         await queryRunner.rollbackTransaction();
-        return sideEffects;
+        return Promise.resolve(null);
       } else {
         await queryRunner.commitTransaction();
         return activity;

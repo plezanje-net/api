@@ -71,14 +71,10 @@ export class ActivitiesResolver {
     routesIn: CreateActivityRouteInput[],
   ): Promise<Activity> {
     try {
-      return <Activity>(
-        (<unknown>(
-          this.activitiesService.createActivityWRoutes(
-            activityIn,
-            user,
-            routesIn,
-          )
-        ))
+      return this.activitiesService.createActivityWRoutes(
+        activityIn,
+        user,
+        routesIn,
       );
     } catch (exception) {
       throw exception;
@@ -98,16 +94,15 @@ export class ActivitiesResolver {
     routesIn: CreateActivityRouteInput[],
   ): Promise<SideEffect[]> {
     try {
-      return <SideEffect[]>(
-        (<unknown>(
-          this.activitiesService.createActivityWRoutes(
-            activityIn,
-            user,
-            routesIn,
-            true,
-          )
-        ))
+      const sideEffects = [];
+      await this.activitiesService.createActivityWRoutes(
+        activityIn,
+        user,
+        routesIn,
+        true,
+        sideEffects,
       );
+      return sideEffects;
     } catch (exception) {
       throw exception;
     }
