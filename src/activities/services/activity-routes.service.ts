@@ -92,7 +92,8 @@ export class ActivityRoutesService {
     );
 
     const routeTouched = await this.getTouchesForRoutes(
-      new FindRoutesTouchesInput([routeIn.routeId], user.id, routeIn.date),
+      new FindRoutesTouchesInput([routeIn.routeId], routeIn.date),
+      user.id,
       queryRunner,
     );
     const logPossible = this.logPossible(
@@ -466,6 +467,7 @@ export class ActivityRoutesService {
    */
   async getTouchesForRoutes(
     input: FindRoutesTouchesInput,
+    userId: string,
     queryRunner: QueryRunner = null,
   ): Promise<RoutesTouches> {
     // Use queryRunner if in a transaction. otherwise get qb from repository as ususal
@@ -482,7 +484,7 @@ export class ActivityRoutesService {
       .distinctOn(['ar.routeId'])
       .orderBy('ar.routeId')
       .addOrderBy('ar.ascentType')
-      .where('ar.userId = :userId', { userId: input.userId })
+      .where('ar.userId = :userId', { userId })
       .andWhere('ar.routeId in (:...routeIds)', { routeIds: input.routeIds })
       .andWhere('ar.ascentType in (:...tickTypes)', {
         tickTypes: [...tickAscentTypes],
@@ -496,7 +498,7 @@ export class ActivityRoutesService {
       .distinctOn(['ar.routeId'])
       .orderBy('ar.routeId')
       .addOrderBy('ar.ascentType')
-      .where('ar.userId = :userId', { userId: input.userId })
+      .where('ar.userId = :userId', { userId })
       .andWhere('ar.routeId in (:...routeIds)', { routeIds: input.routeIds })
       .andWhere('ar.ascentType in (:...trTickTypes)', {
         trTickTypes: [...trTickAscentTypes],
@@ -510,7 +512,7 @@ export class ActivityRoutesService {
       .distinctOn(['ar.routeId'])
       .orderBy('ar.routeId')
       .addOrderBy('ar.ascentType')
-      .where('ar.userId = :userId', { userId: input.userId })
+      .where('ar.userId = :userId', { userId })
       .andWhere('ar.routeId in (:...routeIds)', { routeIds: input.routeIds })
       .andWhere('ar.date <= :before', { before: input.before })
       .getMany();

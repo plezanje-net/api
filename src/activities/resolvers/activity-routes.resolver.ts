@@ -102,11 +102,13 @@ export class ActivityRoutesResolver {
   /**
    * For an array of route ids check which routes has a user already tried, ticked or ticked on toprope before (or on) a given date
    */
+  @UseGuards(UserAuthGuard)
   @Query(returns => RoutesTouches)
   async routesTouches(
+    @CurrentUser() user: User,
     @Args('input') input: FindRoutesTouchesInput,
   ): Promise<RoutesTouches> {
-    return await this.activityRoutesService.getTouchesForRoutes(input);
+    return await this.activityRoutesService.getTouchesForRoutes(input, user.id);
   }
 
   @UseGuards(UserAuthGuard)
