@@ -108,6 +108,36 @@ export class ActivitiesResolver {
     }
   }
 
+  @Query(() => [SideEffect])
+  @UseGuards(UserAuthGuard)
+  async dryRunUpdateActivity(
+    @CurrentUser() user: User,
+    @Args('input', { type: () => UpdateActivityInput })
+    activityIn: UpdateActivityInput,
+    @Args('routes', { type: () => [CreateActivityRouteInput] })
+    routesIn: CreateActivityRouteInput[],
+  ): Promise<SideEffect[]> {
+    const activity = await this.activitiesService.findOneById(activityIn.id);
+
+    if (activity.userId != user.id) {
+      throw new ForbiddenException();
+    }
+
+    try {
+      const sideEffects = [];
+      await this.activitiesService.updateActivityWithRoutes(
+        activityIn,
+        user,
+        routesIn,
+        true,
+        sideEffects,
+      );
+      return sideEffects;
+    } catch (exception) {
+      throw exception;
+    }
+  }
+
   @Mutation(() => Activity)
   @UseGuards(UserAuthGuard)
   async updateActivity(
