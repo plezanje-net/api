@@ -31,25 +31,31 @@ export enum AscentType {
   TICK = 'tick',
 }
 
-export const tickAscentTypes = [
+export const tickAscentTypes = new Set([
   AscentType.ONSIGHT,
   AscentType.FLASH,
   AscentType.REDPOINT,
   AscentType.REPEAT,
-];
+]);
 
-export const firstTickAscentTypes = [
+export const firstTickAscentTypes = new Set([
   AscentType.ONSIGHT,
   AscentType.FLASH,
   AscentType.REDPOINT,
-];
+]);
 
-export const trTickAscentTypes = [
+export const trTickAscentTypes = new Set([
   AscentType.T_ONSIGHT,
   AscentType.T_FLASH,
   AscentType.T_REDPOINT,
   AscentType.T_REPEAT,
-];
+]);
+
+export const firstTrTickAscentTypes = new Set([
+  AscentType.T_ONSIGHT,
+  AscentType.T_FLASH,
+  AscentType.T_REDPOINT,
+]);
 
 export enum PublishType {
   PUBLIC = 'public',
@@ -79,6 +85,7 @@ export class ActivityRoute extends BaseEntity {
   @Column({ nullable: true })
   legacy: string;
 
+  // TODO: if we decided that every activity route belongs to an activity, this can become non nullable
   @ManyToOne(
     () => Activity,
     activity => activity.routes,
@@ -89,10 +96,13 @@ export class ActivityRoute extends BaseEntity {
   @Column({ nullable: true })
   activityId: string;
 
+  // TODO: why is this many to one relation. One activity route always has only one route
+  // TODO: and why is it nullable. Activity-route without a route makes no sense
   @ManyToOne(() => Route, { nullable: true })
   @Field(() => Route)
   route: Promise<Route>;
   @Column({ nullable: true })
+  @Field({ nullable: true })
   routeId: string;
 
   @ManyToOne(() => Pitch, { nullable: true })

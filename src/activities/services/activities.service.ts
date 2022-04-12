@@ -27,6 +27,8 @@ export class ActivitiesService {
     activityIn: CreateActivityInput,
     user: User,
     routesIn: CreateActivityRouteInput[],
+    dryRun = false,
+    sideEffects = [],
   ): Promise<Activity> {
     const queryRunner = this.connection.createQueryRunner();
     await queryRunner.connect();
@@ -35,8 +37,11 @@ export class ActivitiesService {
     try {
       // Create new activity
       const activity = new Activity();
+
       this.activitiesRepository.merge(activity, activityIn);
+
       activity.user = Promise.resolve(user);
+
       if (activityIn.cragId != null) {
         activity.crag = Promise.resolve(
           await this.cragRepository.findOneOrFail(activityIn.cragId),
@@ -51,11 +56,17 @@ export class ActivitiesService {
           routeIn,
           user,
           activity,
+          sideEffects,
         );
       }
 
-      await queryRunner.commitTransaction();
-      return activity;
+      if (dryRun) {
+        await queryRunner.rollbackTransaction();
+        return Promise.resolve(null);
+      } else {
+        await queryRunner.commitTransaction();
+        return activity;
+      }
     } catch (exception) {
       await queryRunner.rollbackTransaction();
       throw exception;
@@ -68,6 +79,8 @@ export class ActivitiesService {
     activityIn: UpdateActivityInput,
     user: User,
     routesIn: CreateActivityRouteInput[],
+    dryRun = false,
+    sideEffects = [],
   ): Promise<Activity> {
     const queryRunner = this.connection.createQueryRunner();
     await queryRunner.connect();
@@ -91,11 +104,17 @@ export class ActivitiesService {
           routeIn,
           user,
           activity,
+          sideEffects,
         );
       }
 
-      await queryRunner.commitTransaction();
-      return activity;
+      if (dryRun) {
+        await queryRunner.rollbackTransaction();
+        return Promise.resolve(null);
+      } else {
+        await queryRunner.commitTransaction();
+        return activity;
+      }
     } catch (exception) {
       await queryRunner.rollbackTransaction();
       throw exception;

@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { GqlExecutionContext, GraphQLModule } from '@nestjs/graphql';
+import { GraphQLModule } from '@nestjs/graphql';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 
@@ -102,8 +102,8 @@ import Redis from 'ioredis';
                 port: configService.get('REDIS_PORT'),
               }),
             }),
-            shouldWriteToCache: () => true,
-            shouldReadFromCache: () => true,
+            shouldWriteToCache: () => configService.get('CACHE') === 'enabled',
+            shouldReadFromCache: () => configService.get('CACHE') === 'enabled',
             sessionId: requestContext =>
               requestContext.request.http.headers.get('Authorization'),
             extraCacheKeyData: async requestContext => {

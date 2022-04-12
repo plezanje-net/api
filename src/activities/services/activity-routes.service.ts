@@ -10,7 +10,6 @@ import { Club } from '../../users/entities/club.entity';
 import { User } from '../../users/entities/user.entity';
 import {
   Connection,
-  getConnection,
   QueryRunner,
   Repository,
   SelectQueryBuilder,
@@ -23,6 +22,7 @@ import {
   tickAscentTypes,
   firstTickAscentTypes,
   trTickAscentTypes,
+  firstTrTickAscentTypes,
 } from '../entities/activity-route.entity';
 import { Activity } from '../entities/activity.entity';
 import { PaginatedActivityRoutes } from '../utils/paginated-activity-routes.class';
@@ -30,6 +30,9 @@ import { DifficultyVote } from '../../crags/entities/difficulty-vote.entity';
 import { CragStatus } from '../../crags/entities/crag.entity';
 import { StarRatingVote } from '../../crags/entities/star-rating-vote.entity';
 import { UpdateActivityRouteInput } from '../dtos/update-activity-route.input';
+import { RoutesTouches } from '../utils/routes-touches.class';
+import { FindRoutesTouchesInput } from '../dtos/find-routes-touches.input';
+import { SideEffect } from '../utils/side-effect.class';
 
 @Injectable()
 export class ActivityRoutesService {
@@ -37,16 +40,10 @@ export class ActivityRoutesService {
     private connection: Connection,
     @InjectRepository(ActivityRoute)
     private activityRoutesRepository: Repository<ActivityRoute>,
-    @InjectRepository(Route)
-    private routesRepository: Repository<Route>,
     @InjectRepository(ClubMember)
     private clubMembersRepository: Repository<ClubMember>,
     @InjectRepository(Club)
     private clubsRepository: Repository<Club>,
-    @InjectRepository(DifficultyVote)
-    private difficultyVoteRepository: Repository<DifficultyVote>,
-    @InjectRepository(StarRatingVote)
-    private starRatingVoteRepository: Repository<StarRatingVote>,
   ) {}
 
   async createBatch(
@@ -82,19 +79,27 @@ export class ActivityRoutesService {
     routeIn: CreateActivityRouteInput,
     user: User,
     activity?: Activity,
+    sideEffects: SideEffect[] = [],
   ): Promise<ActivityRoute> {
     const activityRoute = new ActivityRoute();
-
-    this.activityRoutesRepository.merge(activityRoute, routeIn);
+    queryRunner.manager.merge(ActivityRoute, activityRoute, routeIn);
 
     activityRoute.user = Promise.resolve(user);
 
-    const route = await this.routesRepository.findOneOrFail(routeIn.routeId);
-    const routeTouched = await this.routeTouched(user, routeIn.routeId);
+    const route = await queryRunner.manager.findOneOrFail(
+      Route,
+      routeIn.routeId,
+    );
+
+    const routeTouched = await this.getTouchesForRoutes(
+      new FindRoutesTouchesInput([routeIn.routeId], routeIn.date),
+      user.id,
+      queryRunner,
+    );
     const logPossible = this.logPossible(
-      routeTouched.ticked,
-      routeTouched.tried,
-      routeTouched.trticked,
+      routeTouched.ticked.some(ar => ar.routeId === routeIn.routeId),
+      routeTouched.tried.some(ar => ar.routeId === routeIn.routeId),
+      routeTouched.trTicked.some(ar => ar.routeId === routeIn.routeId),
       routeIn.ascentType,
       route.routeTypeId,
     );
@@ -102,19 +107,41 @@ export class ActivityRoutesService {
       throw new HttpException('Impossible log', HttpStatus.NOT_ACCEPTABLE);
     }
 
+    // If after the date of this log more logs of the same route exist, their ascent types might need to be changed (eg. redpoint -> repeat etc.)
+    const args: [string, string, Date, QueryRunner, SideEffect[]] = [
+      routeIn.routeId,
+      user.id,
+      activity.date,
+      queryRunner,
+      sideEffects,
+    ];
+    if (this.isTick(routeIn.ascentType)) {
+      await this.convertFirstTickAfterToRepeat(...args);
+      await this.convertFirstTrTickAfterToTrRepeat(...args);
+      await this.convertFirstTrSightOrFlashAfterToTrRedpoint(...args);
+    } else if (this.isTrTick(routeIn.ascentType)) {
+      await this.convertFirstSightOrFlashAfterToRedpoint(...args);
+      await this.convertFirstTrTickAfterToTrRepeat(...args);
+    } else {
+      // it is only a try
+      // there can really only be one of the below, so one of theese will do nothing. and also could do it in a single query, but leave as is for readability reasons
+      await this.convertFirstSightOrFlashAfterToRedpoint(...args);
+      await this.convertFirstTrSightOrFlashAfterToTrRedpoint(...args);
+    }
+
     activityRoute.route = Promise.resolve(route);
 
     // if a vote on difficulty is passed add a new difficulty vote or update existing
     if (routeIn.votedDifficulty) {
       // but first check if a user even can vote (can vote only if the log is a tick)
-      if (!tickAscentTypes.some(at => at === routeIn.ascentType)) {
+      if (!this.isTick(routeIn.ascentType)) {
         throw new HttpException(
-          'Cannot vote on difficulty if not logging a tick',
+          'Cannot vote on difficulty if not logging a tick.',
           HttpStatus.NOT_ACCEPTABLE,
         );
       }
 
-      let difficultyVote = await this.difficultyVoteRepository.findOne({
+      let difficultyVote = await queryRunner.manager.findOne(DifficultyVote, {
         user,
         route,
       });
@@ -136,16 +163,16 @@ export class ActivityRoutesService {
     }
 
     // if a vote on star rating (route beauty) is passed add a new star rating vote or update existing one
-    if (routeIn.votedStarRating !== null) {
+    if (routeIn.votedStarRating || routeIn.votedStarRating === 0) {
       // but first check if a user even can vote (can vote only if the log is a tick)
-      if (!tickAscentTypes.some(at => at === routeIn.ascentType)) {
+      if (!this.isTick(routeIn.ascentType)) {
         throw new HttpException(
-          'Cannot vote on star rating (beauty) if not logging a tick',
+          'Cannot vote on star rating (beauty) if not logging a tick.',
           HttpStatus.NOT_ACCEPTABLE,
         );
       }
 
-      let starRatingVote = await this.starRatingVoteRepository.findOne({
+      let starRatingVote = await queryRunner.manager.findOne(StarRatingVote, {
         user,
         route,
       });
@@ -159,6 +186,7 @@ export class ActivityRoutesService {
       await queryRunner.manager.save(starRatingVote);
     }
 
+    // Deprecated: unnecessary if statement -> activity should not be null anymore ?? // TODO: make final decision on this!
     if (activity !== null) {
       activityRoute.activity = Promise.resolve(activity);
     }
@@ -166,11 +194,175 @@ export class ActivityRoutesService {
     return queryRunner.manager.save(activityRoute);
   }
 
+  private isTick(ascentType: AscentType) {
+    return tickAscentTypes.has(ascentType);
+  }
+
+  private isTrTick(ascentType: AscentType) {
+    return trTickAscentTypes.has(ascentType);
+  }
+
   /**
-   *
+   * Find user's first tick of a route after the date and convert it to repeat if one exists
+   */
+  private async convertFirstTickAfterToRepeat(
+    routeId: string,
+    userId: string,
+    date: Date,
+    queryRunner: QueryRunner,
+    sideEffects: SideEffect[] = [],
+  ) {
+    const futureTick = await queryRunner.manager
+      .createQueryBuilder(ActivityRoute, 'ar')
+      .where('ar."routeId" = :routeId', { routeId: routeId })
+      .andWhere('ar."userId" = :userId', { userId: userId })
+      .andWhere('ar."ascentType" IN (:...aTypes)', {
+        aTypes: [...firstTickAscentTypes],
+      })
+      .andWhere('ar.date > :arDate', { arDate: date })
+      .orderBy('ar.date', 'ASC') // not realy neccesary, but just in case
+      .getOne(); // If data is valid there can only be one such ascent logged (or none)
+
+    // We do have a tick in the future
+    if (futureTick) {
+      // Remember current activity route state
+      const futureTickBeforeChange = new ActivityRoute();
+      queryRunner.manager.merge(
+        ActivityRoute,
+        futureTickBeforeChange,
+        futureTick,
+      );
+
+      // Convert it to repeat
+      futureTick.ascentType = AscentType.REPEAT;
+      await queryRunner.manager.save(futureTick);
+      sideEffects.push({ before: futureTickBeforeChange, after: futureTick });
+    }
+  }
+
+  /**
+   * Find user's first toprope tick of a route after the date and convert it to toprope repeat if one exists
+   */
+  private async convertFirstTrTickAfterToTrRepeat(
+    routeId: string,
+    userId: string,
+    date: Date,
+    queryRunner: QueryRunner,
+    sideEffects: SideEffect[] = [],
+  ) {
+    const futureTrTick = await queryRunner.manager
+      .createQueryBuilder(ActivityRoute, 'ar')
+      .where('ar."routeId" = :routeId', { routeId: routeId })
+      .andWhere('ar."userId" = :userId', { userId: userId })
+      .andWhere('ar."ascentType" IN (:...aTypes)', {
+        aTypes: [...firstTrTickAscentTypes],
+      })
+      .andWhere('ar.date > :arDate', { arDate: date })
+      .getOne(); // If data is valid there can only be one such ascent logged (or none)
+
+    // We do have a toprope tick in the future
+    if (futureTrTick) {
+      // Remember current activity route state
+      const futureTrTickBeforeChange = new ActivityRoute();
+      queryRunner.manager.merge(
+        ActivityRoute,
+        futureTrTickBeforeChange,
+        futureTrTick,
+      );
+
+      // Convert it to toprope repeat
+      futureTrTick.ascentType = AscentType.T_REPEAT;
+      await queryRunner.manager.save(futureTrTick);
+      sideEffects.push({
+        before: futureTrTickBeforeChange,
+        after: futureTrTick,
+      });
+    }
+  }
+
+  /**
+   * Find user's first onsight or flash of a route after the date and convert it to redpoint if one exists
+   */
+  private async convertFirstSightOrFlashAfterToRedpoint(
+    routeId: string,
+    userId: string,
+    date: Date,
+    queryRunner: QueryRunner,
+    sideEffects: SideEffect[] = [],
+  ) {
+    const futureSightOrFlash = await queryRunner.manager
+      .createQueryBuilder(ActivityRoute, 'ar')
+      .where('ar."routeId" = :routeId', { routeId: routeId })
+      .andWhere('ar."userId" = :userId', { userId: userId })
+      .andWhere('ar."ascentType" IN (:...aTypes)', {
+        aTypes: [AscentType.ONSIGHT, AscentType.FLASH],
+      })
+      .andWhere('ar.date > :arDate', { arDate: date })
+      .getOne(); // If data is valid there can only be one such ascent logged (or none)
+
+    // We do have a flash/onsight in the future
+    if (futureSightOrFlash) {
+      // Remember current activity route state
+      const futureSightOrFlashBeforeChange = new ActivityRoute();
+      queryRunner.manager.merge(
+        ActivityRoute,
+        futureSightOrFlashBeforeChange,
+        futureSightOrFlash,
+      );
+
+      // Convert it to redpoint
+      futureSightOrFlash.ascentType = AscentType.REDPOINT;
+      await queryRunner.manager.save(futureSightOrFlash);
+      sideEffects.push({
+        before: futureSightOrFlashBeforeChange,
+        after: futureSightOrFlash,
+      });
+    }
+  }
+
+  /**
+   * Find user's first toprope onsight or toprope flash of a route after the date and convert it to toprope redpoint if one exists
+   */
+  private async convertFirstTrSightOrFlashAfterToTrRedpoint(
+    routeId: string,
+    userId: string,
+    date: Date,
+    queryRunner: QueryRunner,
+    sideEffects: SideEffect[] = [],
+  ) {
+    const futureTrSightOrFlash = await queryRunner.manager
+      .createQueryBuilder(ActivityRoute, 'ar')
+      .where('ar."routeId" = :routeId', { routeId: routeId })
+      .andWhere('ar."userId" = :userId', { userId: userId })
+      .andWhere('ar."ascentType" IN (:...aTypes)', {
+        aTypes: [AscentType.T_ONSIGHT, AscentType.T_FLASH],
+      })
+      .andWhere('ar.date > :arDate', { arDate: date })
+      .getOne(); // If data is valid there can only be one such ascent logged (or none)
+
+    // We do have a toprope flash/onsight in the future
+    if (futureTrSightOrFlash) {
+      // Remember current activity route state
+      const futureTrSightOrFlashBeforeChange = new ActivityRoute();
+      queryRunner.manager.merge(
+        ActivityRoute,
+        futureTrSightOrFlashBeforeChange,
+        futureTrSightOrFlash,
+      );
+
+      // Convert it to toprope redpoint
+      futureTrSightOrFlash.ascentType = AscentType.T_REDPOINT;
+      await queryRunner.manager.save(futureTrSightOrFlash);
+      sideEffects.push({
+        before: futureTrSightOrFlashBeforeChange,
+        after: futureTrSightOrFlash,
+      });
+    }
+  }
+
+  /**
    * check if logging a route is even possible
    * e.g. onsighting a route already tried is impossible and so on
-   *
    */
   private logPossible(
     routeTicked: boolean,
@@ -228,10 +420,9 @@ export class ActivityRoutesService {
     return true;
   }
 
-  async routeTouched(user: User, routeId: string) {
-    const connection = getConnection();
-
-    const query = connection
+  // Deprecated, use getTouchesForRoutes instead
+  async routeTouched(user: User, routeId: string, queryRunner: QueryRunner) {
+    const query = queryRunner.manager
       .createQueryBuilder()
       .select('tried')
       .addSelect('ticked')
@@ -268,6 +459,69 @@ export class ActivityRoutesService {
     const result = await query;
 
     return result[0];
+  }
+
+  /**
+   * For an array of route ids check which of the routes has a user already tried, ticked or ticked on toprope before (or on) a given date
+   * (Pass in a queryRunner instance if you are inside a transaction)
+   */
+  async getTouchesForRoutes(
+    input: FindRoutesTouchesInput,
+    userId: string,
+    queryRunner: QueryRunner = null,
+  ): Promise<RoutesTouches> {
+    // Use queryRunner if in a transaction. otherwise get qb from repository as ususal
+    const qb =
+      queryRunner?.manager.createQueryBuilder(ActivityRoute, 'ar') ??
+      this.activityRoutesRepository.createQueryBuilder('ar');
+
+    // This will be done in 3 queries for better readability (also :D)
+    // might optimize to do it in a single query if needed later
+
+    // Which of the passed routes have been ticked before (or on) the passed date?
+    const ticked = await qb
+      .addSelect('"routeId"') // need to add column to get the correct distinct
+      .distinctOn(['ar.routeId'])
+      .orderBy('ar.routeId')
+      .addOrderBy('ar.ascentType')
+      .where('ar.userId = :userId', { userId })
+      .andWhere('ar.routeId in (:...routeIds)', { routeIds: input.routeIds })
+      .andWhere('ar.ascentType in (:...tickTypes)', {
+        tickTypes: [...tickAscentTypes],
+      })
+      .andWhere('ar.date <= :before', { before: input.before })
+      .getMany();
+
+    // Which of the passed routes have been ticked on top rope before (or on) the passed date?
+    const trTicked = await qb
+      .addSelect('"routeId"') // need to add column to get the correct distinct
+      .distinctOn(['ar.routeId'])
+      .orderBy('ar.routeId')
+      .addOrderBy('ar.ascentType')
+      .where('ar.userId = :userId', { userId })
+      .andWhere('ar.routeId in (:...routeIds)', { routeIds: input.routeIds })
+      .andWhere('ar.ascentType in (:...trTickTypes)', {
+        trTickTypes: [...trTickAscentTypes],
+      })
+      .andWhere('ar.date <= :before', { before: input.before })
+      .getMany();
+
+    // Which of the passed routes have been tried before (or on) the passed date?
+    const tried = await qb
+      .addSelect('"routeId"') // need to add column to get the correct distinct
+      .distinctOn(['ar.routeId'])
+      .orderBy('ar.routeId')
+      .addOrderBy('ar.ascentType')
+      .where('ar.userId = :userId', { userId })
+      .andWhere('ar.routeId in (:...routeIds)', { routeIds: input.routeIds })
+      .andWhere('ar.date <= :before', { before: input.before })
+      .getMany();
+
+    return {
+      ticked,
+      trTicked,
+      tried,
+    };
   }
 
   async cragSummary(
@@ -359,7 +613,7 @@ export class ActivityRoutesService {
       .innerJoin('crag', 'c', 'r.cragId = c.id')
       // .distinctOn(['ardate', 'ar.userId']) // use this if you want to return only one (best) ascent per user per day
       .where('ar.ascentType IN (:...aTypes)', {
-        aTypes: firstTickAscentTypes,
+        aTypes: [...firstTickAscentTypes],
       })
       .andWhere('ar.publish IN (:...publish)', {
         publish: ['log', 'public'], // public is public, log is 'javno na mojem profilu'

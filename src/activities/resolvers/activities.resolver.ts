@@ -28,6 +28,7 @@ import { ActivityRoute } from '../entities/activity-route.entity';
 import { AuditInterceptor } from '../../audit/interceptors/audit.interceptor';
 import { GraphQLResolveInfo } from 'graphql';
 import { CacheScope } from 'apollo-server-types';
+import { SideEffect } from '../utils/side-effect.class';
 import { UpdateActivityInput } from '../dtos/update-activity.input';
 
 @Resolver(() => Activity)
@@ -75,6 +76,63 @@ export class ActivitiesResolver {
         user,
         routesIn,
       );
+    } catch (exception) {
+      throw exception;
+    }
+  }
+
+  /**
+   * Because creating activity with routes can produce side effects, this query will simulate it, and return what will be changed if the mutation was actually ran
+   */
+  @Query(() => [SideEffect])
+  @UseGuards(UserAuthGuard)
+  async dryRunCreateActivity(
+    @CurrentUser() user: User,
+    @Args('input', { type: () => CreateActivityInput })
+    activityIn: CreateActivityInput,
+    @Args('routes', { type: () => [CreateActivityRouteInput] })
+    routesIn: CreateActivityRouteInput[],
+  ): Promise<SideEffect[]> {
+    try {
+      const sideEffects = [];
+      await this.activitiesService.createActivityWRoutes(
+        activityIn,
+        user,
+        routesIn,
+        true,
+        sideEffects,
+      );
+      return sideEffects;
+    } catch (exception) {
+      throw exception;
+    }
+  }
+
+  @Query(() => [SideEffect])
+  @UseGuards(UserAuthGuard)
+  async dryRunUpdateActivity(
+    @CurrentUser() user: User,
+    @Args('input', { type: () => UpdateActivityInput })
+    activityIn: UpdateActivityInput,
+    @Args('routes', { type: () => [CreateActivityRouteInput] })
+    routesIn: CreateActivityRouteInput[],
+  ): Promise<SideEffect[]> {
+    const activity = await this.activitiesService.findOneById(activityIn.id);
+
+    if (activity.userId != user.id) {
+      throw new ForbiddenException();
+    }
+
+    try {
+      const sideEffects = [];
+      await this.activitiesService.updateActivityWithRoutes(
+        activityIn,
+        user,
+        routesIn,
+        true,
+        sideEffects,
+      );
+      return sideEffects;
     } catch (exception) {
       throw exception;
     }
