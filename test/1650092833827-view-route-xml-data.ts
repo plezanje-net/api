@@ -38,33 +38,37 @@ export class viewRouteXmlData1648898077766 implements MigrationInterface {
 
     let query;
 
-    for (const entity of entities) {
+    for (const entity of [entities[4]]) {
       query = await queryRunner.query(entity.query);
 
       query.forEach(async row => {
         if (row.xmlinfo == null) return;
         const result = parser.parse(row.xmlinfo);
         Object.keys(result).forEach(propertyName => {
-          if (propertyName != 'extGrade') return;
           if (summary[entity.name][propertyName] == null) {
             summary[entity.name][propertyName] = [];
           }
           if (
             !summary[entity.name][propertyName].includes(result[propertyName])
           ) {
-            summary[entity.name][propertyName].push(result[propertyName]);
+            let val = result[propertyName];
+            if (typeof val == 'object') {
+              val = val['#text'];
+            }
+            // val = typeof val;
+            summary[entity.name][propertyName].push(val);
           }
         });
       });
     }
 
-    console.log(
-      Object.keys(summary).map(key => ({
-        entity: key,
-        properties: Object.keys(summary[key]),
-      })),
-    );
-    console.log(summary.iceFalls);
+    // console.log(
+    //   Object.keys(summary).map(key => ({
+    //     entity: key,
+    //     properties: Object.keys(summary[key]),
+    //   })),
+    // );
+    console.log(summary.crags);
 
     throw BadGatewayException;
   }

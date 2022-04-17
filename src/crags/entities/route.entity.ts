@@ -8,6 +8,8 @@ import {
   ManyToOne,
   OneToMany,
   Unique,
+  JoinTable,
+  ManyToMany,
 } from 'typeorm';
 import { ObjectType, Field } from '@nestjs/graphql';
 import { Sector } from './sector.entity';
@@ -20,6 +22,7 @@ import { StarRatingVote } from './star-rating-vote.entity';
 import { GradingSystem } from './grading-system.entity';
 import { RouteType } from './route-type.entity';
 import { RouteEvent } from './route-event.entity';
+import { Book } from './book.entity';
 
 export enum RouteStatus {
   PUBLIC = 'public',
@@ -94,6 +97,10 @@ export class Route extends BaseEntity {
   @Column({ default: false })
   @Field()
   isProject: boolean;
+
+  @Column({ type: 'text', nullable: true })
+  @Field({ nullable: true })
+  description: string;
 
   @CreateDateColumn()
   created: Date;
@@ -171,4 +178,8 @@ export class Route extends BaseEntity {
   )
   @Field(() => [RouteEvent])
   routeEvents: Promise<RouteEvent[]>;
+
+  @ManyToMany(() => Book)
+  @JoinTable()
+  books: Book[];
 }

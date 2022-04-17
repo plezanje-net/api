@@ -1,14 +1,5 @@
-import {
-  Entity,
-  Column,
-  BaseEntity,
-  PrimaryColumn,
-  ManyToMany,
-  OneToMany,
-} from 'typeorm';
+import { Entity, Column, BaseEntity, PrimaryColumn } from 'typeorm';
 import { ObjectType, Field } from '@nestjs/graphql';
-import { RouteType } from './route-type.entity';
-import { Grade } from './grade.entity';
 
 export enum PropertyValueType {
   STRING = 'string',

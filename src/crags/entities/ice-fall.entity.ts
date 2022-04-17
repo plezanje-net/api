@@ -8,6 +8,8 @@ import {
   ManyToOne,
   OneToMany,
   Unique,
+  JoinTable,
+  ManyToMany,
 } from 'typeorm';
 import { ObjectType, Field } from '@nestjs/graphql';
 import { Comment } from './comment.entity';
@@ -15,6 +17,7 @@ import { Image } from '../../crags/entities/image.entity';
 import { Area } from './area.entity';
 import { Country } from './country.entity';
 import { GradingSystem } from './grading-system.entity';
+import { Book } from './book.entity';
 
 @Entity()
 @Unique(['slug'])
@@ -98,4 +101,8 @@ export class IceFall extends BaseEntity {
   )
   @Field(() => [Image])
   images: Promise<Image[]>;
+
+  @ManyToMany(() => Book)
+  @JoinTable()
+  books: Book[];
 }

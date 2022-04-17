@@ -30,9 +30,13 @@ export class BaseProperty extends BaseEntity {
   @Field({ nullable: true })
   textValue: string;
 
-  @Column({ nullable: true })
+  @Column({ type: 'float', nullable: true })
   @Field({ nullable: true })
   numValue: number;
+
+  @Column({ nullable: true })
+  @Field({ nullable: true })
+  author: string;
 
   @Column({ type: 'int' })
   position: number;

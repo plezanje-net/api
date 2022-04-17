@@ -1,14 +1,14 @@
 import { Entity, Column, ManyToOne } from 'typeorm';
 import { Field, ObjectType } from '@nestjs/graphql';
 import { BaseProperty } from './base-property.entity';
-import { Crag } from './crag.entity';
+import { IceFall } from './ice-fall.entity';
 
 @Entity()
 @ObjectType()
-export class CragProperty extends BaseProperty {
-  @ManyToOne(() => Crag)
-  @Field(() => Crag)
-  crag: Promise<Crag>;
+export class IceFallProperty extends BaseProperty {
+  @ManyToOne(() => IceFall)
+  @Field(() => IceFall)
+  iceFall: Promise<IceFall>;
   @Column()
-  cragId: string;
+  iceFallId: string;
 }
