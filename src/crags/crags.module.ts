@@ -54,6 +54,10 @@ import { RouteTypeLoader } from './loaders/route-type.loader';
 import { CountryLoader } from './loaders/country.loader';
 import { RouteLoader } from './loaders/route.loader';
 import { CragLoader } from './loaders/crag.loader';
+import { RouteProperty } from './entities/route-property.entity';
+import { CragProperty } from './entities/crag-property.entity';
+import { IceFallProperty } from './entities/ice-fall-property.entity';
+import { EntityPropertiesService } from './services/entity-properties.service';
 
 @Module({
   imports: [
@@ -73,6 +77,9 @@ import { CragLoader } from './loaders/crag.loader';
       GradingSystem,
       RouteType,
       DifficultyVote,
+      RouteProperty,
+      CragProperty,
+      IceFallProperty,
     ]),
     AuditModule,
   ],
@@ -115,6 +122,7 @@ import { CragLoader } from './loaders/crag.loader';
     PeaksResolver,
     PeaksService,
     RouteTypesService,
+    EntityPropertiesService,
   ],
 })
 export class CragsModule {}

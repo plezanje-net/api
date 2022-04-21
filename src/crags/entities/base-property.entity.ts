@@ -1,16 +1,8 @@
-import {
-  Entity,
-  Column,
-  BaseEntity,
-  PrimaryColumn,
-  ManyToMany,
-  OneToMany,
-  PrimaryGeneratedColumn,
-  ManyToOne,
-} from 'typeorm';
-import { ObjectType, Field } from '@nestjs/graphql';
+import { Column, BaseEntity, PrimaryGeneratedColumn, ManyToOne } from 'typeorm';
+import { Field, InterfaceType } from '@nestjs/graphql';
 import { PropertyType } from './property-type.entity';
 
+@InterfaceType()
 export class BaseProperty extends BaseEntity {
   @PrimaryGeneratedColumn('uuid')
   @Field()

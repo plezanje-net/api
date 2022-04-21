@@ -24,13 +24,13 @@ import { MinCragStatus } from '../decorators/min-crag-status.decorator';
 import { AllowAny } from '../../auth/decorators/allow-any.decorator';
 import { UserAuthGuard } from '../../auth/guards/user-auth.guard';
 import { GradingSystem } from '../entities/grading-system.entity';
-import { RouteType } from '../entities/route-type.entity';
-import { RouteTypeLoader } from '../loaders/route-type.loader';
 import { GradingSystemLoader } from '../loaders/grading-system.loader';
 import { Loader } from '../../core/interceptors/data-loader.interceptor';
 import DataLoader from 'dataloader';
 import { Country } from '../entities/country.entity';
 import { CountryLoader } from '../loaders/country.loader';
+import { CragProperty } from '../entities/crag-property.entity';
+import { EntityPropertiesService } from '../services/entity-properties.service';
 
 @Resolver(() => Crag)
 export class CragsResolver {
@@ -38,6 +38,7 @@ export class CragsResolver {
     private cragsService: CragsService,
     private sectorsService: SectorsService,
     private commentsService: CommentsService,
+    private entityPropertiesService: EntityPropertiesService,
   ) {}
 
   @Query(() => Crag)
@@ -121,6 +122,11 @@ export class CragsResolver {
     return this.commentsService.find({
       cragId: crag.id,
     });
+  }
+
+  @ResolveField('properties', () => [CragProperty])
+  async getProperties(@Parent() crag: Crag): Promise<CragProperty[]> {
+    return this.entityPropertiesService.getCragProperties(crag);
   }
 
   @ResolveField('country', () => Country)
