@@ -53,10 +53,6 @@ export class IceFall extends BaseEntity {
 
   @Column({ type: 'text', nullable: true })
   @Field({ nullable: true })
-  access: string;
-
-  @Column({ type: 'text', nullable: true })
-  @Field({ nullable: true })
   description: string;
 
   @Column({ type: 'int' })

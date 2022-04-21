@@ -451,6 +451,8 @@ export class entityProperties1650092833824 implements MigrationInterface {
       `ALTER TABLE "route_books_book" ADD CONSTRAINT "FK_30867690ac76920e8d7434a9e84" FOREIGN KEY ("bookId") REFERENCES "book"("id") ON DELETE CASCADE ON UPDATE CASCADE`,
     );
 
+    await queryRunner.query(`ALTER TABLE "ice_fall" DROP COLUMN "access"`);
+
     await transferData(queryRunner);
   }
 
@@ -508,5 +510,6 @@ export class entityProperties1650092833824 implements MigrationInterface {
       `DROP INDEX "public"."IDX_afa30f83400020b8dbc39427b4"`,
     );
     await queryRunner.query(`DROP TABLE "ice_fall_books_book"`);
+    await queryRunner.query(`ALTER TABLE "ice_fall" ADD "access" text`);
   }
 }
