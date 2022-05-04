@@ -60,7 +60,14 @@ const transferData = async queryRunner => {
         ],
         ['photoURL', 'create', 'property', 'photoURL', 'Fotografija', 'url'],
         ['sketchURL', 'create', 'property', 'sketchURL', 'Skica', 'url'],
-        ['equipment', 'create', 'property', 'equipment', 'Potrebnama', 'text'],
+        [
+          'equipment',
+          'create',
+          'property',
+          'equipment',
+          'Potrebna oprema',
+          'text',
+        ],
         ['descent', 'create', 'property', 'descent', 'Sestop', 'text'],
       ],
     },
@@ -165,7 +172,6 @@ const transferData = async queryRunner => {
         ],
         ['sketchURL', 'create', 'property', 'sketchURL', 'Skica', 'url'],
         ['accessURL', 'create', 'property', 'accessURL', 'Dostop', 'url'],
-        ['access', 'create', 'property', 'access', 'Dostop', 'text'],
         ['photoURL', 'create', 'property', 'photoURL', 'Fotografija', 'url'],
         [
           'accessTime',
@@ -383,8 +389,8 @@ const bbconv = (str: string) => {
   return str;
 };
 
-export class entityProperties1650092833824 implements MigrationInterface {
-  name = 'entityProperties1650092833824';
+export class entityProperties1650621348999 implements MigrationInterface {
+  name = 'entityProperties1650621348999';
 
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`DROP INDEX "public"."crag_status_idx"`);
