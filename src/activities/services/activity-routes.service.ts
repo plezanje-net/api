@@ -131,6 +131,17 @@ export class ActivityRoutesService {
 
     activityRoute.route = Promise.resolve(route);
 
+    if (
+      route.isProject &&
+      this.isTick(routeIn.ascentType) &&
+      !routeIn.votedDifficulty
+    ) {
+      throw new HttpException(
+        'If ticking a project difficulty vote is required.',
+        HttpStatus.NOT_ACCEPTABLE,
+      );
+    }
+
     // if a vote on difficulty is passed add a new difficulty vote or update existing
     if (routeIn.votedDifficulty) {
       // but first check if a user even can vote (can vote only if the log is a tick)
