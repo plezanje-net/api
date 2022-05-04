@@ -1,3 +1,4 @@
+import { GoneException } from '@nestjs/common';
 import { XMLParser } from 'fast-xml-parser';
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
@@ -192,12 +193,21 @@ const transferData = async queryRunner => {
   let pos = 1;
 
   const bookRefs = {};
-
   const books = await queryRunner.query(
     `SELECT id, legacy::json -> 'RefID' as refid FROM book`,
   );
   books.forEach(row => {
     bookRefs[row.refid] = row.id;
+  });
+
+  const imageRefs = {};
+  const images = await queryRunner.query(
+    `SELECT path, extension, legacy::json -> 'ImageID' as "legacyId" FROM image`,
+  );
+  images.forEach(row => {
+    imageRefs[
+      `/asp/getImage.asp?id=${row.legacyId}`
+    ] = `/storage/images/${row.path}.${row.extension}`;
   });
 
   for (const entity of entities) {
@@ -285,6 +295,13 @@ const transferData = async queryRunner => {
           if (mr[5] == 'number') {
             value = (value + '').replace(',', '.');
           }
+
+          if (mr[5] == 'url' && (value + '').indexOf('getImage.asp') > -1) {
+            if (imageRefs[value] != null) {
+              value = imageRefs[value];
+            }
+          }
+
           if (mr[5] == 'boolean') {
             await queryRunner.query(
               `INSERT INTO ${entity.table} ("propertyTypeId", "${entity.field}", position) VALUES ('${mr[3]}', '${row.id}', 0)`,
