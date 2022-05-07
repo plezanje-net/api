@@ -180,7 +180,7 @@ const transferData = async queryRunner => {
           'property',
           'accessTime',
           'Trajanje dostopa',
-          'string',
+          'time',
         ],
       ],
     },
@@ -293,6 +293,9 @@ const transferData = async queryRunner => {
           }
 
           if (mr[5] == 'number') {
+            value = (value + '').replace(',', '.');
+          }
+          if (mr[5] == 'time') {
             value = (value + '').replace(',', '.');
           }
 
