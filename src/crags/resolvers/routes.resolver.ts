@@ -34,6 +34,8 @@ import { GradingSystemLoader } from '../loaders/grading-system.loader';
 import { RouteType } from '../entities/route-type.entity';
 import { RouteTypeLoader } from '../loaders/route-type.loader';
 import { CragLoader } from '../loaders/crag.loader';
+import { RouteProperty } from '../entities/route-property.entity';
+import { EntityPropertiesService } from '../services/entity-properties.service';
 
 @Resolver(() => Route)
 export class RoutesResolver {
@@ -42,6 +44,7 @@ export class RoutesResolver {
     private commentsService: CommentsService,
     private pitchesService: PitchesService,
     private difficultyVotesService: DifficultyVotesService,
+    private entityPropertiesService: EntityPropertiesService,
   ) {}
 
   @Mutation(() => Route)
@@ -108,6 +111,11 @@ export class RoutesResolver {
     loader: DataLoader<Comment['id'], Comment[]>,
   ): Promise<Comment[]> {
     return loader.load(route.id);
+  }
+
+  @ResolveField('properties', () => [RouteProperty])
+  async getProperties(@Parent() route: Route): Promise<RouteProperty[]> {
+    return this.entityPropertiesService.getRouteProperties(route);
   }
 
   @ResolveField('difficultyVotes', () => [DifficultyVote])

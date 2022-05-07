@@ -39,6 +39,10 @@ import { AuthService } from './auth/services/auth.service';
 import { AuthModule } from './auth/auth.module';
 import { CacheControlService } from './core/services/cache-control.service';
 import Redis from 'ioredis';
+import { IceFallProperty } from './crags/entities/ice-fall-property.entity';
+import { CragProperty } from './crags/entities/crag-property.entity';
+import { RouteProperty } from './crags/entities/route-property.entity';
+import { PropertyType } from './crags/entities/property-type.entity';
 
 @Module({
   imports: [
@@ -77,6 +81,10 @@ import Redis from 'ioredis';
           RouteEvent,
           GradingSystem,
           Grade,
+          RouteProperty,
+          CragProperty,
+          IceFallProperty,
+          PropertyType,
         ],
         synchronize: false,
         // logging: ['query', 'error'],
