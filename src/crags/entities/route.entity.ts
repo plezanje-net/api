@@ -188,5 +188,14 @@ export class Route extends BaseEntity {
     () => ActivityRoute,
     activityRoute => activityRoute.route,
   )
-  activityRoute: ActivityRoute[];
+  activityRoutes: ActivityRoute[];
+
+  @Field()
+  nrTicks: number;
+
+  @Field()
+  nrTries: number;
+
+  @Field()
+  nrClimbers: number;
 }

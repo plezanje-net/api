@@ -36,15 +36,15 @@ import { RouteTypeLoader } from '../loaders/route-type.loader';
 import { CragLoader } from '../loaders/crag.loader';
 import { RouteProperty } from '../entities/route-property.entity';
 import { EntityPropertiesService } from '../services/entity-properties.service';
+import { ActivityRoutesService } from '../../activities/services/activity-routes.service';
 
 @Resolver(() => Route)
 export class RoutesResolver {
   constructor(
     private routesService: RoutesService,
-    private commentsService: CommentsService,
-    private pitchesService: PitchesService,
     private difficultyVotesService: DifficultyVotesService,
     private entityPropertiesService: EntityPropertiesService,
+    private activityRoutesService: ActivityRoutesService,
   ) {}
 
   @Mutation(() => Route)
@@ -157,5 +157,20 @@ export class RoutesResolver {
     loader: DataLoader<RouteType['id'], RouteType>,
   ): Promise<RouteType> {
     return loader.load(route.routeTypeId);
+  }
+
+  @ResolveField('nrTicks', returns => Number)
+  async nrTicks(@Parent() route: Route) {
+    return this.activityRoutesService.countTicks(route);
+  }
+
+  @ResolveField('nrTries', returns => Number)
+  async nrTries(@Parent() route: Route) {
+    return this.activityRoutesService.countTries(route);
+  }
+
+  @ResolveField('nrClimbers', returns => Number)
+  async nrClimbers(@Parent() route: Route) {
+    return this.activityRoutesService.countDisctinctClimbers(route);
   }
 }

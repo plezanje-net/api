@@ -58,6 +58,7 @@ import { RouteProperty } from './entities/route-property.entity';
 import { CragProperty } from './entities/crag-property.entity';
 import { IceFallProperty } from './entities/ice-fall-property.entity';
 import { EntityPropertiesService } from './services/entity-properties.service';
+import { ActivitiesModule } from '../activities/activities.module';
 
 @Module({
   imports: [
@@ -82,6 +83,7 @@ import { EntityPropertiesService } from './services/entity-properties.service';
       IceFallProperty,
     ]),
     AuditModule,
+    ActivitiesModule,
   ],
   providers: [
     CragsResolver,
