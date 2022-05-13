@@ -40,6 +40,5 @@ import { StarRatingVote } from '../crags/entities/star-rating-vote.entity';
     ActivityRoutesService,
     ActivityLoader,
   ],
-  exports: [ActivityRoutesService],
 })
 export class ActivitiesModule {}

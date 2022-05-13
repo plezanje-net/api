@@ -785,29 +785,4 @@ export class ActivityRoutesService {
   async delete(activityRoute: ActivityRoute): Promise<boolean> {
     return this.activityRoutesRepository.remove(activityRoute).then(() => true);
   }
-
-  countTicks(route: Route) {
-    return this.activityRoutesRepository.count({
-      where: {
-        routeId: route.id,
-        ascentType: In([...tickAscentTypes]),
-      },
-    });
-  }
-
-  countTries(route: Route) {
-    return this.activityRoutesRepository.count({
-      where: { routeId: route.id },
-    });
-  }
-
-  async countDisctinctClimbers(route: Route) {
-    const result = this.activityRoutesRepository
-      .createQueryBuilder('ar')
-      .select('COUNT(DISTINCT(ar."userId")) as "nrClimbers"')
-      .where('ar.routeId = :routeId', { routeId: route.id })
-      .getRawOne();
-
-    return (await result).nrClimbers;
-  }
 }
