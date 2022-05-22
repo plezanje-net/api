@@ -21,6 +21,7 @@ import { Peak } from './peak.entity';
 import { Route } from './route.entity';
 import { Activity } from '../../activities/entities/activity.entity';
 import { GradingSystem } from './grading-system.entity';
+import { User } from '../../users/entities/user.entity';
 
 export enum CragStatus {
   PUBLIC = 'public',
@@ -186,4 +187,10 @@ export class Crag extends BaseEntity {
   )
   @Field(() => [Activity])
   activities: Promise<Activity[]>;
+
+  @ManyToOne(() => User)
+  @Field(() => User, { nullable: true })
+  user: Promise<User>;
+  @Column({ name: 'userId', nullable: true })
+  userId: string;
 }

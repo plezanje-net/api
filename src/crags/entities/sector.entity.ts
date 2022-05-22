@@ -11,6 +11,7 @@ import {
 import { ObjectType, Field } from '@nestjs/graphql';
 import { Crag } from '../../crags/entities/crag.entity';
 import { Route } from '../../crags/entities/route.entity';
+import { User } from '../../users/entities/user.entity';
 
 export enum SectorStatus {
   PUBLIC = 'public',
@@ -77,4 +78,10 @@ export class Sector extends BaseEntity {
   )
   @Field(() => [Route])
   routes: Promise<Route[]>;
+
+  @ManyToOne(() => User)
+  @Field(() => User, { nullable: true })
+  user: Promise<User>;
+  @Column({ name: 'userId', nullable: true })
+  userId: string;
 }
