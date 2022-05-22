@@ -5,10 +5,10 @@ import { Sector } from '../entities/sector.entity';
 import { In, Not, Repository } from 'typeorm';
 import { CreateRouteInput } from '../dtos/create-route.input';
 import { UpdateRouteInput } from '../dtos/update-route.input';
-import { CragStatus } from '../entities/crag.entity';
 import slugify from 'slugify';
 import { DifficultyVote } from '../entities/difficulty-vote.entity';
 import { User } from '../../users/entities/user.entity';
+import { EntityStatus } from '../entities/enums/entity-status.enum';
 
 @Injectable()
 export class RoutesService {
@@ -42,7 +42,7 @@ export class RoutesService {
   async findOneBySlug(
     cragSlug: string,
     routeSlug: string,
-    minStatus: CragStatus,
+    minStatus: EntityStatus,
   ): Promise<Route> {
     const builder = this.routesRepository.createQueryBuilder('r');
 

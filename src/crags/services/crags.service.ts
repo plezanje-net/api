@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { CreateCragInput } from '../dtos/create-crag.input';
-import { Crag, CragStatus } from '../entities/crag.entity';
+import { Crag } from '../entities/crag.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Not, Repository, SelectQueryBuilder } from 'typeorm';
 import { UpdateCragInput } from '../dtos/update-crag.input';
@@ -13,6 +13,7 @@ import { PopularCrag } from '../utils/popular-crag.class';
 import slugify from 'slugify';
 import { GradingSystem } from '../entities/grading-system.entity';
 import { User } from '../../users/entities/user.entity';
+import { EntityStatus } from '../entities/enums/entity-status.enum';
 
 @Injectable()
 export class CragsService {
@@ -211,7 +212,7 @@ export class CragsService {
   async getPopularCrags(
     dateFrom: string,
     top: number,
-    minStatus: CragStatus,
+    minStatus: EntityStatus,
   ): Promise<PopularCrag[]> {
     const builder = this.cragsRepository
       .createQueryBuilder('c')

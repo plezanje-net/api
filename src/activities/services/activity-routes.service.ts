@@ -27,12 +27,12 @@ import {
 import { Activity } from '../entities/activity.entity';
 import { PaginatedActivityRoutes } from '../utils/paginated-activity-routes.class';
 import { DifficultyVote } from '../../crags/entities/difficulty-vote.entity';
-import { CragStatus } from '../../crags/entities/crag.entity';
 import { StarRatingVote } from '../../crags/entities/star-rating-vote.entity';
 import { UpdateActivityRouteInput } from '../dtos/update-activity-route.input';
 import { RoutesTouches } from '../utils/routes-touches.class';
 import { FindRoutesTouchesInput } from '../dtos/find-routes-touches.input';
 import { SideEffect } from '../utils/side-effect.class';
+import { EntityStatus } from '../../crags/entities/enums/entity-status.enum';
 
 @Injectable()
 export class ActivityRoutesService {
@@ -608,7 +608,7 @@ export class ActivityRoutesService {
   }
 
   async latestTicks(
-    minStatus: CragStatus,
+    minStatus: EntityStatus,
     latestN: number = null,
     inLastNDays: number = null,
   ): Promise<ActivityRoute[]> {

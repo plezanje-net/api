@@ -20,7 +20,6 @@ import { AllowAny } from '../../auth/decorators/allow-any.decorator';
 import { CurrentUser } from '../../auth/decorators/current-user.decorator';
 import { UserAuthGuard } from '../../auth/guards/user-auth.guard';
 import { MinCragStatus } from '../../crags/decorators/min-crag-status.decorator';
-import { CragStatus } from '../../crags/entities/crag.entity';
 import { Loader } from '../../core/interceptors/data-loader.interceptor';
 import { Route } from '../../crags/entities/route.entity';
 import { NotFoundFilter } from '../../crags/filters/not-found.filter';
@@ -41,6 +40,7 @@ import { UpdateActivityRouteInput } from '../dtos/update-activity-route.input';
 import { FindRoutesTouchesInput } from '../dtos/find-routes-touches.input';
 import { RoutesTouches } from '../utils/routes-touches.class';
 import { RouteTouched } from '../utils/route-touched.class';
+import { EntityStatus } from '../../crags/entities/enums/entity-status.enum';
 
 @Resolver(() => ActivityRoute)
 export class ActivityRoutesResolver {
@@ -202,7 +202,7 @@ export class ActivityRoutesResolver {
   @UseGuards(UserAuthGuard)
   @Query(returns => [ActivityRoute])
   latestTicks(
-    @MinCragStatus() minStatus: CragStatus,
+    @MinCragStatus() minStatus: EntityStatus,
     @Args('latestN', { type: () => Int, nullable: true }) latestN: number,
     @Args('inLastNDays', { type: () => Int, nullable: true })
     inLastNDays: number,

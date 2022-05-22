@@ -22,15 +22,7 @@ import { Route } from './route.entity';
 import { Activity } from '../../activities/entities/activity.entity';
 import { GradingSystem } from './grading-system.entity';
 import { User } from '../../users/entities/user.entity';
-
-export enum CragStatus {
-  PUBLIC = 'public',
-  HIDDEN = 'hidden',
-  ADMIN = 'admin',
-  ARCHIVE = 'archive',
-  PROPOSAL = 'proposal',
-  USER = 'user',
-}
+import { EntityStatus } from './enums/entity-status.enum';
 
 export enum CragType {
   SPORT = 'sport',
@@ -62,11 +54,11 @@ export class Crag extends BaseEntity {
 
   @Column({
     type: 'enum',
-    enum: CragStatus,
-    default: CragStatus.PUBLIC,
+    enum: EntityStatus,
+    default: EntityStatus.PUBLIC,
   })
   @Field()
-  status: CragStatus;
+  status: EntityStatus;
 
   @Column({ type: 'float', nullable: true })
   @Field(() => Float, { nullable: true })

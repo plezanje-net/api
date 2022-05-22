@@ -6,8 +6,7 @@ import { CurrentUser } from '../../auth/decorators/current-user.decorator';
 import { UserAuthGuard } from '../../auth/guards/user-auth.guard';
 import { User } from '../../users/entities/user.entity';
 import { FindCragsServiceInput } from '../dtos/find-crags-service.input';
-import { FindCragsInput } from '../dtos/find-crags.input';
-import { CragStatus } from '../entities/crag.entity';
+import { EntityStatus } from '../entities/enums/entity-status.enum';
 import { SearchService } from '../services/search.service';
 import { SearchResults } from '../utils/search-results.class';
 
@@ -24,7 +23,8 @@ export class SearchResolver {
     @Args('input', { nullable: true }) input?: string,
   ): Promise<SearchResults> {
     const cragsInput = new FindCragsServiceInput();
-    cragsInput.minStatus = user != null ? CragStatus.HIDDEN : CragStatus.PUBLIC;
+    cragsInput.minStatus =
+      user != null ? EntityStatus.HIDDEN : EntityStatus.PUBLIC;
 
     return this.searchService.find(input, cragsInput, gqlInfo);
   }

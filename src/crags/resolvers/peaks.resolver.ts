@@ -1,8 +1,8 @@
 import { Args, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql';
 import { MinCragStatus } from '../decorators/min-crag-status.decorator';
 import { FindCragsServiceInput } from '../dtos/find-crags-service.input';
-import { FindCragsInput } from '../dtos/find-crags.input';
-import { Crag, CragStatus } from '../entities/crag.entity';
+import { Crag } from '../entities/crag.entity';
+import { EntityStatus } from '../entities/enums/entity-status.enum';
 import { Peak } from '../entities/peak.entity';
 import { CragsService } from '../services/crags.service';
 import { PeaksService } from '../services/peaks.service';
@@ -26,7 +26,7 @@ export class PeaksResolver {
 
   @ResolveField('crags', returns => [Crag])
   async getCrags(
-    @MinCragStatus() minStatus: CragStatus,
+    @MinCragStatus() minStatus: EntityStatus,
     @Parent() peak: Peak,
     @Args('input', { nullable: true }) input: FindCragsServiceInput = {},
   ): Promise<Crag[]> {

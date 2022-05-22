@@ -16,10 +16,10 @@ import { UpdateCommentInput } from '../dtos/update-comment';
 import { UserAuthGuard } from '../../auth/guards/user-auth.guard';
 import { AllowAny } from '../../auth/decorators/allow-any.decorator';
 import { MinCragStatus } from '../decorators/min-crag-status.decorator';
-import { CragStatus } from '../entities/crag.entity';
 import { UserLoader } from '../../users/loaders/user.loader';
 import { Loader } from '../../core/interceptors/data-loader.interceptor';
 import DataLoader from 'dataloader';
+import { EntityStatus } from '../entities/enums/entity-status.enum';
 
 @Resolver(() => Comment)
 export class CommentsResolver {
@@ -80,7 +80,7 @@ export class CommentsResolver {
   @AllowAny()
   @UseGuards(UserAuthGuard)
   @Query(returns => [Comment], { name: 'exposedWarnings' })
-  getExposedWarnings(@MinCragStatus() minStatus: CragStatus) {
+  getExposedWarnings(@MinCragStatus() minStatus: EntityStatus) {
     return this.commentsService.getExposedWarnings(minStatus);
   }
 }

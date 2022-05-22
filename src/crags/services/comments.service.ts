@@ -6,8 +6,9 @@ import { CreateCommentInput } from '../dtos/create-comment.input';
 import { FindCommentsInput } from '../dtos/find-comments.input';
 import { UpdateCommentInput } from '../dtos/update-comment';
 import { Comment } from '../entities/comment.entity';
-import { Crag, CragStatus } from '../entities/crag.entity';
+import { Crag } from '../entities/crag.entity';
 import { IceFall } from '../entities/ice-fall.entity';
+import { EntityStatus } from '../entities/enums/entity-status.enum';
 
 @Injectable()
 export class CommentsService {
@@ -104,7 +105,7 @@ export class CommentsService {
    *
    * @returns Comment[]
    */
-  getExposedWarnings(minStatus: CragStatus) {
+  getExposedWarnings(minStatus: EntityStatus) {
     const builder = this.commentsRepository.createQueryBuilder('co');
 
     builder

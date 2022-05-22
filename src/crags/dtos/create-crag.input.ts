@@ -1,6 +1,7 @@
 import { InputType, Field } from '@nestjs/graphql';
 import { IsOptional } from 'class-validator';
-import { CragStatus, CragType } from '../entities/crag.entity';
+import { CragType } from '../entities/crag.entity';
+import { EntityStatus } from '../entities/enums/entity-status.enum';
 
 @InputType()
 export class CreateCragInput {
@@ -11,7 +12,7 @@ export class CreateCragInput {
   type: CragType;
 
   @Field()
-  status: CragStatus;
+  status: EntityStatus;
 
   @Field({ nullable: true })
   @IsOptional()

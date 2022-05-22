@@ -16,7 +16,7 @@ import { UseInterceptors, UseFilters, UseGuards } from '@nestjs/common';
 import { AuditInterceptor } from '../../audit/interceptors/audit.interceptor';
 import { ConflictFilter } from '../filters/conflict.filter';
 import { NotFoundFilter } from '../filters/not-found.filter';
-import { Crag, CragStatus } from '../entities/crag.entity';
+import { Crag } from '../entities/crag.entity';
 import { CragsService } from '../services/crags.service';
 import { Area } from '../entities/area.entity';
 import { AreasService } from '../services/areas.service';
@@ -29,6 +29,7 @@ import { Peak } from '../entities/peak.entity';
 import { IceFallsService } from '../services/ice-falls.service';
 import { IceFall } from '../entities/ice-fall.entity';
 import { FindCragsServiceInput } from '../dtos/find-crags-service.input';
+import { EntityStatus } from '../entities/enums/entity-status.enum';
 
 @Resolver(() => Country)
 export class CountriesResolver {
@@ -90,7 +91,7 @@ export class CountriesResolver {
 
   @ResolveField('crags', () => [Crag])
   async getCrags(
-    @MinCragStatus() minStatus: CragStatus,
+    @MinCragStatus() minStatus: EntityStatus,
     @Parent() country: Country,
     @Args('input', { nullable: true }) input: FindCragsServiceInput = {},
   ): Promise<Crag[]> {

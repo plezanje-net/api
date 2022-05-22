@@ -14,7 +14,7 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { Roles } from '../../auth/decorators/roles.decorator';
-import { Crag, CragStatus } from '../entities/crag.entity';
+import { Crag } from '../entities/crag.entity';
 import { CreateCragInput } from '../dtos/create-crag.input';
 import { UpdateCragInput } from '../dtos/update-crag.input';
 import { CragsService } from '../services/crags.service';
@@ -38,6 +38,7 @@ import { CragProperty } from '../entities/crag-property.entity';
 import { EntityPropertiesService } from '../services/entity-properties.service';
 import { CurrentUser } from '../../auth/decorators/current-user.decorator';
 import { User } from '../../users/entities/user.entity';
+import { EntityStatus } from '../entities/enums/entity-status.enum';
 
 @Resolver(() => Crag)
 export class CragsResolver {
@@ -54,7 +55,7 @@ export class CragsResolver {
   @UseGuards(UserAuthGuard)
   crag(
     @Args('id') id: string,
-    @MinCragStatus() minStatus: CragStatus,
+    @MinCragStatus() minStatus: EntityStatus,
     @CurrentUser() user: User,
   ): Promise<Crag> {
     return this.cragsService.findOne({
@@ -72,7 +73,7 @@ export class CragsResolver {
   @UseGuards(UserAuthGuard)
   async cragBySlug(
     @Args('slug') slug: string,
-    @MinCragStatus() minStatus: CragStatus,
+    @MinCragStatus() minStatus: EntityStatus,
     @CurrentUser() user: User,
   ): Promise<Crag> {
     return this.cragsService.findOne({
@@ -164,7 +165,7 @@ export class CragsResolver {
   @AllowAny()
   @UseGuards(UserAuthGuard)
   async popularCrags(
-    @MinCragStatus() minStatus: CragStatus,
+    @MinCragStatus() minStatus: EntityStatus,
     @Args('dateFrom', { nullable: true }) dateFrom?: string,
     @Args('top', { type: () => Int, nullable: true }) top?: number,
   ) {

@@ -1,6 +1,6 @@
 import { InputType, Field } from '@nestjs/graphql';
 import { IsOptional } from 'class-validator';
-import { CragStatus, CragType } from '../entities/crag.entity';
+import { CragType } from '../entities/crag.entity';
 
 @InputType()
 export class FindCragsInput {

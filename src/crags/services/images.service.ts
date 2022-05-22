@@ -1,6 +1,6 @@
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { CragStatus } from '../entities/crag.entity';
+import { EntityStatus } from '../entities/enums/entity-status.enum';
 import { Image } from '../entities/image.entity';
 
 export class ImagesService {
@@ -8,7 +8,7 @@ export class ImagesService {
     @InjectRepository(Image) private imagesRepository: Repository<Image>,
   ) {}
 
-  getLatestImages(latest: number, minStatus: CragStatus) {
+  getLatestImages(latest: number, minStatus: EntityStatus) {
     const builder = this.imagesRepository.createQueryBuilder('i');
     builder
       .leftJoin('route', 'r', 'i.routeId = r.id')

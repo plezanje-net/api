@@ -30,7 +30,7 @@ import { Loader } from '../../core/interceptors/data-loader.interceptor';
 import { RoutePitchesLoader } from '../loaders/route-pitches.loader';
 import { DifficultyVotesService } from '../services/difficulty-votes.service';
 import { MinCragStatus } from '../decorators/min-crag-status.decorator';
-import { Crag, CragStatus } from '../entities/crag.entity';
+import { Crag } from '../entities/crag.entity';
 import { AllowAny } from '../../auth/decorators/allow-any.decorator';
 import { UserAuthGuard } from '../../auth/guards/user-auth.guard';
 import { ForeignKeyConstraintFilter } from '../filters/foreign-key-constraint.filter';
@@ -43,6 +43,7 @@ import { RouteProperty } from '../entities/route-property.entity';
 import { EntityPropertiesService } from '../services/entity-properties.service';
 import { CurrentUser } from '../../auth/decorators/current-user.decorator';
 import { User } from '../../users/entities/user.entity';
+import { EntityStatus } from '../entities/enums/entity-status.enum';
 
 @Resolver(() => Route)
 export class RoutesResolver {
@@ -110,7 +111,7 @@ export class RoutesResolver {
   async routeBySlug(
     @Args('cragSlug') cragSlug: string,
     @Args('routeSlug') routeSlug: string,
-    @MinCragStatus() minStatus: CragStatus,
+    @MinCragStatus() minStatus: EntityStatus,
   ): Promise<Route> {
     return this.routesService.findOneBySlug(cragSlug, routeSlug, minStatus);
   }

@@ -24,15 +24,7 @@ import { RouteType } from './route-type.entity';
 import { RouteEvent } from './route-event.entity';
 import { Book } from './book.entity';
 import { User } from '../../users/entities/user.entity';
-
-export enum RouteStatus {
-  PUBLIC = 'public',
-  HIDDEN = 'hidden',
-  ADMIN = 'admin',
-  ARCHIVE = 'archive',
-  PROPOSAL = 'proposal',
-  USER = 'user',
-}
+import { EntityStatus } from './enums/entity-status.enum';
 
 /**
  * Has Triggers:
@@ -89,11 +81,11 @@ export class Route extends BaseEntity {
 
   @Column({
     type: 'enum',
-    enum: RouteStatus,
-    default: RouteStatus.PUBLIC,
+    enum: EntityStatus,
+    default: EntityStatus.PUBLIC,
   })
   @Field()
-  status: RouteStatus;
+  status: EntityStatus;
 
   @Column({ default: false })
   @Field()
