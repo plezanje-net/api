@@ -7,7 +7,12 @@ import {
   Int,
   Parent,
 } from '@nestjs/graphql';
-import { UseInterceptors, UseFilters, UseGuards } from '@nestjs/common';
+import {
+  UseInterceptors,
+  UseFilters,
+  UseGuards,
+  BadRequestException,
+} from '@nestjs/common';
 import { Roles } from '../../auth/decorators/roles.decorator';
 import { Crag, CragStatus } from '../entities/crag.entity';
 import { CreateCragInput } from '../dtos/create-crag.input';
@@ -31,6 +36,8 @@ import { Country } from '../entities/country.entity';
 import { CountryLoader } from '../loaders/country.loader';
 import { CragProperty } from '../entities/crag-property.entity';
 import { EntityPropertiesService } from '../services/entity-properties.service';
+import { CurrentUser } from '../../auth/decorators/current-user.decorator';
+import { User } from '../../users/entities/user.entity';
 
 @Resolver(() => Crag)
 export class CragsResolver {
@@ -71,16 +78,20 @@ export class CragsResolver {
     });
   }
 
-  @Roles('admin')
+  @UseGuards(UserAuthGuard)
   @UseInterceptors(AuditInterceptor)
   @Mutation(() => Crag)
   async createCrag(
     @Args('input', { type: () => CreateCragInput }) input: CreateCragInput,
+    @CurrentUser() user: User,
   ): Promise<Crag> {
-    return this.cragsService.create(input);
+    if (!user.isAdmin() && !['user', 'proposal'].includes(input.status)) {
+      throw new BadRequestException();
   }
 
-  @Roles('admin')
+    return this.cragsService.create(input, user);
+  }
+
   @UseInterceptors(AuditInterceptor)
   @Mutation(() => Crag)
   async updateCrag(

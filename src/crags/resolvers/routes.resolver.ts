@@ -8,7 +8,12 @@ import {
 } from '@nestjs/graphql';
 import { Route } from '../entities/route.entity';
 import { Roles } from '../../auth/decorators/roles.decorator';
-import { UseInterceptors, UseFilters, UseGuards } from '@nestjs/common';
+import {
+  UseInterceptors,
+  UseFilters,
+  UseGuards,
+  BadRequestException,
+} from '@nestjs/common';
 import { AuditInterceptor } from '../../audit/interceptors/audit.interceptor';
 import { NotFoundFilter } from '../filters/not-found.filter';
 import { CreateRouteInput } from '../dtos/create-route.input';
@@ -36,6 +41,8 @@ import { RouteTypeLoader } from '../loaders/route-type.loader';
 import { CragLoader } from '../loaders/crag.loader';
 import { RouteProperty } from '../entities/route-property.entity';
 import { EntityPropertiesService } from '../services/entity-properties.service';
+import { CurrentUser } from '../../auth/decorators/current-user.decorator';
+import { User } from '../../users/entities/user.entity';
 
 @Resolver(() => Route)
 export class RoutesResolver {
@@ -48,13 +55,17 @@ export class RoutesResolver {
   ) {}
 
   @Mutation(() => Route)
-  @Roles('admin')
+  @UseGuards(UserAuthGuard)
   @UseInterceptors(AuditInterceptor)
   @UseFilters(NotFoundFilter)
   async createRoute(
     @Args('input', { type: () => CreateRouteInput }) input: CreateRouteInput,
+    @CurrentUser() user: User,
   ): Promise<Route> {
-    return this.routesService.create(input);
+    if (!user.isAdmin() && !['user', 'proposal'].includes(input.status)) {
+      throw new BadRequestException();
+    }
+    return this.routesService.create(input, user);
   }
 
   @Mutation(() => Route)

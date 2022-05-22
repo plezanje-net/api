@@ -8,6 +8,7 @@ import { UpdateRouteInput } from '../dtos/update-route.input';
 import { CragStatus } from '../entities/crag.entity';
 import slugify from 'slugify';
 import { DifficultyVote } from '../entities/difficulty-vote.entity';
+import { User } from '../../users/entities/user.entity';
 
 @Injectable()
 export class RoutesService {
@@ -56,10 +57,12 @@ export class RoutesService {
     return builder.getOneOrFail();
   }
 
-  async create(data: CreateRouteInput): Promise<Route> {
+  async create(data: CreateRouteInput, user: User): Promise<Route> {
     const route = new Route();
 
     this.routesRepository.merge(route, data);
+
+    route.user = Promise.resolve(user);
 
     const sector = await this.sectorsRepository.findOneOrFail(data.sectorId);
 

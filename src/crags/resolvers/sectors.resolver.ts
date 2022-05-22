@@ -7,7 +7,12 @@ import {
   Query,
 } from '@nestjs/graphql';
 import { Roles } from '../../auth/decorators/roles.decorator';
-import { UseInterceptors, UseFilters, UseGuards } from '@nestjs/common';
+import {
+  UseInterceptors,
+  UseFilters,
+  UseGuards,
+  BadRequestException,
+} from '@nestjs/common';
 import { AuditInterceptor } from '../../audit/interceptors/audit.interceptor';
 import { NotFoundFilter } from '../filters/not-found.filter';
 import { Sector } from '../entities/sector.entity';
@@ -21,8 +26,9 @@ import { SectorRoutesLoader } from '../loaders/sector-routes.loader';
 import DataLoader from 'dataloader';
 import { AllowAny } from '../../auth/decorators/allow-any.decorator';
 import { UserAuthGuard } from '../../auth/guards/user-auth.guard';
-import { MinCragStatus } from '../decorators/min-crag-status.decorator';
 import { ForeignKeyConstraintFilter } from '../filters/foreign-key-constraint.filter';
+import { CurrentUser } from '../../auth/decorators/current-user.decorator';
+import { User } from '../../users/entities/user.entity';
 
 @Resolver(() => Sector)
 export class SectorsResolver {
@@ -40,13 +46,17 @@ export class SectorsResolver {
   }
 
   @Mutation(() => Sector)
-  @Roles('admin')
+  @UseGuards(UserAuthGuard)
   @UseInterceptors(AuditInterceptor)
   @UseFilters(NotFoundFilter)
   async createSector(
     @Args('input', { type: () => CreateSectorInput }) input: CreateSectorInput,
+    @CurrentUser() user: User,
   ): Promise<Sector> {
-    return this.sectorsService.create(input);
+    if (!user.isAdmin() && !['user', 'proposal'].includes(input.status)) {
+      throw new BadRequestException();
+    }
+    return this.sectorsService.create(input, user);
   }
 
   @Mutation(() => Sector)

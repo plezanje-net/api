@@ -6,6 +6,7 @@ import { UpdateSectorInput } from '../dtos/update-sector.input';
 import { CreateSectorInput } from '../dtos/create-sector.input';
 import { Crag } from '../entities/crag.entity';
 import { Route } from '../entities/route.entity';
+import { User } from '../../users/entities/user.entity';
 
 @Injectable()
 export class SectorsService {
@@ -29,10 +30,12 @@ export class SectorsService {
     return this.sectorsRepository.findOneOrFail(id);
   }
 
-  async create(data: CreateSectorInput): Promise<Sector> {
+  async create(data: CreateSectorInput, user: User): Promise<Sector> {
     const sector = new Sector();
 
     this.sectorsRepository.merge(sector, data);
+
+    sector.user = Promise.resolve(user);
 
     sector.crag = Promise.resolve(
       await this.cragsRepository.findOneOrFail(data.cragId),

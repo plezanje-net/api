@@ -11,6 +11,7 @@ import { FindCragsInput } from '../dtos/find-crags.input';
 import { PopularCrag } from '../utils/popular-crag.class';
 import slugify from 'slugify';
 import { GradingSystem } from '../entities/grading-system.entity';
+import { User } from '../../users/entities/user.entity';
 
 @Injectable()
 export class CragsService {
@@ -54,11 +55,12 @@ export class CragsService {
     return crags;
   }
 
-  async create(data: CreateCragInput): Promise<Crag> {
+  async create(data: CreateCragInput, user: User): Promise<Crag> {
     const crag = new Crag();
 
     this.cragsRepository.merge(crag, data);
 
+    crag.user = Promise.resolve(user);
     crag.country = Promise.resolve(
       await this.countryRepository.findOneOrFail(data.countryId),
     );

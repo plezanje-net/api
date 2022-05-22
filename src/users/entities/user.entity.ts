@@ -92,4 +92,6 @@ export class User extends BaseEntity {
   )
   @Field(() => [Image])
   images: Promise<Image[]>;
+
+  isAdmin = () => this.roles.find(r => r.role == 'admin');
 }
