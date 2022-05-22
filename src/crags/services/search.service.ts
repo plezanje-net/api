@@ -9,6 +9,7 @@ import { Comment } from '../entities/comment.entity';
 import { User } from '../../users/entities/user.entity';
 import { SearchResults } from '../utils/search-results.class';
 import { FieldNode, GraphQLResolveInfo } from 'graphql';
+import { FindCragsServiceInput } from '../dtos/find-crags-service.input';
 
 @Injectable()
 export class SearchService {
@@ -64,7 +65,10 @@ export class SearchService {
     return result;
   }
 
-  findCrags(searchString: string, cragParams: FindCragsInput): Promise<Crag[]> {
+  findCrags(
+    searchString: string,
+    cragParams: FindCragsServiceInput,
+  ): Promise<Crag[]> {
     const builder = this.cragsRepository.createQueryBuilder('c');
 
     if (cragParams.minStatus != null) {
@@ -80,7 +84,7 @@ export class SearchService {
 
   findRoutes(
     searchString: string,
-    cragParams: FindCragsInput,
+    cragParams: FindCragsServiceInput,
   ): Promise<Route[]> {
     const builder = this.routesRepository.createQueryBuilder('r');
 
@@ -99,7 +103,7 @@ export class SearchService {
 
   findSectors(
     searchString: string,
-    cragParams: FindCragsInput,
+    cragParams: FindCragsServiceInput,
   ): Promise<Sector[]> {
     const builder = this.sectorsRepository.createQueryBuilder('s');
 
@@ -118,7 +122,7 @@ export class SearchService {
 
   findComments(
     searchString: string,
-    cragParams: FindCragsInput,
+    cragParams: FindCragsServiceInput,
   ): Promise<Comment[]> {
     const builder = this.commentsRepository.createQueryBuilder('co');
 

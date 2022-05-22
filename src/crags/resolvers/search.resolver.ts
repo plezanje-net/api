@@ -5,6 +5,7 @@ import { AllowAny } from '../../auth/decorators/allow-any.decorator';
 import { CurrentUser } from '../../auth/decorators/current-user.decorator';
 import { UserAuthGuard } from '../../auth/guards/user-auth.guard';
 import { User } from '../../users/entities/user.entity';
+import { FindCragsServiceInput } from '../dtos/find-crags-service.input';
 import { FindCragsInput } from '../dtos/find-crags.input';
 import { CragStatus } from '../entities/crag.entity';
 import { SearchService } from '../services/search.service';
@@ -22,7 +23,7 @@ export class SearchResolver {
     @Info() gqlInfo: GraphQLResolveInfo,
     @Args('input', { nullable: true }) input?: string,
   ): Promise<SearchResults> {
-    const cragsInput = new FindCragsInput();
+    const cragsInput = new FindCragsServiceInput();
     cragsInput.minStatus = user != null ? CragStatus.HIDDEN : CragStatus.PUBLIC;
 
     return this.searchService.find(input, cragsInput, gqlInfo);

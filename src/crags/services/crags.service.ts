@@ -8,6 +8,7 @@ import { Country } from '../../crags/entities/country.entity';
 import { Route } from '../entities/route.entity';
 import { Area } from '../entities/area.entity';
 import { FindCragsInput } from '../dtos/find-crags.input';
+import { FindCragsServiceInput } from '../dtos/find-crags-service.input';
 import { PopularCrag } from '../utils/popular-crag.class';
 import slugify from 'slugify';
 import { GradingSystem } from '../entities/grading-system.entity';
@@ -28,19 +29,11 @@ export class CragsService {
     private gradingSystemRepository: Repository<GradingSystem>,
   ) {}
 
-  async findOneById(id: string): Promise<Crag> {
-    return this.cragsRepository.findOneOrFail(id);
-  }
-
-  async findOneBySlug(slug: string): Promise<Crag> {
-    return this.cragsRepository.findOneOrFail({ slug: slug });
-  }
-
   async findByIds(ids: string[]): Promise<Crag[]> {
     return this.cragsRepository.findByIds(ids);
   }
 
-  async findOne(params: FindCragsInput = {}): Promise<Crag> {
+  async findOne(params: FindCragsServiceInput = {}): Promise<Crag> {
     return this.buildQuery(params).getOneOrFail();
   }
 
@@ -61,6 +54,7 @@ export class CragsService {
     this.cragsRepository.merge(crag, data);
 
     crag.user = Promise.resolve(user);
+
     crag.country = Promise.resolve(
       await this.countryRepository.findOneOrFail(data.countryId),
     );
@@ -86,7 +80,9 @@ export class CragsService {
     return this.cragsRepository.remove(crag).then(() => true);
   }
 
-  private buildQuery(params: FindCragsInput = {}): SelectQueryBuilder<Crag> {
+  private buildQuery(
+    params: FindCragsServiceInput = {},
+  ): SelectQueryBuilder<Crag> {
     const builder = this.cragsRepository.createQueryBuilder('c');
 
     builder.orderBy('c.name COLLATE "utf8_slovenian_ci"', 'ASC');
@@ -134,9 +130,20 @@ export class CragsService {
     }
 
     if (params.minStatus != null) {
-      builder.andWhere('c.status <= :minStatus', {
+      let statusQuery = 'c.status <= :minStatus';
+      let statusParams: any = {
         minStatus: params.minStatus,
-      });
+      };
+      if (params.showPrivate && params.userId) {
+        statusQuery = `(${statusQuery} OR (
+          (c.status = 'user' OR c.status = 'proposal') AND (c."userId" = :userId)
+        ))`;
+        statusParams = {
+          ...statusParams,
+          userId: params.userId,
+        };
+      }
+      builder.andWhere(statusQuery, statusParams);
     }
 
     if (params.routeTypeId != null) {

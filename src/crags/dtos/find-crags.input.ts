@@ -26,7 +26,7 @@ export class FindCragsInput {
 
   @Field({ nullable: true })
   @IsOptional()
-  minStatus?: CragStatus;
+  showPrivate?: boolean;
 
   @Field({ nullable: true })
   @IsOptional()

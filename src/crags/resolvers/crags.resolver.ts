@@ -55,11 +55,14 @@ export class CragsResolver {
   crag(
     @Args('id') id: string,
     @MinCragStatus() minStatus: CragStatus,
+    @CurrentUser() user: User,
   ): Promise<Crag> {
     return this.cragsService.findOne({
       id: id,
       minStatus: minStatus,
       allowEmpty: true,
+      showPrivate: true,
+      userId: user?.id,
     });
   }
 
@@ -70,11 +73,14 @@ export class CragsResolver {
   async cragBySlug(
     @Args('slug') slug: string,
     @MinCragStatus() minStatus: CragStatus,
+    @CurrentUser() user: User,
   ): Promise<Crag> {
     return this.cragsService.findOne({
       slug: slug,
       minStatus: minStatus,
       allowEmpty: true,
+      showPrivate: true,
+      userId: user?.id,
     });
   }
 
@@ -87,7 +93,7 @@ export class CragsResolver {
   ): Promise<Crag> {
     if (!user.isAdmin() && !['user', 'proposal'].includes(input.status)) {
       throw new BadRequestException();
-  }
+    }
 
     return this.cragsService.create(input, user);
   }

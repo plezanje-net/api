@@ -28,6 +28,7 @@ import { PeaksService } from '../services/peaks.service';
 import { Peak } from '../entities/peak.entity';
 import { IceFallsService } from '../services/ice-falls.service';
 import { IceFall } from '../entities/ice-fall.entity';
+import { FindCragsServiceInput } from '../dtos/find-crags-service.input';
 
 @Resolver(() => Country)
 export class CountriesResolver {
@@ -91,7 +92,7 @@ export class CountriesResolver {
   async getCrags(
     @MinCragStatus() minStatus: CragStatus,
     @Parent() country: Country,
-    @Args('input', { nullable: true }) input: FindCragsInput = {},
+    @Args('input', { nullable: true }) input: FindCragsServiceInput = {},
   ): Promise<Crag[]> {
     input.country = country.id;
 
