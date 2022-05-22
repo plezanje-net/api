@@ -23,13 +23,13 @@ import { AreasService } from '../services/areas.service';
 import { FindCragsInput } from '../dtos/find-crags.input';
 import { UserAuthGuard } from '../../auth/guards/user-auth.guard';
 import { AllowAny } from '../../auth/decorators/allow-any.decorator';
-import { MinCragStatus } from '../decorators/min-crag-status.decorator';
 import { PeaksService } from '../services/peaks.service';
 import { Peak } from '../entities/peak.entity';
 import { IceFallsService } from '../services/ice-falls.service';
 import { IceFall } from '../entities/ice-fall.entity';
 import { FindCragsServiceInput } from '../dtos/find-crags-service.input';
-import { EntityStatus } from '../entities/enums/entity-status.enum';
+import { CurrentUser } from '../../auth/decorators/current-user.decorator';
+import { User } from '../../users/entities/user.entity';
 
 @Resolver(() => Country)
 export class CountriesResolver {
@@ -45,7 +45,10 @@ export class CountriesResolver {
   @UseFilters(NotFoundFilter)
   @AllowAny()
   @UseGuards(UserAuthGuard)
-  async countryBySlug(@Args('slug') slug: string): Promise<Country> {
+  async countryBySlug(
+    @Args('slug') slug: string,
+    @CurrentUser() user: User,
+  ): Promise<Country> {
     return this.countriesService.findOneBySlug(slug);
   }
 
@@ -90,16 +93,19 @@ export class CountriesResolver {
   }
 
   @ResolveField('crags', () => [Crag])
+  @AllowAny()
+  @UseGuards(UserAuthGuard)
   async getCrags(
-    @MinCragStatus() minStatus: EntityStatus,
     @Parent() country: Country,
-    @Args('input', { nullable: true }) input: FindCragsServiceInput = {},
+    @Args('input', { nullable: true })
+    input: FindCragsInput = {},
+    @CurrentUser() user: User,
   ): Promise<Crag[]> {
-    input.country = country.id;
-
-    input.minStatus = minStatus;
-
-    return this.cragsService.find(input);
+    return this.cragsService.find({
+      ...input,
+      country: country.id,
+      user,
+    });
   }
 
   @ResolveField('areas', () => [Area])

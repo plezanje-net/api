@@ -14,9 +14,10 @@ import slugify from 'slugify';
 import { GradingSystem } from '../entities/grading-system.entity';
 import { User } from '../../users/entities/user.entity';
 import { EntityStatus } from '../entities/enums/entity-status.enum';
+import { BaseService } from './base.service';
 
 @Injectable()
-export class CragsService {
+export class CragsService extends BaseService {
   constructor(
     @InjectRepository(Route)
     private routesRepository: Repository<Route>,
@@ -28,7 +29,9 @@ export class CragsService {
     private areasRepository: Repository<Area>,
     @InjectRepository(GradingSystem)
     private gradingSystemRepository: Repository<GradingSystem>,
-  ) {}
+  ) {
+    super();
+  }
 
   async findByIds(ids: string[]): Promise<Crag[]> {
     return this.cragsRepository.findByIds(ids);
@@ -38,7 +41,7 @@ export class CragsService {
     return this.buildQuery(params).getOneOrFail();
   }
 
-  async find(params: FindCragsInput = {}): Promise<Crag[]> {
+  async find(params: FindCragsServiceInput = {}): Promise<Crag[]> {
     const rawAndEntities = await this.buildQuery(params).getRawAndEntities();
 
     const crags = rawAndEntities.entities.map((element, index) => {
@@ -130,22 +133,7 @@ export class CragsService {
       });
     }
 
-    if (params.minStatus != null) {
-      let statusQuery = 'c.status <= :minStatus';
-      let statusParams: any = {
-        minStatus: params.minStatus,
-      };
-      if (params.showPrivate && params.userId) {
-        statusQuery = `(${statusQuery} OR (
-          (c.status = 'user' OR c.status = 'proposal') AND (c."userId" = :userId)
-        ))`;
-        statusParams = {
-          ...statusParams,
-          userId: params.userId,
-        };
-      }
-      builder.andWhere(statusQuery, statusParams);
-    }
+    this.setEntityStatusParams(builder, 'c', params);
 
     if (params.routeTypeId != null) {
       builder

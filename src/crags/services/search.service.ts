@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Brackets, Repository, SelectQueryBuilder } from 'typeorm';
-import { FindCragsInput } from '../dtos/find-crags.input';
 import { Crag } from '../entities/crag.entity';
 import { Route } from '../entities/route.entity';
 import { Sector } from '../entities/sector.entity';
@@ -9,10 +8,11 @@ import { Comment } from '../entities/comment.entity';
 import { User } from '../../users/entities/user.entity';
 import { SearchResults } from '../utils/search-results.class';
 import { FieldNode, GraphQLResolveInfo } from 'graphql';
-import { FindCragsServiceInput } from '../dtos/find-crags-service.input';
+import { BaseService } from './base.service';
+import { EntityStatus } from '../entities/enums/entity-status.enum';
 
 @Injectable()
-export class SearchService {
+export class SearchService extends BaseService {
   constructor(
     @InjectRepository(Route)
     private routesRepository: Repository<Route>,
@@ -24,13 +24,16 @@ export class SearchService {
     private commentsRepository: Repository<Comment>,
     @InjectRepository(User)
     private usersRepository: Repository<User>,
-  ) {}
+  ) {
+    super();
+  }
 
   async find(
     searchString: string,
-    cragParams: FindCragsInput,
+    user: User,
     gqlInfo: GraphQLResolveInfo,
   ): Promise<SearchResults> {
+    const minStatus = this.getMinEntityStatus(user);
     // get the fields that were requested by the graphql query
     const selectedFields = gqlInfo.fieldNodes[0].selectionSet.selections.map(
       (item: FieldNode) => item.name.value,
@@ -40,21 +43,21 @@ export class SearchService {
     let result: SearchResults = {};
 
     result = selectedFields.includes('crags')
-      ? { ...result, crags: await this.findCrags(searchString, cragParams) }
+      ? { ...result, crags: await this.findCrags(searchString, minStatus) }
       : result;
 
     result = selectedFields.includes('routes')
-      ? { ...result, routes: await this.findRoutes(searchString, cragParams) }
+      ? { ...result, routes: await this.findRoutes(searchString, minStatus) }
       : result;
 
     result = selectedFields.includes('sectors')
-      ? { ...result, sectors: await this.findSectors(searchString, cragParams) }
+      ? { ...result, sectors: await this.findSectors(searchString, minStatus) }
       : result;
 
     result = selectedFields.includes('comments')
       ? {
           ...result,
-          comments: await this.findComments(searchString, cragParams),
+          comments: await this.findComments(searchString, minStatus),
         }
       : result;
 
@@ -65,15 +68,12 @@ export class SearchService {
     return result;
   }
 
-  findCrags(
-    searchString: string,
-    cragParams: FindCragsServiceInput,
-  ): Promise<Crag[]> {
+  findCrags(searchString: string, minStatus: EntityStatus): Promise<Crag[]> {
     const builder = this.cragsRepository.createQueryBuilder('c');
 
-    if (cragParams.minStatus != null) {
+    if (minStatus != null) {
       builder.andWhere('c.status <= :minStatus', {
-        minStatus: cragParams.minStatus,
+        minStatus: minStatus,
       });
     }
 
@@ -82,17 +82,14 @@ export class SearchService {
     return builder.getMany();
   }
 
-  findRoutes(
-    searchString: string,
-    cragParams: FindCragsServiceInput,
-  ): Promise<Route[]> {
+  findRoutes(searchString: string, minStatus: EntityStatus): Promise<Route[]> {
     const builder = this.routesRepository.createQueryBuilder('r');
 
     builder.innerJoin('crag', 'c', 'c.id = r."cragId"');
 
-    if (cragParams.minStatus != null) {
+    if (minStatus != null) {
       builder.andWhere('c.status <= :minStatus', {
-        minStatus: cragParams.minStatus,
+        minStatus: minStatus,
       });
     }
 
@@ -103,15 +100,15 @@ export class SearchService {
 
   findSectors(
     searchString: string,
-    cragParams: FindCragsServiceInput,
+    minStatus: EntityStatus,
   ): Promise<Sector[]> {
     const builder = this.sectorsRepository.createQueryBuilder('s');
 
     builder.innerJoin('crag', 'c', 'c.id = s."cragId"');
 
-    if (cragParams.minStatus != null) {
+    if (minStatus != null) {
       builder.andWhere('c.status <= :minStatus', {
-        minStatus: cragParams.minStatus,
+        minStatus: minStatus,
       });
     }
 
@@ -122,7 +119,7 @@ export class SearchService {
 
   findComments(
     searchString: string,
-    cragParams: FindCragsServiceInput,
+    minStatus: EntityStatus,
   ): Promise<Comment[]> {
     const builder = this.commentsRepository.createQueryBuilder('co');
 
@@ -133,15 +130,15 @@ export class SearchService {
 
     builder.andWhere('co.iceFallId IS NULL');
 
-    if (cragParams.minStatus != null) {
+    if (minStatus != null) {
       builder.andWhere(
         new Brackets(qb =>
           qb
             .where('c.status <= :minStatus', {
-              minStatus: cragParams.minStatus,
+              minStatus: minStatus,
             })
             .orWhere('cr.status <= :minStatus', {
-              minStatus: cragParams.minStatus,
+              minStatus: minStatus,
             }),
         ),
       );

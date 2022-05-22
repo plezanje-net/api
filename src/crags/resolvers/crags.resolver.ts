@@ -53,17 +53,12 @@ export class CragsResolver {
   @UseFilters(NotFoundFilter)
   @AllowAny()
   @UseGuards(UserAuthGuard)
-  crag(
-    @Args('id') id: string,
-    @MinCragStatus() minStatus: EntityStatus,
-    @CurrentUser() user: User,
-  ): Promise<Crag> {
+  crag(@Args('id') id: string, @CurrentUser() user: User): Promise<Crag> {
     return this.cragsService.findOne({
       id: id,
-      minStatus: minStatus,
       allowEmpty: true,
       showPrivate: true,
-      userId: user?.id,
+      user,
     });
   }
 
@@ -73,15 +68,13 @@ export class CragsResolver {
   @UseGuards(UserAuthGuard)
   async cragBySlug(
     @Args('slug') slug: string,
-    @MinCragStatus() minStatus: EntityStatus,
     @CurrentUser() user: User,
   ): Promise<Crag> {
     return this.cragsService.findOne({
       slug: slug,
-      minStatus: minStatus,
       allowEmpty: true,
       showPrivate: true,
-      userId: user?.id,
+      user,
     });
   }
 
