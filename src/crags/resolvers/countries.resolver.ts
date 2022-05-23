@@ -27,7 +27,6 @@ import { PeaksService } from '../services/peaks.service';
 import { Peak } from '../entities/peak.entity';
 import { IceFallsService } from '../services/ice-falls.service';
 import { IceFall } from '../entities/ice-fall.entity';
-import { FindCragsServiceInput } from '../dtos/find-crags-service.input';
 import { CurrentUser } from '../../auth/decorators/current-user.decorator';
 import { User } from '../../users/entities/user.entity';
 
@@ -41,14 +40,13 @@ export class CountriesResolver {
     private iceFallsService: IceFallsService,
   ) {}
 
+  /* QUERIES */
+
   @Query(() => Country)
   @UseFilters(NotFoundFilter)
   @AllowAny()
   @UseGuards(UserAuthGuard)
-  async countryBySlug(
-    @Args('slug') slug: string,
-    @CurrentUser() user: User,
-  ): Promise<Country> {
+  async countryBySlug(@Args('slug') slug: string): Promise<Country> {
     return this.countriesService.findOneBySlug(slug);
   }
 
@@ -61,6 +59,8 @@ export class CountriesResolver {
   ): Promise<Country[]> {
     return this.countriesService.find(input);
   }
+
+  /* MUTATIONS */
 
   @Mutation(() => Country)
   @Roles('admin')
@@ -91,6 +91,8 @@ export class CountriesResolver {
   async deleteCountry(@Args('id') id: string): Promise<boolean> {
     return this.countriesService.delete(id);
   }
+
+  /* FIELDS */
 
   @ResolveField('crags', () => [Crag])
   @AllowAny()
