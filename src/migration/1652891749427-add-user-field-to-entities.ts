@@ -27,6 +27,9 @@ export class addUserFieldToEntities1652891749427 implements MigrationInterface {
     await queryRunner.query(`
       update route as r set "userId" = u.id from "user" u where u.legacy::jsonb -> 'UserID' = r.legacy::jsonb -> 'Editor'
     `);
+    await queryRunner.query(
+      `ALTER TABLE "user" ADD "showPrivateEntries" boolean NOT NULL DEFAULT false`,
+    );
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
@@ -46,5 +49,8 @@ export class addUserFieldToEntities1652891749427 implements MigrationInterface {
     await queryRunner.query(`ALTER TABLE "pitch" DROP COLUMN "userId"`);
     await queryRunner.query(`ALTER TABLE "sector" DROP COLUMN "userId"`);
     await queryRunner.query(`ALTER TABLE "crag" DROP COLUMN "userId"`);
+    await queryRunner.query(
+      `ALTER TABLE "user" DROP COLUMN "showPrivateEntries"`,
+    );
   }
 }
