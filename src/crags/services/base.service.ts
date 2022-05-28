@@ -7,18 +7,18 @@ export class BaseService {
   setEntityStatusParams(
     builder: SelectQueryBuilder<BaseEntity>,
     alias: string,
-    { user, showPrivate }: EntityStatusInput,
+    { user }: EntityStatusInput,
   ): void {
     let statusQuery = `${alias}.status <= :minStatus`;
     let statusParams: any = {
       minStatus: this.getMinEntityStatus(user),
     };
-    if (user != null && showPrivate) {
+    if (user != null && user.showPrivateEntries) {
       statusQuery = `(${statusQuery} OR (
           (${alias}.status = 'user' OR ${alias}.status = 'proposal') AND (${alias}."userId" = :userId)
         ))`;
       statusParams = {
-        ...statusParams,
+        minStatus: statusParams.minStatus,
         userId: user.id,
       };
     }
@@ -26,9 +26,15 @@ export class BaseService {
   }
 
   getMinEntityStatus(user?: User): EntityStatus {
-    if (user != null) {
-      return user.isAdmin() ? EntityStatus.ARCHIVE : EntityStatus.HIDDEN;
+    if (user == null) {
+      return EntityStatus.PUBLIC;
     }
-    return EntityStatus.PUBLIC;
+    if (!user.isAdmin()) {
+      return EntityStatus.HIDDEN;
+    }
+    if (user.showPrivateEntries) {
+      return EntityStatus.PROPOSAL;
+    }
+    return EntityStatus.ARCHIVE;
   }
 }

@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Country } from '../entities/country.entity';
-import { FindManyOptions, MoreThan, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 import { CreateCountryInput } from '../dtos/create-country.input';
 import { UpdateCountryInput } from '../dtos/update-country.input';
 import { FindCountriesInput } from '../dtos/find-countries.input';

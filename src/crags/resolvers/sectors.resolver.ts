@@ -21,9 +21,6 @@ import { CreateSectorInput } from '../dtos/create-sector.input';
 import { UpdateSectorInput } from '../dtos/update-sector.input';
 import { RoutesService } from '../services/routes.service';
 import { Route } from '../entities/route.entity';
-import { Loader } from '../../core/interceptors/data-loader.interceptor';
-import { SectorRoutesLoader } from '../loaders/sector-routes.loader';
-import DataLoader from 'dataloader';
 import { AllowAny } from '../../auth/decorators/allow-any.decorator';
 import { UserAuthGuard } from '../../auth/guards/user-auth.guard';
 import { ForeignKeyConstraintFilter } from '../filters/foreign-key-constraint.filter';
@@ -37,6 +34,8 @@ export class SectorsResolver {
     private routesService: RoutesService,
   ) {}
 
+  /* QUERIES */
+
   @Query(() => Sector)
   @UseFilters(NotFoundFilter)
   @AllowAny()
@@ -44,6 +43,8 @@ export class SectorsResolver {
   sector(@Args('id') id: string): Promise<Sector> {
     return this.sectorsService.findOneById(id);
   }
+
+  /* MUTATIONS */
 
   @Mutation(() => Sector)
   @UseGuards(UserAuthGuard)
@@ -88,13 +89,17 @@ export class SectorsResolver {
     return this.sectorsService.delete(id);
   }
 
+  /* FIELDS */
+
   @ResolveField('routes', () => [Route])
   async getRoutes(
     @Parent() sector: Sector,
-    @Loader(SectorRoutesLoader)
-    loader: DataLoader<Route['id'], Route[]>,
+    @CurrentUser() user: User,
   ): Promise<Route[]> {
-    return loader.load(sector.id);
+    return this.routesService.find({
+      sectorId: sector.id,
+      user,
+    });
   }
 
   @ResolveField('bouldersOnly', () => Boolean)

@@ -49,6 +49,8 @@ export class CragsResolver {
     private entityPropertiesService: EntityPropertiesService,
   ) {}
 
+  /* QUERIES */
+
   @Query(() => Crag)
   @UseFilters(NotFoundFilter)
   @AllowAny()
@@ -73,10 +75,11 @@ export class CragsResolver {
     return this.cragsService.findOne({
       slug: slug,
       allowEmpty: true,
-      showPrivate: true,
       user,
     });
   }
+
+  /* MUTATIONS */
 
   @UseGuards(UserAuthGuard)
   @UseInterceptors(AuditInterceptor)
@@ -88,7 +91,6 @@ export class CragsResolver {
     if (!user.isAdmin() && !['user', 'proposal'].includes(input.status)) {
       throw new BadRequestException();
     }
-
     return this.cragsService.create(input, user);
   }
 
@@ -107,14 +109,22 @@ export class CragsResolver {
     return this.cragsService.delete(id);
   }
 
+  /* FIELDS */
+
   @ResolveField('nrRoutes', () => Int)
   nrRoutes(@Parent() crag: Crag): number {
     return crag.routeCount ?? crag.nrRoutes;
   }
 
   @ResolveField('sectors', () => [Sector])
-  async getSectors(@Parent() crag: Crag): Promise<Sector[]> {
-    return this.sectorsService.findByCrag(crag.id);
+  async getSectors(
+    @Parent() crag: Crag,
+    @CurrentUser() user: User,
+  ): Promise<Sector[]> {
+    return this.sectorsService.find({
+      cragId: crag.id,
+      user,
+    });
   }
 
   @ResolveField('defaultGradingSystem', () => GradingSystem)

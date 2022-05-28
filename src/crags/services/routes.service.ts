@@ -2,16 +2,18 @@ import { Injectable } from '@nestjs/common';
 import { Route } from '../entities/route.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Sector } from '../entities/sector.entity';
-import { In, Not, Repository } from 'typeorm';
+import { In, Not, Repository, SelectQueryBuilder } from 'typeorm';
 import { CreateRouteInput } from '../dtos/create-route.input';
 import { UpdateRouteInput } from '../dtos/update-route.input';
 import slugify from 'slugify';
 import { DifficultyVote } from '../entities/difficulty-vote.entity';
 import { User } from '../../users/entities/user.entity';
 import { EntityStatus } from '../entities/enums/entity-status.enum';
+import { FindRoutesServiceInput } from '../dtos/find-routes-service.input';
+import { BaseService } from './base.service';
 
 @Injectable()
-export class RoutesService {
+export class RoutesService extends BaseService {
   constructor(
     @InjectRepository(Route)
     private routesRepository: Repository<Route>,
@@ -19,24 +21,20 @@ export class RoutesService {
     private sectorsRepository: Repository<Sector>,
     @InjectRepository(DifficultyVote)
     private difficultyVoteRepository: Repository<DifficultyVote>,
-  ) {}
-
-  async findBySector(sectorId: string): Promise<Route[]> {
-    return this.routesRepository.find({
-      where: { sector: sectorId },
-      order: { position: 'ASC' },
-    });
+  ) {
+    super();
   }
 
-  async findBySectorIds(sectorIds: string[]): Promise<Route[]> {
-    return this.routesRepository.find({
-      where: { sectorId: In(sectorIds) },
-      order: { position: 'ASC' },
-    });
+  async find(input: FindRoutesServiceInput): Promise<Route[]> {
+    return this.buildQuery(input).getMany();
   }
 
   async findByIds(ids: string[]): Promise<Route[]> {
     return this.routesRepository.findByIds(ids);
+  }
+
+  async findOneById(id: string): Promise<Route> {
+    return this.routesRepository.findOneOrFail(id);
   }
 
   async findOneBySlug(
@@ -84,15 +82,6 @@ export class RoutesService {
     return Promise.resolve(route);
   }
 
-  createBaseGrade(route: Route, difficulty: number): Promise<DifficultyVote> {
-    const vote = new DifficultyVote();
-    vote.route = Promise.resolve(route);
-    vote.difficulty = difficulty;
-    vote.isBase = true;
-
-    return this.difficultyVoteRepository.save(vote);
-  }
-
   async update(data: UpdateRouteInput): Promise<Route> {
     const route = await this.routesRepository.findOneOrFail(data.id);
 
@@ -115,8 +104,40 @@ export class RoutesService {
     return this.routesRepository.remove(route).then(() => true);
   }
 
-  async findOneById(id: string): Promise<Route> {
-    return this.routesRepository.findOneOrFail(id);
+  private createBaseGrade(
+    route: Route,
+    difficulty: number,
+  ): Promise<DifficultyVote> {
+    const vote = new DifficultyVote();
+    vote.route = Promise.resolve(route);
+    vote.difficulty = difficulty;
+    vote.isBase = true;
+
+    return this.difficultyVoteRepository.save(vote);
+  }
+
+  private buildQuery(
+    params: FindRoutesServiceInput = {},
+  ): SelectQueryBuilder<Route> {
+    const builder = this.routesRepository.createQueryBuilder('s');
+
+    builder.orderBy('s.position', 'ASC');
+
+    if (params.sectorId != null) {
+      builder.andWhere('s.sector = :sectorId', {
+        sectorId: params.sectorId,
+      });
+    }
+
+    if (params.id != null) {
+      builder.andWhere('s.id = :id', {
+        id: params.id,
+      });
+    }
+
+    this.setEntityStatusParams(builder, 's', params);
+
+    return builder;
   }
 
   private async generateRouteSlug(
