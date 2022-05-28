@@ -12,6 +12,7 @@ import {
   UseFilters,
   UseGuards,
   BadRequestException,
+  ForbiddenException,
 } from '@nestjs/common';
 import { AuditInterceptor } from '../../audit/interceptors/audit.interceptor';
 import { NotFoundFilter } from '../filters/not-found.filter';
@@ -61,12 +62,30 @@ export class SectorsResolver {
   }
 
   @Mutation(() => Sector)
-  @Roles('admin')
-  @UseInterceptors(AuditInterceptor)
+  @UseGuards(UserAuthGuard)
   @UseFilters(NotFoundFilter)
+  @UseInterceptors(AuditInterceptor)
   async updateSector(
     @Args('input', { type: () => UpdateSectorInput }) input: UpdateSectorInput,
+    @CurrentUser() user: User,
   ): Promise<Sector> {
+    const sector = await this.sectorsService.findOne({
+      id: input.id,
+      user,
+    });
+
+    if (!user.isAdmin() && !['user', 'proposal'].includes(sector.status)) {
+      throw new ForbiddenException();
+    }
+
+    if (
+      !user.isAdmin() &&
+      input.status != null &&
+      !['user', 'proposal'].includes(input.status)
+    ) {
+      throw new BadRequestException();
+    }
+
     return this.sectorsService.update(input);
   }
 
@@ -82,10 +101,22 @@ export class SectorsResolver {
   }
 
   @Mutation(() => Boolean)
-  @Roles('admin')
+  @UseGuards(UserAuthGuard)
   @UseInterceptors(AuditInterceptor)
   @UseFilters(NotFoundFilter, ForeignKeyConstraintFilter)
-  async deleteSector(@Args('id') id: string): Promise<boolean> {
+  async deleteSector(
+    @Args('id') id: string,
+    @CurrentUser() user: User,
+  ): Promise<boolean> {
+    const sector = await this.sectorsService.findOne({
+      id: id,
+      user,
+    });
+
+    if (!user.isAdmin() && !['user', 'proposal'].includes(sector.status)) {
+      throw new ForbiddenException();
+    }
+
     return this.sectorsService.delete(id);
   }
 

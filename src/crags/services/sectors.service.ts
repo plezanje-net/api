@@ -26,6 +26,9 @@ export class SectorsService extends BaseService {
   async find(input: FindSectorsServiceInput): Promise<Sector[]> {
     return this.buildQuery(input).getMany();
   }
+  async findOne(input: FindSectorsServiceInput): Promise<Sector> {
+    return this.buildQuery(input).getOneOrFail();
+  }
 
   async findOneById(id: string): Promise<Sector> {
     return this.buildQuery({ id: id }).getOneOrFail();

@@ -11,7 +11,7 @@ export class UpdateCragInput {
   @IsOptional()
   name: string;
 
-  @Field()
+  @Field({ nullable: true })
   @IsOptional()
   type: CragType;
 

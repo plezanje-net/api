@@ -12,6 +12,7 @@ import {
   UseFilters,
   UseGuards,
   BadRequestException,
+  ForbiddenException,
 } from '@nestjs/common';
 import { Roles } from '../../auth/decorators/roles.decorator';
 import { Crag } from '../entities/crag.entity';
@@ -59,7 +60,6 @@ export class CragsResolver {
     return this.cragsService.findOne({
       id: id,
       allowEmpty: true,
-      showPrivate: true,
       user,
     });
   }
@@ -94,18 +94,53 @@ export class CragsResolver {
     return this.cragsService.create(input, user);
   }
 
+  @UseGuards(UserAuthGuard)
+  @UseFilters(NotFoundFilter)
   @UseInterceptors(AuditInterceptor)
   @Mutation(() => Crag)
   async updateCrag(
     @Args('input', { type: () => UpdateCragInput }) input: UpdateCragInput,
+    @CurrentUser() user: User,
   ): Promise<Crag> {
+    const crag = await this.cragsService.findOne({
+      id: input.id,
+      allowEmpty: true,
+      user,
+    });
+
+    if (!user.isAdmin() && !['user', 'proposal'].includes(crag.status)) {
+      throw new ForbiddenException();
+    }
+
+    if (
+      !user.isAdmin() &&
+      input.status != null &&
+      !['user', 'proposal'].includes(input.status)
+    ) {
+      throw new BadRequestException();
+    }
+
     return this.cragsService.update(input);
   }
 
-  @Roles('admin')
-  @UseInterceptors(AuditInterceptor)
   @Mutation(() => Boolean)
-  async deleteCrag(@Args('id') id: string): Promise<boolean> {
+  @UseGuards(UserAuthGuard)
+  @UseInterceptors(AuditInterceptor)
+  @UseFilters(NotFoundFilter)
+  async deleteCrag(
+    @Args('id') id: string,
+    @CurrentUser() user: User,
+  ): Promise<boolean> {
+    const crag = await this.cragsService.findOne({
+      id: id,
+      allowEmpty: true,
+      user,
+    });
+
+    if (!user.isAdmin() && !['user', 'proposal'].includes(crag.status)) {
+      throw new ForbiddenException();
+    }
+
     return this.cragsService.delete(id);
   }
 
