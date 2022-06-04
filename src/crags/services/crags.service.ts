@@ -146,10 +146,6 @@ export class CragsService extends BaseService {
       builder.addSelect('COUNT(route.id)', 'routeCount');
     }
 
-    if (!params.allowEmpty) {
-      builder.andWhere('"nrRoutes" > 0');
-    }
-
     return builder;
   }
 

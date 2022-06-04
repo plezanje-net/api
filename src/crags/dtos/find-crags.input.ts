@@ -40,6 +40,7 @@ export class FindCragsInput {
   @IsOptional()
   slug?: string;
 
+  // deprecated (ignored), frontend should handle this if necessary on crag list
   @Field({ nullable: true })
   @IsOptional()
   allowEmpty?: boolean;

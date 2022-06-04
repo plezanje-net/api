@@ -59,7 +59,6 @@ export class CragsResolver {
   crag(@Args('id') id: string, @CurrentUser() user: User): Promise<Crag> {
     return this.cragsService.findOne({
       id: id,
-      allowEmpty: true,
       user,
     });
   }
@@ -74,7 +73,6 @@ export class CragsResolver {
   ): Promise<Crag> {
     return this.cragsService.findOne({
       slug: slug,
-      allowEmpty: true,
       user,
     });
   }
@@ -104,7 +102,6 @@ export class CragsResolver {
   ): Promise<Crag> {
     const crag = await this.cragsService.findOne({
       id: input.id,
-      allowEmpty: true,
       user,
     });
 
@@ -133,7 +130,6 @@ export class CragsResolver {
   ): Promise<boolean> {
     const crag = await this.cragsService.findOne({
       id: id,
-      allowEmpty: true,
       user,
     });
 

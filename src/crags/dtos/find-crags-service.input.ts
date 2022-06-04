@@ -6,5 +6,6 @@ import { FindCragsInput } from './find-crags.input';
 @InputType()
 export class FindCragsServiceInput extends FindCragsInput
   implements EntityStatusInput {
+  id?: string;
   user?: User;
 }

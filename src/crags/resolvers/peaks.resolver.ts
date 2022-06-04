@@ -36,7 +36,6 @@ export class PeaksResolver {
       ...input,
       peakId: peak.id,
       user,
-      allowEmpty: true,
     });
   }
 }
