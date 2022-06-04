@@ -29,6 +29,10 @@ export class RoutesService extends BaseService {
     return this.buildQuery(input).getMany();
   }
 
+  async findOne(input: FindRoutesServiceInput): Promise<Route> {
+    return this.buildQuery(input).getOneOrFail();
+  }
+
   async findByIds(ids: string[]): Promise<Route[]> {
     return this.routesRepository.findByIds(ids);
   }

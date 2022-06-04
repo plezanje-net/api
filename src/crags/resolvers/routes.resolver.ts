@@ -13,6 +13,7 @@ import {
   UseFilters,
   UseGuards,
   BadRequestException,
+  ForbiddenException,
 } from '@nestjs/common';
 import { AuditInterceptor } from '../../audit/interceptors/audit.interceptor';
 import { NotFoundFilter } from '../filters/not-found.filter';
@@ -55,48 +56,7 @@ export class RoutesResolver {
     private entityPropertiesService: EntityPropertiesService,
   ) {}
 
-  @Mutation(() => Route)
-  @UseGuards(UserAuthGuard)
-  @UseInterceptors(AuditInterceptor)
-  @UseFilters(NotFoundFilter)
-  async createRoute(
-    @Args('input', { type: () => CreateRouteInput }) input: CreateRouteInput,
-    @CurrentUser() user: User,
-  ): Promise<Route> {
-    if (!user.isAdmin() && !['user', 'proposal'].includes(input.status)) {
-      throw new BadRequestException();
-    }
-    return this.routesService.create(input, user);
-  }
-
-  @Mutation(() => Route)
-  @Roles('admin')
-  @UseInterceptors(AuditInterceptor)
-  @UseFilters(NotFoundFilter)
-  async updateRoute(
-    @Args('input', { type: () => UpdateRouteInput }) input: UpdateRouteInput,
-  ): Promise<Route> {
-    return this.routesService.update(input);
-  }
-
-  @Mutation(() => [Route])
-  @Roles('admin')
-  @UseInterceptors(AuditInterceptor)
-  @UseFilters(NotFoundFilter)
-  async updateRoutes(
-    @Args('input', { type: () => [UpdateRouteInput] })
-    input: UpdateRouteInput[],
-  ): Promise<Route[]> {
-    return Promise.all(input.map(input => this.routesService.update(input)));
-  }
-
-  @Mutation(() => Boolean)
-  @Roles('admin')
-  @UseInterceptors(AuditInterceptor)
-  @UseFilters(NotFoundFilter, ForeignKeyConstraintFilter)
-  async deleteRoute(@Args('id') id: string): Promise<boolean> {
-    return this.routesService.delete(id);
-  }
+  /* QUERIES */
 
   @Query(() => Route)
   @UseFilters(NotFoundFilter)
@@ -115,6 +75,83 @@ export class RoutesResolver {
   ): Promise<Route> {
     return this.routesService.findOneBySlug(cragSlug, routeSlug, minStatus);
   }
+
+  /* MUTATIONS */
+
+  @Mutation(() => Route)
+  @UseGuards(UserAuthGuard)
+  @UseInterceptors(AuditInterceptor)
+  @UseFilters(NotFoundFilter)
+  async createRoute(
+    @Args('input', { type: () => CreateRouteInput }) input: CreateRouteInput,
+    @CurrentUser() user: User,
+  ): Promise<Route> {
+    if (!user.isAdmin() && !['user', 'proposal'].includes(input.status)) {
+      throw new BadRequestException();
+    }
+    return this.routesService.create(input, user);
+  }
+
+  @Mutation(() => Route)
+  @UseGuards(UserAuthGuard)
+  @UseFilters(NotFoundFilter)
+  @UseInterceptors(AuditInterceptor)
+  async updateRoute(
+    @Args('input', { type: () => UpdateRouteInput }) input: UpdateRouteInput,
+    @CurrentUser() user: User,
+  ): Promise<Route> {
+    const route = await this.routesService.findOne({
+      id: input.id,
+      user,
+    });
+
+    if (!user.isAdmin() && !['user', 'proposal'].includes(route.status)) {
+      throw new ForbiddenException();
+    }
+
+    if (
+      !user.isAdmin() &&
+      input.status != null &&
+      !['user', 'proposal'].includes(input.status)
+    ) {
+      throw new BadRequestException();
+    }
+
+    return this.routesService.update(input);
+  }
+
+  @Mutation(() => [Route])
+  @Roles('admin')
+  @UseInterceptors(AuditInterceptor)
+  @UseFilters(NotFoundFilter)
+  async updateRoutes(
+    @Args('input', { type: () => [UpdateRouteInput] })
+    input: UpdateRouteInput[],
+  ): Promise<Route[]> {
+    return Promise.all(input.map(input => this.routesService.update(input)));
+  }
+
+  @Mutation(() => Boolean)
+  @UseGuards(UserAuthGuard)
+  @UseInterceptors(AuditInterceptor)
+  @UseFilters(NotFoundFilter, ForeignKeyConstraintFilter)
+  async deleteRoute(
+    @Args('id') id: string,
+    @CurrentUser() user: User,
+  ): Promise<boolean> {
+    const route = await this.routesService.findOne({
+      id: id,
+      user,
+    });
+
+    if (!user.isAdmin() && !['user', 'proposal'].includes(route.status)) {
+      throw new ForbiddenException();
+    }
+
+    return this.routesService.delete(id);
+  }
+
+  /* FIELDS */
 
   @ResolveField('comments', () => [Comment])
   async getComments(
