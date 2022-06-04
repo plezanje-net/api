@@ -41,8 +41,8 @@ export class SectorsResolver {
   @UseFilters(NotFoundFilter)
   @AllowAny()
   @UseGuards(UserAuthGuard)
-  sector(@Args('id') id: string): Promise<Sector> {
-    return this.sectorsService.findOneById(id);
+  sector(@Args('id') id: string, @CurrentUser() user: User): Promise<Sector> {
+    return this.sectorsService.findOne({ id: id, user: user });
   }
 
   /* MUTATIONS */

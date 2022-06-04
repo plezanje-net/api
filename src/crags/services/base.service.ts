@@ -22,7 +22,7 @@ export class BaseService {
     }
 
     builder.andWhere(
-      `${alias}.publishStatus = :publishStatus OR ${alias}."userId" = :userId`,
+      `(${alias}.publishStatus = :publishStatus OR ${alias}."userId" = :userId)`,
       {
         publishStatus: 'published',
         userId: user.id,
