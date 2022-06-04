@@ -90,7 +90,7 @@ export class SectorsService extends BaseService {
       });
     }
 
-    this.setEntityStatusParams(builder, 's', params);
+    this.setPublishStatusParams(builder, 's', params);
 
     return builder;
   }

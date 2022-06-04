@@ -23,6 +23,7 @@ import { Activity } from '../../activities/entities/activity.entity';
 import { GradingSystem } from './grading-system.entity';
 import { User } from '../../users/entities/user.entity';
 import { EntityStatus } from './enums/entity-status.enum';
+import { PublishStatus } from './enums/publish-status.enum';
 
 export enum CragType {
   SPORT = 'sport',
@@ -59,6 +60,18 @@ export class Crag extends BaseEntity {
   })
   @Field()
   status: EntityStatus;
+
+  @Column({
+    type: 'enum',
+    enum: PublishStatus,
+    default: PublishStatus.PUBLISHED,
+  })
+  @Field()
+  publishStatus: PublishStatus;
+
+  @Column({ default: false })
+  @Field()
+  isHidden: boolean;
 
   @Column({ type: 'float', nullable: true })
   @Field(() => Float, { nullable: true })

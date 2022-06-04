@@ -26,15 +26,7 @@ import { Book } from './book.entity';
 import { User } from '../../users/entities/user.entity';
 import { EntityStatus } from './enums/entity-status.enum';
 import { ActivityRoute } from '../../activities/entities/activity-route.entity';
-
-export enum RouteStatus {
-  PUBLIC = 'public',
-  HIDDEN = 'hidden',
-  ADMIN = 'admin',
-  ARCHIVE = 'archive',
-  PROPOSAL = 'proposal',
-  USER = 'user',
-}
+import { PublishStatus } from './enums/publish-status.enum';
 
 /**
  * Has Triggers:
@@ -96,6 +88,14 @@ export class Route extends BaseEntity {
   })
   @Field()
   status: EntityStatus;
+
+  @Column({
+    type: 'enum',
+    enum: PublishStatus,
+    default: PublishStatus.PUBLISHED,
+  })
+  @Field()
+  publishStatus: PublishStatus;
 
   @Column({ default: false })
   @Field()

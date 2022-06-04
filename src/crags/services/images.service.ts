@@ -1,6 +1,5 @@
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { EntityStatus } from '../entities/enums/entity-status.enum';
 import { Image } from '../entities/image.entity';
 
 export class ImagesService {
@@ -8,15 +7,28 @@ export class ImagesService {
     @InjectRepository(Image) private imagesRepository: Repository<Image>,
   ) {}
 
-  getLatestImages(latest: number, minStatus: EntityStatus) {
+  getLatestImages(latest: number, showHiddenCrags: boolean) {
     const builder = this.imagesRepository.createQueryBuilder('i');
     builder
-      .leftJoin('route', 'r', 'i.routeId = r.id')
-      .leftJoin('crag', 'c', 'c.id = COALESCE(i.cragId, r.cragId)')
-      .where('c.status <= :minStatus', { minStatus })
+      .leftJoin(
+        'route',
+        'r',
+        "i.routeId = r.id AND r.publishStatus = 'published'",
+      )
+      .leftJoin(
+        'crag',
+        'c',
+        "c.id = COALESCE(i.cragId, r.cragId) AND c.publishStatus = 'published'",
+      )
+
+      .andWhere("r.publishStatus = 'published'") // only show ticks for published routes
       .andWhere('i.type = :type', { type: 'photo' }) // Comment this out if you want to show all types of images
       .orderBy('i.created', 'DESC')
       .limit(latest);
+
+    if (!showHiddenCrags) {
+      builder.andWhere('c.isHidden = false');
+    }
 
     return builder.getMany();
   }

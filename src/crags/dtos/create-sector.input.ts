@@ -1,6 +1,6 @@
 import { InputType, Field } from '@nestjs/graphql';
 import { IsUUID } from 'class-validator';
-import { EntityStatus } from '../entities/enums/entity-status.enum';
+import { PublishStatus } from '../entities/enums/publish-status.enum';
 
 @InputType()
 export class CreateSectorInput {
@@ -14,7 +14,7 @@ export class CreateSectorInput {
   position: number;
 
   @Field()
-  status: EntityStatus;
+  publishStatus: PublishStatus;
 
   @IsUUID()
   @Field()

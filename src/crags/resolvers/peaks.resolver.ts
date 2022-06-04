@@ -1,10 +1,8 @@
 import { Args, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql';
 import { CurrentUser } from '../../auth/decorators/current-user.decorator';
 import { User } from '../../users/entities/user.entity';
-import { MinCragStatus } from '../decorators/min-crag-status.decorator';
 import { FindCragsServiceInput } from '../dtos/find-crags-service.input';
 import { Crag } from '../entities/crag.entity';
-import { EntityStatus } from '../entities/enums/entity-status.enum';
 import { Peak } from '../entities/peak.entity';
 import { CragsService } from '../services/crags.service';
 import { PeaksService } from '../services/peaks.service';

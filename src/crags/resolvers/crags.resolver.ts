@@ -26,7 +26,6 @@ import { AuditInterceptor } from '../../audit/interceptors/audit.interceptor';
 import { Comment } from '../entities/comment.entity';
 import { CommentsService } from '../services/comments.service';
 import { PopularCrag } from '../utils/popular-crag.class';
-import { MinCragStatus } from '../decorators/min-crag-status.decorator';
 import { AllowAny } from '../../auth/decorators/allow-any.decorator';
 import { UserAuthGuard } from '../../auth/guards/user-auth.guard';
 import { GradingSystem } from '../entities/grading-system.entity';
@@ -39,7 +38,6 @@ import { CragProperty } from '../entities/crag-property.entity';
 import { EntityPropertiesService } from '../services/entity-properties.service';
 import { CurrentUser } from '../../auth/decorators/current-user.decorator';
 import { User } from '../../users/entities/user.entity';
-import { EntityStatus } from '../entities/enums/entity-status.enum';
 
 @Resolver(() => Crag)
 export class CragsResolver {
@@ -86,7 +84,10 @@ export class CragsResolver {
     @Args('input', { type: () => CreateCragInput }) input: CreateCragInput,
     @CurrentUser() user: User,
   ): Promise<Crag> {
-    if (!user.isAdmin() && !['user', 'proposal'].includes(input.status)) {
+    if (
+      !user.isAdmin() &&
+      !['draft', 'in_review'].includes(input.publishStatus)
+    ) {
       throw new BadRequestException();
     }
     return this.cragsService.create(input, user);
@@ -105,14 +106,17 @@ export class CragsResolver {
       user,
     });
 
-    if (!user.isAdmin() && !['user', 'proposal'].includes(crag.status)) {
+    if (
+      !user.isAdmin() &&
+      !['draft', 'in_review'].includes(crag.publishStatus)
+    ) {
       throw new ForbiddenException();
     }
 
     if (
       !user.isAdmin() &&
-      input.status != null &&
-      !['user', 'proposal'].includes(input.status)
+      input.publishStatus != null &&
+      !['draft', 'in_review'].includes(input.publishStatus)
     ) {
       throw new BadRequestException();
     }
@@ -133,7 +137,10 @@ export class CragsResolver {
       user,
     });
 
-    if (!user.isAdmin() && !['user', 'proposal'].includes(crag.status)) {
+    if (
+      !user.isAdmin() &&
+      !['draft', 'in_review'].includes(crag.publishStatus)
+    ) {
       throw new ForbiddenException();
     }
 
@@ -199,10 +206,10 @@ export class CragsResolver {
   @AllowAny()
   @UseGuards(UserAuthGuard)
   async popularCrags(
-    @MinCragStatus() minStatus: EntityStatus,
+    @CurrentUser() user: User,
     @Args('dateFrom', { nullable: true }) dateFrom?: string,
     @Args('top', { type: () => Int, nullable: true }) top?: number,
   ) {
-    return this.cragsService.getPopularCrags(dateFrom, top, minStatus);
+    return this.cragsService.getPopularCrags(dateFrom, top, user != null);
   }
 }

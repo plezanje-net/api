@@ -8,7 +8,6 @@ import { UpdateCommentInput } from '../dtos/update-comment';
 import { Comment } from '../entities/comment.entity';
 import { Crag } from '../entities/crag.entity';
 import { IceFall } from '../entities/ice-fall.entity';
-import { EntityStatus } from '../entities/enums/entity-status.enum';
 
 @Injectable()
 export class CommentsService {
@@ -105,16 +104,27 @@ export class CommentsService {
    *
    * @returns Comment[]
    */
-  getExposedWarnings(minStatus: EntityStatus) {
+  getExposedWarnings(showHiddenCrags: boolean) {
     const builder = this.commentsRepository.createQueryBuilder('co');
 
     builder
-      .leftJoin('route', 'r', 'co.routeId = r.id')
-      .leftJoin('crag', 'cr', 'COALESCE(co.cragId, r.cragId) = cr.id')
+      .leftJoin(
+        'route',
+        'r',
+        "co.routeId = r.id AND r.publishStatus = 'published'",
+      )
+      .leftJoin(
+        'crag',
+        'cr',
+        "COALESCE(co.cragId, r.cragId) = cr.id AND cr.publishStatus = 'published'",
+      )
       .where('co.type = :type', { type: 'warning' })
       .andWhere('"exposedUntil" > NOW()')
-      .andWhere('cr.status <= :minStatus', { minStatus })
       .orderBy('co.updated', 'DESC');
+
+    if (!showHiddenCrags) {
+      builder.andWhere('cr.isHidden = false');
+    }
 
     return builder.getMany();
   }

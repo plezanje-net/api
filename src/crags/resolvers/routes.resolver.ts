@@ -28,7 +28,6 @@ import DataLoader from 'dataloader';
 import { Loader } from '../../core/interceptors/data-loader.interceptor';
 import { RoutePitchesLoader } from '../loaders/route-pitches.loader';
 import { DifficultyVotesService } from '../services/difficulty-votes.service';
-import { MinCragStatus } from '../decorators/min-crag-status.decorator';
 import { Crag } from '../entities/crag.entity';
 import { AllowAny } from '../../auth/decorators/allow-any.decorator';
 import { UserAuthGuard } from '../../auth/guards/user-auth.guard';
@@ -42,7 +41,6 @@ import { RouteProperty } from '../entities/route-property.entity';
 import { EntityPropertiesService } from '../services/entity-properties.service';
 import { CurrentUser } from '../../auth/decorators/current-user.decorator';
 import { User } from '../../users/entities/user.entity';
-import { EntityStatus } from '../entities/enums/entity-status.enum';
 import { RouteNrTicksLoader } from '../loaders/route-nr-ticks.loader';
 import { RouteNrTriesLoader } from '../loaders/route-nr-tries.loader';
 import { RouteNrClimbersLoader } from '../loaders/route-nr-climbers.loader';
@@ -70,9 +68,9 @@ export class RoutesResolver {
   async routeBySlug(
     @Args('cragSlug') cragSlug: string,
     @Args('routeSlug') routeSlug: string,
-    @MinCragStatus() minStatus: EntityStatus,
+    @CurrentUser() user: User,
   ): Promise<Route> {
-    return this.routesService.findOneBySlug(cragSlug, routeSlug, minStatus);
+    return this.routesService.findOneBySlug(cragSlug, routeSlug, user);
   }
 
   /* MUTATIONS */
@@ -85,7 +83,10 @@ export class RoutesResolver {
     @Args('input', { type: () => CreateRouteInput }) input: CreateRouteInput,
     @CurrentUser() user: User,
   ): Promise<Route> {
-    if (!user.isAdmin() && !['user', 'proposal'].includes(input.status)) {
+    if (
+      !user.isAdmin() &&
+      !['draft', 'in_review'].includes(input.publishStatus)
+    ) {
       throw new BadRequestException();
     }
     return this.routesService.create(input, user);
@@ -104,14 +105,17 @@ export class RoutesResolver {
       user,
     });
 
-    if (!user.isAdmin() && !['user', 'proposal'].includes(route.status)) {
+    if (
+      !user.isAdmin() &&
+      !['draft', 'in_review'].includes(route.publishStatus)
+    ) {
       throw new ForbiddenException();
     }
 
     if (
       !user.isAdmin() &&
-      input.status != null &&
-      !['user', 'proposal'].includes(input.status)
+      input.publishStatus != null &&
+      !['draft', 'in_review'].includes(input.publishStatus)
     ) {
       throw new BadRequestException();
     }
@@ -143,7 +147,10 @@ export class RoutesResolver {
       user,
     });
 
-    if (!user.isAdmin() && !['user', 'proposal'].includes(route.status)) {
+    if (
+      !user.isAdmin() &&
+      !['draft', 'in_review'].includes(route.publishStatus)
+    ) {
       throw new ForbiddenException();
     }
 

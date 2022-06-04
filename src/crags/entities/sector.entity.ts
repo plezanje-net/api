@@ -13,6 +13,7 @@ import { Crag } from '../../crags/entities/crag.entity';
 import { Route } from '../../crags/entities/route.entity';
 import { User } from '../../users/entities/user.entity';
 import { EntityStatus } from './enums/entity-status.enum';
+import { PublishStatus } from './enums/publish-status.enum';
 
 @Entity()
 @ObjectType()
@@ -40,6 +41,14 @@ export class Sector extends BaseEntity {
   })
   @Field()
   status: EntityStatus;
+
+  @Column({
+    type: 'enum',
+    enum: PublishStatus,
+    default: PublishStatus.PUBLISHED,
+  })
+  @Field()
+  publishStatus: PublishStatus;
 
   @CreateDateColumn()
   created: Date;

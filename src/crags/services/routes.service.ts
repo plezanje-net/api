@@ -2,13 +2,12 @@ import { Injectable } from '@nestjs/common';
 import { Route } from '../entities/route.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Sector } from '../entities/sector.entity';
-import { In, Not, Repository, SelectQueryBuilder } from 'typeorm';
+import { Not, Repository, SelectQueryBuilder } from 'typeorm';
 import { CreateRouteInput } from '../dtos/create-route.input';
 import { UpdateRouteInput } from '../dtos/update-route.input';
 import slugify from 'slugify';
 import { DifficultyVote } from '../entities/difficulty-vote.entity';
 import { User } from '../../users/entities/user.entity';
-import { EntityStatus } from '../entities/enums/entity-status.enum';
 import { FindRoutesServiceInput } from '../dtos/find-routes-service.input';
 import { BaseService } from './base.service';
 import { tickAscentTypes } from '../../activities/entities/activity-route.entity';
@@ -45,17 +44,19 @@ export class RoutesService extends BaseService {
   async findOneBySlug(
     cragSlug: string,
     routeSlug: string,
-    minStatus: EntityStatus,
+    user: User,
   ): Promise<Route> {
     const builder = this.routesRepository.createQueryBuilder('r');
 
     builder
       .innerJoin('crag', 'c', 'c.id = r."cragId"')
       .where('r.slug = :routeSlug', { routeSlug: routeSlug })
-      .andWhere('c.slug = :cragSlug', { cragSlug: cragSlug })
-      .andWhere('c.status <= :minStatus', {
-        minStatus: minStatus,
-      });
+      .andWhere('c.slug = :cragSlug', { cragSlug: cragSlug });
+    // TODO ADD PUBLISH STATUS CONDITION !!
+
+    if (!(user != null)) {
+      builder.andWhere('c.isHidden = false');
+    }
 
     return builder.getOneOrFail();
   }
@@ -178,7 +179,7 @@ export class RoutesService extends BaseService {
       });
     }
 
-    this.setEntityStatusParams(builder, 's', params);
+    this.setPublishStatusParams(builder, 's', params);
 
     return builder;
   }

@@ -1,9 +1,9 @@
 import { UseGuards } from '@nestjs/common';
 import { Args, Int, Resolver, Query } from '@nestjs/graphql';
 import { AllowAny } from '../../auth/decorators/allow-any.decorator';
+import { CurrentUser } from '../../auth/decorators/current-user.decorator';
 import { UserAuthGuard } from '../../auth/guards/user-auth.guard';
-import { MinCragStatus } from '../decorators/min-crag-status.decorator';
-import { EntityStatus } from '../entities/enums/entity-status.enum';
+import { User } from '../../users/entities/user.entity';
 import { Image } from '../entities/image.entity';
 import { ImagesService } from '../services/images.service';
 
@@ -16,8 +16,8 @@ export class ImagesResolver {
   @Query(returns => [Image], { name: 'latestImages' })
   latestImages(
     @Args('latest', { type: () => Int }) latest: number,
-    @MinCragStatus() minStatus: EntityStatus,
+    @CurrentUser() user: User,
   ) {
-    return this.imagesService.getLatestImages(latest, minStatus);
+    return this.imagesService.getLatestImages(latest, user != null);
   }
 }

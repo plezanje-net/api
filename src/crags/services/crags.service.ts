@@ -7,13 +7,11 @@ import { UpdateCragInput } from '../dtos/update-crag.input';
 import { Country } from '../../crags/entities/country.entity';
 import { Route } from '../entities/route.entity';
 import { Area } from '../entities/area.entity';
-import { FindCragsInput } from '../dtos/find-crags.input';
 import { FindCragsServiceInput } from '../dtos/find-crags-service.input';
 import { PopularCrag } from '../utils/popular-crag.class';
 import slugify from 'slugify';
 import { GradingSystem } from '../entities/grading-system.entity';
 import { User } from '../../users/entities/user.entity';
-import { EntityStatus } from '../entities/enums/entity-status.enum';
 import { BaseService } from './base.service';
 
 @Injectable()
@@ -133,7 +131,11 @@ export class CragsService extends BaseService {
       });
     }
 
-    this.setEntityStatusParams(builder, 'c', params);
+    if (!(params.user != null)) {
+      builder.andWhere('c.isHidden = false');
+    }
+
+    this.setPublishStatusParams(builder, 'c', params);
 
     if (params.routeTypeId != null) {
       builder
@@ -196,17 +198,19 @@ export class CragsService extends BaseService {
   async getPopularCrags(
     dateFrom: string,
     top: number,
-    minStatus: EntityStatus,
+    showHiddenCrags: boolean,
   ): Promise<PopularCrag[]> {
     const builder = this.cragsRepository
       .createQueryBuilder('c')
       .addSelect('count(c.id)', 'nrvisits')
       .leftJoin('activity', 'ac', 'ac.cragId = c.id')
-      .where('c.status <= :minStatus', {
-        minStatus: minStatus,
-      })
+      .where("c.publishStatus = 'published'")
       .groupBy('c.id')
       .orderBy('nrvisits', 'DESC');
+
+    if (!showHiddenCrags) {
+      builder.andWhere('c.isHidden = false');
+    }
 
     if (dateFrom) {
       builder.andWhere('ac.date >= :dateFrom', { dateFrom: dateFrom });

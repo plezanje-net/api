@@ -33,7 +33,6 @@ import { UpdateActivityRouteInput } from '../dtos/update-activity-route.input';
 import { RoutesTouches } from '../utils/routes-touches.class';
 import { FindRoutesTouchesInput } from '../dtos/find-routes-touches.input';
 import { SideEffect } from '../utils/side-effect.class';
-import { EntityStatus } from '../../crags/entities/enums/entity-status.enum';
 
 @Injectable()
 export class ActivityRoutesService {
@@ -601,7 +600,7 @@ export class ActivityRoutesService {
   }
 
   async latestTicks(
-    minStatus: EntityStatus,
+    showHiddenCrags: boolean,
     latestN: number = null,
     inLastNDays: number = null,
   ): Promise<ActivityRoute[]> {
@@ -624,11 +623,15 @@ export class ActivityRoutesService {
       })
       .andWhere('ar.routeId IS NOT NULL') // TODO: what are activity routes with no route id??
       .andWhere('r.difficulty IS NOT NULL') // TODO: entries with null values for grade? -> multipitch? - skip for now
-      .andWhere('c.status <= :minStatus', { minStatus }) // hide ticks from hidden crags if dictated so by crag status
+      .andWhere("r.publishStatus = 'published'") // only show ticks for published routes
       .orderBy('ardate', 'DESC')
       .addOrderBy('ar.userId', 'DESC')
       .addOrderBy('score', 'DESC')
       .addOrderBy('ar.ascentType', 'ASC');
+
+    if (!showHiddenCrags) {
+      builder.andWhere('c.isHidden = false'); // don't show hidden crags
+    }
 
     if (inLastNDays) {
       builder.andWhere(

@@ -55,7 +55,7 @@ export class SectorsResolver {
     @Args('input', { type: () => CreateSectorInput }) input: CreateSectorInput,
     @CurrentUser() user: User,
   ): Promise<Sector> {
-    if (!user.isAdmin() && !['user', 'proposal'].includes(input.status)) {
+    if (!user.isAdmin() && input.publishStatus == 'published') {
       throw new BadRequestException();
     }
     return this.sectorsService.create(input, user);
@@ -74,15 +74,11 @@ export class SectorsResolver {
       user,
     });
 
-    if (!user.isAdmin() && !['user', 'proposal'].includes(sector.status)) {
+    if (!user.isAdmin() && sector.publishStatus == 'published') {
       throw new ForbiddenException();
     }
 
-    if (
-      !user.isAdmin() &&
-      input.status != null &&
-      !['user', 'proposal'].includes(input.status)
-    ) {
+    if (!user.isAdmin() && input.publishStatus == 'published') {
       throw new BadRequestException();
     }
 
@@ -113,7 +109,7 @@ export class SectorsResolver {
       user,
     });
 
-    if (!user.isAdmin() && !['user', 'proposal'].includes(sector.status)) {
+    if (!user.isAdmin() && sector.publishStatus == 'published') {
       throw new ForbiddenException();
     }
 
