@@ -26,10 +26,14 @@ import { UserAuthGuard } from '../../auth/guards/user-auth.guard';
 import { ForeignKeyConstraintFilter } from '../filters/foreign-key-constraint.filter';
 import { CurrentUser } from '../../auth/decorators/current-user.decorator';
 import { User } from '../../users/entities/user.entity';
+import { RoutesService } from '../services/routes.service';
 
 @Resolver(() => Sector)
 export class SectorsResolver {
-  constructor(private sectorsService: SectorsService) {}
+  constructor(
+    private sectorsService: SectorsService,
+    private routesService: RoutesService,
+  ) {}
 
   /* QUERIES */
 
