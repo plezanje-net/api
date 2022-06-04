@@ -77,7 +77,7 @@ export class Route extends BaseEntity {
 
   @Column({ type: 'int', nullable: true })
   @Field({ nullable: true })
-  length: string;
+  length: number;
 
   @Column({ nullable: true })
   @Field({ nullable: true })
