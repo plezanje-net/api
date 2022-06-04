@@ -14,11 +14,9 @@ import { NotFoundFilter } from '../filters/not-found.filter';
 import { CreateRouteInput } from '../dtos/create-route.input';
 import { UpdateRouteInput } from '../dtos/update-route.input';
 import { RoutesService } from '../services/routes.service';
-import { CommentsService } from '../services/comments.service';
 import { Comment } from '../entities/comment.entity';
 import { DifficultyVote } from '../entities/difficulty-vote.entity';
 import { Pitch } from '../entities/pitch.entity';
-import { PitchesService } from '../services/pitches.service';
 import { RouteCommentsLoader } from '../loaders/route-comments.loader';
 import DataLoader from 'dataloader';
 import { Loader } from '../../core/interceptors/data-loader.interceptor';
@@ -36,13 +34,14 @@ import { RouteTypeLoader } from '../loaders/route-type.loader';
 import { CragLoader } from '../loaders/crag.loader';
 import { RouteProperty } from '../entities/route-property.entity';
 import { EntityPropertiesService } from '../services/entity-properties.service';
+import { RouteNrTicksLoader } from '../loaders/route-nr-ticks.loader';
+import { RouteNrTriesLoader } from '../loaders/route-nr-tries.loader';
+import { RouteNrClimbersLoader } from '../loaders/route-nr-climbers.loader';
 
 @Resolver(() => Route)
 export class RoutesResolver {
   constructor(
     private routesService: RoutesService,
-    private commentsService: CommentsService,
-    private pitchesService: PitchesService,
     private difficultyVotesService: DifficultyVotesService,
     private entityPropertiesService: EntityPropertiesService,
   ) {}
@@ -157,5 +156,29 @@ export class RoutesResolver {
     loader: DataLoader<RouteType['id'], RouteType>,
   ): Promise<RouteType> {
     return loader.load(route.routeTypeId);
+  }
+
+  @ResolveField('nrTicks', returns => Number)
+  async nrTicks(
+    @Parent() route: Route,
+    @Loader(RouteNrTicksLoader) loader: DataLoader<string, number>,
+  ) {
+    return loader.load(route.id);
+  }
+
+  @ResolveField('nrTries', returns => Number)
+  async nrTries(
+    @Parent() route: Route,
+    @Loader(RouteNrTriesLoader) loader: DataLoader<string, number>,
+  ) {
+    return loader.load(route.id);
+  }
+
+  @ResolveField('nrClimbers', returns => Number)
+  async nrClimbers(
+    @Parent() route: Route,
+    @Loader(RouteNrClimbersLoader) loader: DataLoader<string, number>,
+  ) {
+    return loader.load(route.id);
   }
 }

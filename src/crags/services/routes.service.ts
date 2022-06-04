@@ -8,6 +8,7 @@ import { UpdateRouteInput } from '../dtos/update-route.input';
 import { CragStatus } from '../entities/crag.entity';
 import slugify from 'slugify';
 import { DifficultyVote } from '../entities/difficulty-vote.entity';
+import { tickAscentTypes } from '../../activities/entities/activity-route.entity';
 
 @Injectable()
 export class RoutesService {
@@ -54,6 +55,44 @@ export class RoutesService {
       });
 
     return builder.getOneOrFail();
+  }
+
+  countManyTicks(keys: readonly string[]) {
+    const builder = this.routesRepository
+      .createQueryBuilder('r')
+      .leftJoin('r.activityRoutes', 'ar', 'ar.ascentType in (:...aTypes)', {
+        aTypes: [...tickAscentTypes],
+      })
+      .select('r.id')
+      .addSelect('COUNT(ar.id)', 'nrTicks')
+      .where('r.id IN (:...rIds)', { rIds: keys })
+      .groupBy('r.id');
+
+    return builder.getRawMany();
+  }
+
+  countManyTries(keys: readonly string[]) {
+    const builder = this.routesRepository
+      .createQueryBuilder('r')
+      .leftJoin('r.activityRoutes', 'ar')
+      .select('r.id')
+      .addSelect('COUNT(ar.id)', 'nrTries')
+      .where('r.id IN (:...rIds)', { rIds: keys })
+      .groupBy('r.id');
+
+    return builder.getRawMany();
+  }
+
+  countManyDisctinctClimbers(keys: readonly string[]) {
+    const builder = this.routesRepository
+      .createQueryBuilder('r')
+      .leftJoin('r.activityRoutes', 'ar')
+      .select('r.id')
+      .addSelect('COUNT(DISTINCT(ar."userId")) as "nrClimbers"')
+      .where('r.id IN (:...rIds)', { rIds: keys })
+      .groupBy('r.id');
+
+    return builder.getRawMany();
   }
 
   async create(data: CreateRouteInput): Promise<Route> {

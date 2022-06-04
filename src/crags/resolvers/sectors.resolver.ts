@@ -14,22 +14,17 @@ import { Sector } from '../entities/sector.entity';
 import { SectorsService } from '../services/sectors.service';
 import { CreateSectorInput } from '../dtos/create-sector.input';
 import { UpdateSectorInput } from '../dtos/update-sector.input';
-import { RoutesService } from '../services/routes.service';
 import { Route } from '../entities/route.entity';
 import { Loader } from '../../core/interceptors/data-loader.interceptor';
 import { SectorRoutesLoader } from '../loaders/sector-routes.loader';
 import DataLoader from 'dataloader';
 import { AllowAny } from '../../auth/decorators/allow-any.decorator';
 import { UserAuthGuard } from '../../auth/guards/user-auth.guard';
-import { MinCragStatus } from '../decorators/min-crag-status.decorator';
 import { ForeignKeyConstraintFilter } from '../filters/foreign-key-constraint.filter';
 
 @Resolver(() => Sector)
 export class SectorsResolver {
-  constructor(
-    private sectorsService: SectorsService,
-    private routesService: RoutesService,
-  ) {}
+  constructor(private sectorsService: SectorsService) {}
 
   @Query(() => Sector)
   @UseFilters(NotFoundFilter)
