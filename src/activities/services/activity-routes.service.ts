@@ -176,14 +176,6 @@ export class ActivityRoutesService {
 
     // if a vote on star rating (route beauty) is passed add a new star rating vote or update existing one
     if (routeIn.votedStarRating || routeIn.votedStarRating === 0) {
-      // but first check if a user even can vote (can vote only if the log is a tick)
-      if (!this.isTick(routeIn.ascentType)) {
-        throw new HttpException(
-          'Cannot vote on star rating (beauty) if not logging a tick.',
-          HttpStatus.NOT_ACCEPTABLE,
-        );
-      }
-
       let starRatingVote = await queryRunner.manager.findOne(StarRatingVote, {
         user,
         route,
