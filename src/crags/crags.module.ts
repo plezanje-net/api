@@ -57,6 +57,9 @@ import { RouteProperty } from './entities/route-property.entity';
 import { CragProperty } from './entities/crag-property.entity';
 import { IceFallProperty } from './entities/ice-fall-property.entity';
 import { EntityPropertiesService } from './services/entity-properties.service';
+import { RouteNrTicksLoader } from './loaders/route-nr-ticks.loader';
+import { RouteNrTriesLoader } from './loaders/route-nr-tries.loader';
+import { RouteNrClimbersLoader } from './loaders/route-nr-climbers.loader';
 
 @Module({
   imports: [
@@ -107,6 +110,9 @@ import { EntityPropertiesService } from './services/entity-properties.service';
     RouteTypeLoader,
     CountryLoader,
     RouteLoader,
+    RouteNrTicksLoader,
+    RouteNrTriesLoader,
+    RouteNrClimbersLoader,
     CragLoader,
     {
       provide: APP_INTERCEPTOR,

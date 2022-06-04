@@ -13,7 +13,7 @@ export class UpdateRouteInput {
 
   @Field({ nullable: true })
   @IsOptional()
-  length: string;
+  length: number;
 
   @Field({ nullable: true })
   @IsOptional()

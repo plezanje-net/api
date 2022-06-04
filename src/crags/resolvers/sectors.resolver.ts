@@ -20,7 +20,6 @@ import { Sector } from '../entities/sector.entity';
 import { SectorsService } from '../services/sectors.service';
 import { CreateSectorInput } from '../dtos/create-sector.input';
 import { UpdateSectorInput } from '../dtos/update-sector.input';
-import { RoutesService } from '../services/routes.service';
 import { Route } from '../entities/route.entity';
 import { AllowAny } from '../../auth/decorators/allow-any.decorator';
 import { UserAuthGuard } from '../../auth/guards/user-auth.guard';
@@ -30,10 +29,7 @@ import { User } from '../../users/entities/user.entity';
 
 @Resolver(() => Sector)
 export class SectorsResolver {
-  constructor(
-    private sectorsService: SectorsService,
-    private routesService: RoutesService,
-  ) {}
+  constructor(private sectorsService: SectorsService) {}
 
   /* QUERIES */
 

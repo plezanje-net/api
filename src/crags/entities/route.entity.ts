@@ -25,6 +25,16 @@ import { RouteEvent } from './route-event.entity';
 import { Book } from './book.entity';
 import { User } from '../../users/entities/user.entity';
 import { EntityStatus } from './enums/entity-status.enum';
+import { ActivityRoute } from '../../activities/entities/activity-route.entity';
+
+export enum RouteStatus {
+  PUBLIC = 'public',
+  HIDDEN = 'hidden',
+  ADMIN = 'admin',
+  ARCHIVE = 'archive',
+  PROPOSAL = 'proposal',
+  USER = 'user',
+}
 
 /**
  * Has Triggers:
@@ -69,7 +79,7 @@ export class Route extends BaseEntity {
 
   @Column({ type: 'int', nullable: true })
   @Field({ nullable: true })
-  length: string;
+  length: number;
 
   @Column({ nullable: true })
   @Field({ nullable: true })
@@ -181,4 +191,19 @@ export class Route extends BaseEntity {
   user: Promise<User>;
   @Column({ name: 'userId', nullable: true })
   userId: string;
+
+  @OneToMany(
+    () => ActivityRoute,
+    activityRoute => activityRoute.route,
+  )
+  activityRoutes: ActivityRoute[];
+
+  @Field()
+  nrTicks: number;
+
+  @Field()
+  nrTries: number;
+
+  @Field()
+  nrClimbers: number;
 }
