@@ -44,7 +44,7 @@ export class ContributionsService extends BaseService {
           ])
           .where(
             input.user.isAdmin()
-              ? `"publishStatus" = 'in_review'`
+              ? `"publishStatus" = 'in_review' OR ("publishStatus" = 'draft' AND "userId" = '${input.user.id}')`
               : `("publishStatus" = 'in_review' OR "publishStatus" = 'draft') AND "userId" = '${input.user.id}'`,
           )
           .getQuery(),

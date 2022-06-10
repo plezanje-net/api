@@ -15,9 +15,14 @@ export class BaseService {
     }
 
     if (user.isAdmin()) {
-      builder.andWhere(`${alias}.publishStatus IN (:...publishStatuses)`, {
-        publishStatuses: ['published', 'in_review'],
-      });
+      builder.andWhere(
+        `(${alias}.publishStatus IN (:...publishStatuses) OR (${alias}."userId" = :userId AND ${alias}.publishStatus = :publishStatus))`,
+        {
+          publishStatuses: ['published', 'in_review'],
+          userId: user.id,
+          publishStatus: 'draft',
+        },
+      );
       return;
     }
 
