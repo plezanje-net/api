@@ -20,7 +20,7 @@ export class Contribution {
   id: string;
 
   @Field()
-  status: string;
+  publishStatus: string;
 
   @Field(() => Crag, { nullable: true })
   crag: Promise<Crag>;

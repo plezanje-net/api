@@ -40,12 +40,12 @@ export class ContributionsService extends BaseService {
             'created',
             `'${alias}' as entity`,
             '"userId"',
-            'status::text',
+            '"publishStatus"::text',
           ])
           .where(
             input.user.isAdmin()
-              ? `status = 'proposal'`
-              : `(status = 'proposal' OR status = 'user') AND "userId" = '${input.user.id}'`,
+              ? `"publishStatus" = 'in_review'`
+              : `("publishStatus" = 'in_review' OR "publishStatus" = 'draft') AND "userId" = '${input.user.id}'`,
           )
           .getQuery(),
       )
