@@ -2,7 +2,13 @@ import { Injectable } from '@nestjs/common';
 import { Route } from '../entities/route.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Sector } from '../entities/sector.entity';
-import { Not, Repository, SelectQueryBuilder } from 'typeorm';
+import {
+  Connection,
+  MoreThanOrEqual,
+  Not,
+  Repository,
+  SelectQueryBuilder,
+} from 'typeorm';
 import { CreateRouteInput } from '../dtos/create-route.input';
 import { UpdateRouteInput } from '../dtos/update-route.input';
 import slugify from 'slugify';
@@ -11,6 +17,7 @@ import { User } from '../../users/entities/user.entity';
 import { FindRoutesServiceInput } from '../dtos/find-routes-service.input';
 import { BaseService } from './base.service';
 import { tickAscentTypes } from '../../activities/entities/activity-route.entity';
+import { Transaction } from '../../core/utils/transaction.class';
 
 @Injectable()
 export class RoutesService extends BaseService {
@@ -21,6 +28,7 @@ export class RoutesService extends BaseService {
     private sectorsRepository: Repository<Sector>,
     @InjectRepository(DifficultyVote)
     private difficultyVoteRepository: Repository<DifficultyVote>,
+    private connection: Connection,
   ) {
     super();
   }
@@ -139,7 +147,41 @@ export class RoutesService extends BaseService {
       );
     }
 
-    return this.routesRepository.save(route);
+    const transaction = new Transaction(this.connection);
+    await transaction.start();
+
+    try {
+      await transaction.save(route);
+
+      // find following positions and shift if necessary
+      const followingRoutes = await this.routesRepository.find({
+        where: {
+          sectorId: route.sectorId,
+          position: MoreThanOrEqual(route.position),
+          id: Not(route.id),
+        },
+        order: {
+          position: 'ASC',
+        },
+      });
+
+      if (
+        followingRoutes.length > 0 &&
+        followingRoutes[0].position == route.position
+      ) {
+        for (const followingRoute of followingRoutes) {
+          followingRoute.position++;
+          await transaction.save(followingRoute);
+        }
+      }
+    } catch (e) {
+      await transaction.rollback();
+      throw e;
+    }
+
+    await transaction.commit();
+
+    return Promise.resolve(route);
   }
 
   async delete(id: string): Promise<boolean> {
