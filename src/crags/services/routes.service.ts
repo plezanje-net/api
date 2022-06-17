@@ -121,15 +121,22 @@ export class RoutesService extends BaseService {
 
     route.slug = await this.generateRouteSlug(route.name, route.cragId);
 
-    if (data.baseDifficulty == null || route.isProject) {
-      return this.routesRepository.save(route);
+    const transaction = new Transaction(this.connection);
+    await transaction.start();
+
+    try {
+      await transaction.save(route);
+      await this.shiftFollowingRoutes(route, transaction);
+
+      if (data.baseDifficulty != null && !route.isProject) {
+        await this.createBaseGrade(route, data.baseDifficulty, transaction);
+      }
+    } catch (e) {
+      await transaction.rollback();
+      throw e;
     }
 
-    await this.routesRepository.save(route);
-
-    if (data.baseDifficulty != null && !route.isProject) {
-      await this.createBaseGrade(route, data.baseDifficulty);
-    }
+    await transaction.commit();
 
     return Promise.resolve(route);
   }
@@ -152,28 +159,7 @@ export class RoutesService extends BaseService {
 
     try {
       await transaction.save(route);
-
-      // find following positions and shift if necessary
-      const followingRoutes = await this.routesRepository.find({
-        where: {
-          sectorId: route.sectorId,
-          position: MoreThanOrEqual(route.position),
-          id: Not(route.id),
-        },
-        order: {
-          position: 'ASC',
-        },
-      });
-
-      if (
-        followingRoutes.length > 0 &&
-        followingRoutes[0].position == route.position
-      ) {
-        for (const followingRoute of followingRoutes) {
-          followingRoute.position++;
-          await transaction.save(followingRoute);
-        }
-      }
+      await this.shiftFollowingRoutes(route, transaction);
     } catch (e) {
       await transaction.rollback();
       throw e;
@@ -184,22 +170,46 @@ export class RoutesService extends BaseService {
     return Promise.resolve(route);
   }
 
+  private async shiftFollowingRoutes(route: Route, transaction: Transaction) {
+    const followingRoutes = await this.routesRepository.find({
+      where: {
+        sectorId: route.sectorId,
+        position: MoreThanOrEqual(route.position),
+        id: Not(route.id),
+      },
+      order: {
+        position: 'ASC',
+      },
+    });
+
+    if (
+      followingRoutes.length > 0 &&
+      followingRoutes[0].position == route.position
+    ) {
+      for (let offset = 0; offset < followingRoutes.length; offset++) {
+        followingRoutes[offset].position = route.position + offset + 1;
+        await transaction.save(followingRoutes[offset]);
+      }
+    }
+  }
+
   async delete(id: string): Promise<boolean> {
     const route = await this.routesRepository.findOneOrFail(id);
 
     return this.routesRepository.remove(route).then(() => true);
   }
 
-  private createBaseGrade(
+  private async createBaseGrade(
     route: Route,
     difficulty: number,
-  ): Promise<DifficultyVote> {
+    transaction: Transaction,
+  ): Promise<void> {
     const vote = new DifficultyVote();
     vote.route = Promise.resolve(route);
     vote.difficulty = difficulty;
     vote.isBase = true;
 
-    return this.difficultyVoteRepository.save(vote);
+    return transaction.save(vote);
   }
 
   private buildQuery(
