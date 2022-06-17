@@ -1,7 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Sector } from '../entities/sector.entity';
-import { Not, Repository, SelectQueryBuilder } from 'typeorm';
+import {
+  Connection,
+  MoreThanOrEqual,
+  Not,
+  Repository,
+  SelectQueryBuilder,
+} from 'typeorm';
 import { UpdateSectorInput } from '../dtos/update-sector.input';
 import { CreateSectorInput } from '../dtos/create-sector.input';
 import { Crag } from '../entities/crag.entity';
@@ -9,6 +15,7 @@ import { Route } from '../entities/route.entity';
 import { User } from '../../users/entities/user.entity';
 import { FindSectorsServiceInput } from '../dtos/find-sectors-service.input';
 import { BaseService } from './base.service';
+import { Transaction } from '../../core/utils/transaction.class';
 
 @Injectable()
 export class SectorsService extends BaseService {
@@ -19,6 +26,7 @@ export class SectorsService extends BaseService {
     private cragsRepository: Repository<Crag>,
     @InjectRepository(Route)
     private routesRepository: Repository<Route>,
+    private connection: Connection,
   ) {
     super();
   }
@@ -41,11 +49,7 @@ export class SectorsService extends BaseService {
 
     sector.user = Promise.resolve(user);
 
-    sector.crag = Promise.resolve(
-      await this.cragsRepository.findOneOrFail(data.cragId),
-    );
-
-    return this.sectorsRepository.save(sector);
+    return this.saveSector(sector);
   }
 
   async update(data: UpdateSectorInput): Promise<Sector> {
@@ -53,7 +57,7 @@ export class SectorsService extends BaseService {
 
     this.sectorsRepository.merge(sector, data);
 
-    return this.sectorsRepository.save(sector);
+    return this.saveSector(sector);
   }
 
   async delete(id: string): Promise<boolean> {
@@ -69,6 +73,49 @@ export class SectorsService extends BaseService {
     });
 
     return cnt.then(cnt => !cnt);
+  }
+
+  private async saveSector(sector: Sector) {
+    const transaction = new Transaction(this.connection);
+    await transaction.start();
+
+    try {
+      await transaction.save(sector);
+      await this.shiftFollowingSectors(sector, transaction);
+    } catch (e) {
+      await transaction.rollback();
+      throw e;
+    }
+
+    await transaction.commit();
+
+    return Promise.resolve(sector);
+  }
+
+  private async shiftFollowingSectors(
+    sector: Sector,
+    transaction: Transaction,
+  ) {
+    const followingSectors = await this.sectorsRepository.find({
+      where: {
+        cragId: sector.cragId,
+        position: MoreThanOrEqual(sector.position),
+        id: Not(sector.id),
+      },
+      order: {
+        position: 'ASC',
+      },
+    });
+
+    if (
+      followingSectors.length > 0 &&
+      followingSectors[0].position == sector.position
+    ) {
+      for (let offset = 0; offset < followingSectors.length; offset++) {
+        followingSectors[offset].position = sector.position + offset + 1;
+        await transaction.save(followingSectors[offset]);
+      }
+    }
   }
 
   private buildQuery(
