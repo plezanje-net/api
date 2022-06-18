@@ -2,33 +2,32 @@ import { Injectable } from '@nestjs/common';
 import { CreateCragInput } from '../dtos/create-crag.input';
 import { Crag } from '../entities/crag.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Not, Repository, SelectQueryBuilder } from 'typeorm';
+import { Connection, Not, Repository, SelectQueryBuilder } from 'typeorm';
 import { UpdateCragInput } from '../dtos/update-crag.input';
 import { Country } from '../../crags/entities/country.entity';
 import { Route } from '../entities/route.entity';
-import { Area } from '../entities/area.entity';
 import { FindCragsServiceInput } from '../dtos/find-crags-service.input';
 import { PopularCrag } from '../utils/popular-crag.class';
 import slugify from 'slugify';
-import { GradingSystem } from '../entities/grading-system.entity';
 import { User } from '../../users/entities/user.entity';
-import { BaseService } from './base.service';
+import { ContributablesService } from './contributables.service';
+import { Transaction } from '../../core/utils/transaction.class';
+import { Sector } from '../entities/sector.entity';
 
 @Injectable()
-export class CragsService extends BaseService {
+export class CragsService extends ContributablesService {
   constructor(
     @InjectRepository(Route)
-    private routesRepository: Repository<Route>,
+    protected routesRepository: Repository<Route>,
+    @InjectRepository(Sector)
+    protected sectorsRepository: Repository<Sector>,
     @InjectRepository(Crag)
-    private cragsRepository: Repository<Crag>,
+    protected cragsRepository: Repository<Crag>,
     @InjectRepository(Country)
     private countryRepository: Repository<Country>,
-    @InjectRepository(Area)
-    private areasRepository: Repository<Area>,
-    @InjectRepository(GradingSystem)
-    private gradingSystemRepository: Repository<GradingSystem>,
+    private connection: Connection,
   ) {
-    super();
+    super(cragsRepository, sectorsRepository, routesRepository);
   }
 
   async findByIds(ids: string[]): Promise<Crag[]> {
@@ -63,7 +62,9 @@ export class CragsService extends BaseService {
 
     crag.slug = await this.generateCragSlug(data.name);
 
-    return this.cragsRepository.save(crag);
+    await this.save(crag, user);
+
+    return Promise.resolve(crag);
   }
 
   async update(data: UpdateCragInput): Promise<Crag> {
@@ -73,13 +74,47 @@ export class CragsService extends BaseService {
 
     crag.slug = await this.generateCragSlug(crag.name, crag.id);
 
-    return this.cragsRepository.save(crag);
+    await this.save(crag, await crag.user);
+
+    return Promise.resolve(crag);
   }
 
-  async delete(id: string): Promise<boolean> {
+  private async save(crag: Crag, user: User) {
+    const transaction = new Transaction(this.connection);
+    await transaction.start();
+
+    try {
+      await transaction.save(crag);
+      await this.updateUserContributionsFlag(
+        crag.publishStatus,
+        user,
+        transaction,
+      );
+    } catch (e) {
+      await transaction.rollback();
+      throw e;
+    }
+
+    await transaction.commit();
+  }
+
+  async delete(id: string, user: User): Promise<boolean> {
     const crag = await this.cragsRepository.findOneOrFail(id);
 
-    return this.cragsRepository.remove(crag).then(() => true);
+    const transaction = new Transaction(this.connection);
+    await transaction.start();
+
+    try {
+      await transaction.delete(crag);
+      await this.updateUserContributionsFlag(null, user, transaction);
+    } catch (e) {
+      await transaction.rollback();
+      throw e;
+    }
+
+    await transaction.commit();
+
+    return Promise.resolve(true);
   }
 
   private buildQuery(

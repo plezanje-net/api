@@ -14,21 +14,21 @@ import { Crag } from '../entities/crag.entity';
 import { Route } from '../entities/route.entity';
 import { User } from '../../users/entities/user.entity';
 import { FindSectorsServiceInput } from '../dtos/find-sectors-service.input';
-import { BaseService } from './base.service';
+import { ContributablesService } from './contributables.service';
 import { Transaction } from '../../core/utils/transaction.class';
 
 @Injectable()
-export class SectorsService extends BaseService {
+export class SectorsService extends ContributablesService {
   constructor(
-    @InjectRepository(Sector)
-    private sectorsRepository: Repository<Sector>,
     @InjectRepository(Crag)
-    private cragsRepository: Repository<Crag>,
+    protected cragsRepository: Repository<Crag>,
+    @InjectRepository(Sector)
+    protected sectorsRepository: Repository<Sector>,
     @InjectRepository(Route)
-    private routesRepository: Repository<Route>,
+    protected routesRepository: Repository<Route>,
     private connection: Connection,
   ) {
-    super();
+    super(cragsRepository, sectorsRepository, routesRepository);
   }
 
   async find(input: FindSectorsServiceInput): Promise<Sector[]> {
@@ -49,7 +49,7 @@ export class SectorsService extends BaseService {
 
     sector.user = Promise.resolve(user);
 
-    return this.saveSector(sector);
+    return this.save(sector, user);
   }
 
   async update(data: UpdateSectorInput): Promise<Sector> {
@@ -57,7 +57,7 @@ export class SectorsService extends BaseService {
 
     this.sectorsRepository.merge(sector, data);
 
-    return this.saveSector(sector);
+    return this.save(sector, await sector.user);
   }
 
   async delete(id: string): Promise<boolean> {
@@ -75,13 +75,18 @@ export class SectorsService extends BaseService {
     return cnt.then(cnt => !cnt);
   }
 
-  private async saveSector(sector: Sector) {
+  private async save(sector: Sector, user: User) {
     const transaction = new Transaction(this.connection);
     await transaction.start();
 
     try {
       await transaction.save(sector);
       await this.shiftFollowingSectors(sector, transaction);
+      await this.updateUserContributionsFlag(
+        sector.publishStatus,
+        user,
+        transaction,
+      );
     } catch (e) {
       await transaction.rollback();
       throw e;

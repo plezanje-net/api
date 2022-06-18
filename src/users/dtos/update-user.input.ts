@@ -13,5 +13,5 @@ export class UpdateUserInput {
 
   @Field({ nullable: true })
   @IsOptional()
-  showPrivateEntries?: boolean;
+  hasUnpublishedContributions?: boolean;
 }

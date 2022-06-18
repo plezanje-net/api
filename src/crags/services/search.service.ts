@@ -8,23 +8,23 @@ import { Comment } from '../entities/comment.entity';
 import { User } from '../../users/entities/user.entity';
 import { SearchResults } from '../utils/search-results.class';
 import { FieldNode, GraphQLResolveInfo } from 'graphql';
-import { BaseService } from './base.service';
+import { ContributablesService } from './contributables.service';
 
 @Injectable()
-export class SearchService extends BaseService {
+export class SearchService extends ContributablesService {
   constructor(
     @InjectRepository(Route)
-    private routesRepository: Repository<Route>,
+    protected routesRepository: Repository<Route>,
     @InjectRepository(Crag)
-    private cragsRepository: Repository<Crag>,
+    protected cragsRepository: Repository<Crag>,
     @InjectRepository(Sector)
-    private sectorsRepository: Repository<Sector>,
+    protected sectorsRepository: Repository<Sector>,
     @InjectRepository(Comment)
     private commentsRepository: Repository<Comment>,
     @InjectRepository(User)
     private usersRepository: Repository<User>,
   ) {
-    super();
+    super(cragsRepository, sectorsRepository, routesRepository);
   }
 
   async find(

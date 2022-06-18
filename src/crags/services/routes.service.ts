@@ -15,22 +15,25 @@ import slugify from 'slugify';
 import { DifficultyVote } from '../entities/difficulty-vote.entity';
 import { User } from '../../users/entities/user.entity';
 import { FindRoutesServiceInput } from '../dtos/find-routes-service.input';
-import { BaseService } from './base.service';
+import { ContributablesService } from './contributables.service';
 import { tickAscentTypes } from '../../activities/entities/activity-route.entity';
 import { Transaction } from '../../core/utils/transaction.class';
+import { Crag } from '../entities/crag.entity';
 
 @Injectable()
-export class RoutesService extends BaseService {
+export class RoutesService extends ContributablesService {
   constructor(
     @InjectRepository(Route)
-    private routesRepository: Repository<Route>,
+    protected routesRepository: Repository<Route>,
     @InjectRepository(Sector)
-    private sectorsRepository: Repository<Sector>,
+    protected sectorsRepository: Repository<Sector>,
+    @InjectRepository(Crag)
+    protected cragRepository: Repository<Crag>,
     @InjectRepository(DifficultyVote)
     private difficultyVoteRepository: Repository<DifficultyVote>,
     private connection: Connection,
   ) {
-    super();
+    super(cragRepository, sectorsRepository, routesRepository);
   }
 
   async find(input: FindRoutesServiceInput): Promise<Route[]> {

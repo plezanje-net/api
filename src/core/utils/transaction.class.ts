@@ -18,6 +18,10 @@ export class Transaction {
     await this.queryRunner.manager.save(entity);
   }
 
+  public async delete(entity: any) {
+    await this.queryRunner.manager.remove(entity);
+  }
+
   public async rollback() {
     await this.queryRunner.rollbackTransaction();
   }

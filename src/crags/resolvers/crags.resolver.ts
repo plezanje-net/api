@@ -144,7 +144,7 @@ export class CragsResolver {
       throw new ForbiddenException();
     }
 
-    return this.cragsService.delete(id);
+    return this.cragsService.delete(id, user);
   }
 
   /* FIELDS */
