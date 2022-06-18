@@ -24,9 +24,11 @@ export class Transaction {
 
   public async rollback() {
     await this.queryRunner.rollbackTransaction();
+    await this.queryRunner.release();
   }
 
   public async commit() {
     await this.queryRunner.commitTransaction();
+    await this.queryRunner.release();
   }
 }
