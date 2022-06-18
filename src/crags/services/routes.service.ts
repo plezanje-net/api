@@ -119,7 +119,7 @@ export class RoutesService extends ContributablesService {
 
     const sector = await this.sectorsRepository.findOneOrFail(data.sectorId);
 
-    route.sector = Promise.resolve(sector);
+    route.sectorId = sector.id;
     route.cragId = sector.cragId;
 
     route.slug = await this.generateRouteSlug(route.name, route.cragId);
@@ -248,10 +248,11 @@ export class RoutesService extends ContributablesService {
     let slug = slugify(routeName, { lower: true });
     let suffixCounter = 0;
     let suffix = '';
+
     while (
-      (await this.routesRepository.findOne({
-        where: { ...selfCond, slug: slug + suffix, crag: cragId },
-      })) !== undefined
+      (await this.routesRepository.count({
+        where: { ...selfCond, slug: slug + suffix, cragId: cragId },
+      })) > 0
     ) {
       suffixCounter++;
       suffix = '-' + suffixCounter;
