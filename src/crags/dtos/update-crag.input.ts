@@ -22,6 +22,10 @@ export class UpdateCragInput {
 
   @Field({ nullable: true })
   @IsOptional()
+  cascadePublishStatus: boolean;
+
+  @Field({ nullable: true })
+  @IsOptional()
   isHidden: boolean;
 
   @Field({ nullable: true })

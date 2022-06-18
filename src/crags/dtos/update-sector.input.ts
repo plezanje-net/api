@@ -22,4 +22,8 @@ export class UpdateSectorInput {
   @Field({ nullable: true })
   @IsOptional()
   publishStatus: PublishStatus;
+
+  @Field({ nullable: true })
+  @IsOptional()
+  cascadePublishStatus: boolean;
 }
