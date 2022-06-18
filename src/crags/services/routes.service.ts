@@ -134,6 +134,11 @@ export class RoutesService extends ContributablesService {
       if (data.baseDifficulty != null && !route.isProject) {
         await this.createBaseGrade(route, data.baseDifficulty, transaction);
       }
+      await this.updateUserContributionsFlag(
+        route.publishStatus,
+        user,
+        transaction,
+      );
     } catch (e) {
       await transaction.rollback();
       throw e;
@@ -163,6 +168,12 @@ export class RoutesService extends ContributablesService {
     try {
       await transaction.save(route);
       await this.shiftFollowingRoutes(route, transaction);
+      const user = await route.user;
+      await this.updateUserContributionsFlag(
+        route.publishStatus,
+        user,
+        transaction,
+      );
     } catch (e) {
       await transaction.rollback();
       throw e;
@@ -199,7 +210,21 @@ export class RoutesService extends ContributablesService {
   async delete(id: string): Promise<boolean> {
     const route = await this.routesRepository.findOneOrFail(id);
 
-    return this.routesRepository.remove(route).then(() => true);
+    const transaction = new Transaction(this.connection);
+    await transaction.start();
+
+    try {
+      const user = await route.user;
+      await transaction.delete(route);
+      await this.updateUserContributionsFlag(null, user, transaction);
+    } catch (e) {
+      await transaction.rollback();
+      throw e;
+    }
+
+    await transaction.commit();
+
+    return Promise.resolve(true);
   }
 
   private async createBaseGrade(

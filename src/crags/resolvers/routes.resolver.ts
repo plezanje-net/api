@@ -83,10 +83,7 @@ export class RoutesResolver {
     @Args('input', { type: () => CreateRouteInput }) input: CreateRouteInput,
     @CurrentUser() user: User,
   ): Promise<Route> {
-    if (
-      !user.isAdmin() &&
-      !['draft', 'in_review'].includes(input.publishStatus)
-    ) {
+    if (!user.isAdmin() && input.publishStatus == 'published') {
       throw new BadRequestException();
     }
     return this.routesService.create(input, user);
@@ -105,18 +102,11 @@ export class RoutesResolver {
       user,
     });
 
-    if (
-      !user.isAdmin() &&
-      !['draft', 'in_review'].includes(route.publishStatus)
-    ) {
+    if (!user.isAdmin() && route.publishStatus != 'draft') {
       throw new ForbiddenException();
     }
 
-    if (
-      !user.isAdmin() &&
-      input.publishStatus != null &&
-      !['draft', 'in_review'].includes(input.publishStatus)
-    ) {
+    if (!user.isAdmin() && input.publishStatus == 'published') {
       throw new BadRequestException();
     }
 
@@ -147,10 +137,7 @@ export class RoutesResolver {
       user,
     });
 
-    if (
-      !user.isAdmin() &&
-      !['draft', 'in_review'].includes(route.publishStatus)
-    ) {
+    if (!user.isAdmin() && route.publishStatus != 'draft') {
       throw new ForbiddenException();
     }
 

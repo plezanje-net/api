@@ -74,7 +74,7 @@ export class SectorsResolver {
       user,
     });
 
-    if (!user.isAdmin() && sector.publishStatus == 'published') {
+    if (!user.isAdmin() && sector.publishStatus != 'draft') {
       throw new ForbiddenException();
     }
 
@@ -109,7 +109,7 @@ export class SectorsResolver {
       user,
     });
 
-    if (!user.isAdmin() && sector.publishStatus == 'published') {
+    if (!user.isAdmin() && sector.publishStatus != 'draft') {
       throw new ForbiddenException();
     }
 

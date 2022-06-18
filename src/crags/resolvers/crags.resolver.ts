@@ -84,10 +84,7 @@ export class CragsResolver {
     @Args('input', { type: () => CreateCragInput }) input: CreateCragInput,
     @CurrentUser() user: User,
   ): Promise<Crag> {
-    if (
-      !user.isAdmin() &&
-      !['draft', 'in_review'].includes(input.publishStatus)
-    ) {
+    if (!user.isAdmin() && input.publishStatus == 'published') {
       throw new BadRequestException();
     }
     return this.cragsService.create(input, user);
@@ -106,18 +103,11 @@ export class CragsResolver {
       user,
     });
 
-    if (
-      !user.isAdmin() &&
-      !['draft', 'in_review'].includes(crag.publishStatus)
-    ) {
+    if (!user.isAdmin() && crag.publishStatus != 'draft') {
       throw new ForbiddenException();
     }
 
-    if (
-      !user.isAdmin() &&
-      input.publishStatus != null &&
-      !['draft', 'in_review'].includes(input.publishStatus)
-    ) {
+    if (!user.isAdmin() && input.publishStatus == 'published') {
       throw new BadRequestException();
     }
 
@@ -137,14 +127,11 @@ export class CragsResolver {
       user,
     });
 
-    if (
-      !user.isAdmin() &&
-      !['draft', 'in_review'].includes(crag.publishStatus)
-    ) {
+    if (!user.isAdmin() && crag.publishStatus != 'draft') {
       throw new ForbiddenException();
     }
 
-    return this.cragsService.delete(id, user);
+    return this.cragsService.delete(id);
   }
 
   /* FIELDS */

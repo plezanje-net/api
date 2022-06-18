@@ -98,13 +98,14 @@ export class CragsService extends ContributablesService {
     await transaction.commit();
   }
 
-  async delete(id: string, user: User): Promise<boolean> {
+  async delete(id: string): Promise<boolean> {
     const crag = await this.cragsRepository.findOneOrFail(id);
 
     const transaction = new Transaction(this.connection);
     await transaction.start();
 
     try {
+      const user = await crag.user;
       await transaction.delete(crag);
       await this.updateUserContributionsFlag(null, user, transaction);
     } catch (e) {

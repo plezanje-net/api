@@ -63,7 +63,21 @@ export class SectorsService extends ContributablesService {
   async delete(id: string): Promise<boolean> {
     const sector = await this.sectorsRepository.findOneOrFail(id);
 
-    return this.sectorsRepository.remove(sector).then(() => true);
+    const transaction = new Transaction(this.connection);
+    await transaction.start();
+
+    try {
+      const user = await sector.user;
+      await transaction.delete(sector);
+      await this.updateUserContributionsFlag(null, user, transaction);
+    } catch (e) {
+      await transaction.rollback();
+      throw e;
+    }
+
+    await transaction.commit();
+
+    return Promise.resolve(true);
   }
 
   async bouldersOnly(sectorId: string): Promise<boolean> {
