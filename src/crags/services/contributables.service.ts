@@ -53,6 +53,24 @@ export class ContributablesService {
     );
   }
 
+  protected async cascadePublishStatusToRoutes(
+    sector: Sector,
+    oldStatus: PublishStatus,
+    transaction: Transaction,
+  ) {
+    const routes = await transaction.queryRunner.manager.find(Route, {
+      where: {
+        sectorId: sector.id,
+        publishStatus: oldStatus,
+        userId: sector.userId,
+      },
+    });
+    for (const route of routes) {
+      route.publishStatus = sector.publishStatus;
+      await transaction.save(route);
+    }
+  }
+
   async updateUserContributionsFlag(
     status: PublishStatus,
     user: User,

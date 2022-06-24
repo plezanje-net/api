@@ -16,6 +16,7 @@ import { User } from '../../users/entities/user.entity';
 import { FindSectorsServiceInput } from '../dtos/find-sectors-service.input';
 import { ContributablesService } from './contributables.service';
 import { Transaction } from '../../core/utils/transaction.class';
+import { PublishStatus } from '../entities/enums/publish-status.enum';
 
 @Injectable()
 export class SectorsService extends ContributablesService {
@@ -54,10 +55,15 @@ export class SectorsService extends ContributablesService {
 
   async update(data: UpdateSectorInput): Promise<Sector> {
     const sector = await this.sectorsRepository.findOneOrFail(data.id);
+    const previousPublishStatus = sector.publishStatus;
 
     this.sectorsRepository.merge(sector, data);
 
-    return this.save(sector, await sector.user);
+    return this.save(
+      sector,
+      await sector.user,
+      data.cascadePublishStatus ? previousPublishStatus : null,
+    );
   }
 
   async delete(id: string): Promise<boolean> {
@@ -89,13 +95,24 @@ export class SectorsService extends ContributablesService {
     return cnt.then(cnt => !cnt);
   }
 
-  private async save(sector: Sector, user: User) {
+  private async save(
+    sector: Sector,
+    user: User,
+    cascadeFromPublishStatus: PublishStatus = null,
+  ) {
     const transaction = new Transaction(this.connection);
     await transaction.start();
 
     try {
       await transaction.save(sector);
       await this.shiftFollowingSectors(sector, transaction);
+      if (cascadeFromPublishStatus != null) {
+        await this.cascadePublishStatusToRoutes(
+          sector,
+          cascadeFromPublishStatus,
+          transaction,
+        );
+      }
       await this.updateUserContributionsFlag(
         sector.publishStatus,
         user,

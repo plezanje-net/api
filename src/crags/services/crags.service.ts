@@ -13,6 +13,7 @@ import { User } from '../../users/entities/user.entity';
 import { ContributablesService } from './contributables.service';
 import { Transaction } from '../../core/utils/transaction.class';
 import { Sector } from '../entities/sector.entity';
+import { PublishStatus } from '../entities/enums/publish-status.enum';
 
 @Injectable()
 export class CragsService extends ContributablesService {
@@ -69,22 +70,38 @@ export class CragsService extends ContributablesService {
 
   async update(data: UpdateCragInput): Promise<Crag> {
     const crag = await this.cragsRepository.findOneOrFail(data.id);
+    const previousPublishStatus = crag.publishStatus;
 
     this.cragsRepository.merge(crag, data);
 
     crag.slug = await this.generateCragSlug(crag.name, crag.id);
 
-    await this.save(crag, await crag.user);
+    await this.save(
+      crag,
+      await crag.user,
+      data.cascadePublishStatus ? previousPublishStatus : null,
+    );
 
     return Promise.resolve(crag);
   }
 
-  private async save(crag: Crag, user: User) {
+  private async save(
+    crag: Crag,
+    user: User,
+    cascadeFromPublishStatus: PublishStatus = null,
+  ) {
     const transaction = new Transaction(this.connection);
     await transaction.start();
 
     try {
       await transaction.save(crag);
+      if (cascadeFromPublishStatus != null) {
+        await this.cascadePublishStatusToSectors(
+          crag,
+          cascadeFromPublishStatus,
+          transaction,
+        );
+      }
       await this.updateUserContributionsFlag(
         crag.publishStatus,
         user,
@@ -96,6 +113,25 @@ export class CragsService extends ContributablesService {
     }
 
     await transaction.commit();
+  }
+
+  private async cascadePublishStatusToSectors(
+    crag: Crag,
+    oldStatus: PublishStatus,
+    transaction: Transaction,
+  ) {
+    const sectors = await transaction.queryRunner.manager.find(Sector, {
+      where: {
+        cragId: crag.id,
+        publishStatus: oldStatus,
+        userId: crag.userId,
+      },
+    });
+    for (const sector of sectors) {
+      sector.publishStatus = crag.publishStatus;
+      await transaction.save(sector);
+      await this.cascadePublishStatusToRoutes(sector, oldStatus, transaction);
+    }
   }
 
   async delete(id: string): Promise<boolean> {
