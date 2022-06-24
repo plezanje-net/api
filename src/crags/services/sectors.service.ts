@@ -132,16 +132,19 @@ export class SectorsService extends ContributablesService {
     sector: Sector,
     transaction: Transaction,
   ) {
-    const followingSectors = await this.sectorsRepository.find({
-      where: {
-        cragId: sector.cragId,
-        position: MoreThanOrEqual(sector.position),
-        id: Not(sector.id),
+    const followingSectors = await transaction.queryRunner.manager.find(
+      Sector,
+      {
+        where: {
+          cragId: sector.cragId,
+          position: MoreThanOrEqual(sector.position),
+          id: Not(sector.id),
+        },
+        order: {
+          position: 'ASC',
+        },
       },
-      order: {
-        position: 'ASC',
-      },
-    });
+    );
 
     if (
       followingSectors.length > 0 &&

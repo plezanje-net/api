@@ -185,7 +185,7 @@ export class RoutesService extends ContributablesService {
   }
 
   private async shiftFollowingRoutes(route: Route, transaction: Transaction) {
-    const followingRoutes = await this.routesRepository.find({
+    const followingRoutes = await transaction.queryRunner.manager.find(Route, {
       where: {
         sectorId: route.sectorId,
         position: MoreThanOrEqual(route.position),
