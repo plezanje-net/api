@@ -42,4 +42,8 @@ export class UpdateRouteInput {
   @Field({ nullable: true })
   @IsOptional()
   defaultGradingSystemId: string;
+
+  @Field({ nullable: true })
+  @IsOptional()
+  rejectionMessage: string;
 }

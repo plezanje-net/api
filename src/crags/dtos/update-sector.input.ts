@@ -26,4 +26,8 @@ export class UpdateSectorInput {
   @Field({ nullable: true })
   @IsOptional()
   cascadePublishStatus: boolean;
+
+  @Field({ nullable: true })
+  @IsOptional()
+  rejectionMessage: string;
 }

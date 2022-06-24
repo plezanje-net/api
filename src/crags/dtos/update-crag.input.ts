@@ -59,4 +59,8 @@ export class UpdateCragInput {
   @Field({ nullable: true })
   @IsOptional()
   defaultGradingSystemId: string;
+
+  @Field({ nullable: true })
+  @IsOptional()
+  rejectionMessage: string;
 }
