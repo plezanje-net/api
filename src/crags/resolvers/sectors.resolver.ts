@@ -79,7 +79,15 @@ export class SectorsResolver {
     }
 
     if (!user.isAdmin() && input.publishStatus == 'published') {
-      throw new BadRequestException();
+      throw new BadRequestException('publish_status_unavailable_to_user');
+    }
+
+    const crag = await sector.crag;
+    if (
+      input.publishStatus != null &&
+      crag.publishStatus < input.publishStatus
+    ) {
+      throw new BadRequestException('publish_status_incompatible_with_crag');
     }
 
     return this.sectorsService.update(input);

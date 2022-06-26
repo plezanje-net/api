@@ -107,7 +107,15 @@ export class RoutesResolver {
     }
 
     if (!user.isAdmin() && input.publishStatus == 'published') {
-      throw new BadRequestException();
+      throw new BadRequestException('publish_status_unavailable_to_user');
+    }
+
+    const sector = await route.sector;
+    if (
+      input.publishStatus != null &&
+      sector.publishStatus < input.publishStatus
+    ) {
+      throw new BadRequestException('publish_status_incompatible_with_sector');
     }
 
     return this.routesService.update(input);
