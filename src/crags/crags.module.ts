@@ -60,6 +60,9 @@ import { EntityPropertiesService } from './services/entity-properties.service';
 import { RouteNrTicksLoader } from './loaders/route-nr-ticks.loader';
 import { RouteNrTriesLoader } from './loaders/route-nr-tries.loader';
 import { RouteNrClimbersLoader } from './loaders/route-nr-climbers.loader';
+import { NotificationService } from '../notification/services/notification.service';
+import { MailService } from '../notification/services/mail.service';
+import { ConfigService } from '@nestjs/config';
 
 @Module({
   imports: [
@@ -127,6 +130,9 @@ import { RouteNrClimbersLoader } from './loaders/route-nr-climbers.loader';
     PeaksService,
     RouteTypesService,
     EntityPropertiesService,
+    NotificationService,
+    MailService,
+    ConfigService,
   ],
 })
 export class CragsModule {}

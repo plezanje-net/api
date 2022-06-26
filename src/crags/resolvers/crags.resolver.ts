@@ -38,6 +38,7 @@ import { CragProperty } from '../entities/crag-property.entity';
 import { EntityPropertiesService } from '../services/entity-properties.service';
 import { CurrentUser } from '../../auth/decorators/current-user.decorator';
 import { User } from '../../users/entities/user.entity';
+import { NotificationService } from '../../notification/services/notification.service';
 
 @Resolver(() => Crag)
 export class CragsResolver {
@@ -46,6 +47,7 @@ export class CragsResolver {
     private sectorsService: SectorsService,
     private commentsService: CommentsService,
     private entityPropertiesService: EntityPropertiesService,
+    private notificationService: NotificationService,
   ) {}
 
   /* QUERIES */
@@ -109,6 +111,15 @@ export class CragsResolver {
 
     if (!user.isAdmin() && input.publishStatus == 'published') {
       throw new BadRequestException();
+    }
+
+    if (crag.publishStatus == 'in_review' && input.publishStatus == 'draft') {
+      this.notificationService.contributionRejection(
+        { crag: crag },
+        await crag.user,
+        user,
+        input.rejectionMessage,
+      );
     }
 
     return this.cragsService.update(input);

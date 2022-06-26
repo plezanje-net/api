@@ -27,12 +27,14 @@ import { ForeignKeyConstraintFilter } from '../filters/foreign-key-constraint.fi
 import { CurrentUser } from '../../auth/decorators/current-user.decorator';
 import { User } from '../../users/entities/user.entity';
 import { RoutesService } from '../services/routes.service';
+import { NotificationService } from '../../notification/services/notification.service';
 
 @Resolver(() => Sector)
 export class SectorsResolver {
   constructor(
     private sectorsService: SectorsService,
     private routesService: RoutesService,
+    private notificationService: NotificationService,
   ) {}
 
   /* QUERIES */
@@ -88,6 +90,15 @@ export class SectorsResolver {
       crag.publishStatus < input.publishStatus
     ) {
       throw new BadRequestException('publish_status_incompatible_with_crag');
+    }
+
+    if (sector.publishStatus == 'in_review' && input.publishStatus == 'draft') {
+      this.notificationService.contributionRejection(
+        { sector: sector },
+        await sector.user,
+        user,
+        input.rejectionMessage,
+      );
     }
 
     return this.sectorsService.update(input);

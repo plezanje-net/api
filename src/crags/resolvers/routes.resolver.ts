@@ -44,6 +44,7 @@ import { User } from '../../users/entities/user.entity';
 import { RouteNrTicksLoader } from '../loaders/route-nr-ticks.loader';
 import { RouteNrTriesLoader } from '../loaders/route-nr-tries.loader';
 import { RouteNrClimbersLoader } from '../loaders/route-nr-climbers.loader';
+import { NotificationService } from '../../notification/services/notification.service';
 
 @Resolver(() => Route)
 export class RoutesResolver {
@@ -51,6 +52,7 @@ export class RoutesResolver {
     private routesService: RoutesService,
     private difficultyVotesService: DifficultyVotesService,
     private entityPropertiesService: EntityPropertiesService,
+    private notificationService: NotificationService,
   ) {}
 
   /* QUERIES */
@@ -116,6 +118,15 @@ export class RoutesResolver {
       sector.publishStatus < input.publishStatus
     ) {
       throw new BadRequestException('publish_status_incompatible_with_sector');
+    }
+
+    if (route.publishStatus == 'in_review' && input.publishStatus == 'draft') {
+      this.notificationService.contributionRejection(
+        { route: route },
+        await route.user,
+        user,
+        input.rejectionMessage,
+      );
     }
 
     return this.routesService.update(input);
