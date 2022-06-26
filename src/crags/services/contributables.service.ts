@@ -25,14 +25,7 @@ export class ContributablesService {
     alias: string,
     { user }: InputWithUser,
   ): void {
-    if (!(user != null) || !user.hasUnpublishedContributions) {
-      builder.andWhere(`${alias}.publishStatus = :publishStatus`, {
-        publishStatus: 'published',
-      });
-      return;
-    }
-
-    if (user.isAdmin()) {
+    if (user != null && user.isAdmin()) {
       builder.andWhere(
         `(${alias}.publishStatus IN (:...publishStatuses) OR (${alias}."userId" = :userId AND ${alias}.publishStatus = :publishStatus))`,
         {
@@ -41,6 +34,13 @@ export class ContributablesService {
           publishStatus: 'draft',
         },
       );
+      return;
+    }
+
+    if (user == null || !user.hasUnpublishedContributions) {
+      builder.andWhere(`${alias}.publishStatus = :publishStatus`, {
+        publishStatus: 'published',
+      });
       return;
     }
 
@@ -76,6 +76,10 @@ export class ContributablesService {
     user: User,
     transaction: Transaction,
   ) {
+    if (user == null) {
+      return Promise.resolve();
+    }
+
     if (
       (status == 'draft' || status == 'in_review') &&
       !user.hasUnpublishedContributions
