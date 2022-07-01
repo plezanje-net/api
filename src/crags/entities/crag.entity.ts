@@ -94,6 +94,7 @@ export class Crag extends BaseEntity {
   description: string;
 
   @CreateDateColumn()
+  @Field()
   created: Date;
 
   @UpdateDateColumn()

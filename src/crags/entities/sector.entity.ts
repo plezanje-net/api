@@ -51,6 +51,7 @@ export class Sector extends BaseEntity {
   publishStatus: PublishStatus;
 
   @CreateDateColumn()
+  @Field()
   created: Date;
 
   @UpdateDateColumn()
