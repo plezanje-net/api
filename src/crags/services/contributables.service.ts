@@ -21,7 +21,7 @@ export class ContributablesService {
     protected routesRepository: Repository<Route>,
   ) {}
 
-  setPublishStatusParams(
+  protected setPublishStatusParams(
     builder: SelectQueryBuilder<BaseEntity>,
     alias: string,
     { user }: InputWithUser,
@@ -30,13 +30,13 @@ export class ContributablesService {
     builder.andWhere(conditions, params);
   }
 
-  getPublishStatusParams(
+  protected getPublishStatusParams(
     alias: string,
     user: User,
   ): { conditions: string; params: ObjectLiteral } {
     if (user != null && user.isAdmin()) {
       return {
-        conditions: `${alias}.publishStatus IN (:...publishStatuses) OR (${alias}."userId" = :userId AND ${alias}.publishStatus = :publishStatus)`,
+        conditions: `(${alias}.publishStatus IN (:...publishStatuses) OR (${alias}."userId" = :userId AND ${alias}.publishStatus = :publishStatus))`,
         params: {
           publishStatuses: ['published', 'in_review'],
           userId: user.id,
@@ -150,7 +150,7 @@ export class ContributablesService {
       .join(' union ');
 
     const contributions = await queryRunner.query(
-      `(${union}) order by created desc limit 20`,
+      `(${union}) order by created desc`,
     );
 
     return Promise.resolve(contributions);
