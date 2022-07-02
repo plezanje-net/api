@@ -47,25 +47,25 @@ export class NotificationService {
     admin: User,
     message: string,
   ): Promise<boolean> {
-    let contribitionName = '';
+    let contributionName = '';
 
     if (contribution.crag != null) {
-      contribitionName = `Plezališče ${contribution.crag.name}`;
+      contributionName = `Plezališče - ${contribution.crag.name}`;
     } else if (contribution.sector != null) {
-      contribitionName = `Sektor ${contribution.sector.name}`;
+      contributionName = `Sektor - ${contribution.sector.name}`;
     } else {
-      contribitionName = `Smer ${contribution.route.name}`;
+      contributionName = `Smer - ${contribution.route.name}`;
     }
 
     return this.mailService
       .send({
         from: admin.email,
         to: user.email,
-        subject: `Prispevek zavrnjen: ${contribitionName}`,
+        subject: `Prispevek zavrnjen: ${contributionName}`,
         template: 'contribution-rejection',
         templateParams: {
           user,
-          contribution,
+          contributionName,
           message,
           userGender: {
             unknown: !user.gender || user.gender === 'O',
