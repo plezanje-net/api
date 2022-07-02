@@ -66,7 +66,7 @@ export class Sector extends BaseEntity {
   @ManyToOne(
     () => Crag,
     crag => crag.sectors,
-    { nullable: false },
+    { nullable: false, onDelete: 'CASCADE' },
   )
   @Field(() => Crag)
   crag: Promise<Crag>;

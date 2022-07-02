@@ -14,7 +14,6 @@ import {
   BadRequestException,
   ForbiddenException,
 } from '@nestjs/common';
-import { Roles } from '../../auth/decorators/roles.decorator';
 import { Crag } from '../entities/crag.entity';
 import { CreateCragInput } from '../dtos/create-crag.input';
 import { UpdateCragInput } from '../dtos/update-crag.input';
@@ -39,6 +38,7 @@ import { EntityPropertiesService } from '../services/entity-properties.service';
 import { CurrentUser } from '../../auth/decorators/current-user.decorator';
 import { User } from '../../users/entities/user.entity';
 import { NotificationService } from '../../notification/services/notification.service';
+import { ForeignKeyConstraintFilter } from '../filters/foreign-key-constraint.filter';
 
 @Resolver(() => Crag)
 export class CragsResolver {
@@ -128,7 +128,7 @@ export class CragsResolver {
   @Mutation(() => Boolean)
   @UseGuards(UserAuthGuard)
   @UseInterceptors(AuditInterceptor)
-  @UseFilters(NotFoundFilter)
+  @UseFilters(NotFoundFilter, ForeignKeyConstraintFilter)
   async deleteCrag(
     @Args('id') id: string,
     @CurrentUser() user: User,
