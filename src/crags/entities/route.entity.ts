@@ -106,6 +106,7 @@ export class Route extends BaseEntity {
   description: string;
 
   @CreateDateColumn()
+  @Field()
   created: Date;
 
   @UpdateDateColumn()
