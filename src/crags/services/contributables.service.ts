@@ -150,7 +150,7 @@ export class ContributablesService {
       .join(' union ');
 
     const contributions = await queryRunner.query(
-      `(${union}) order by created desc limit 20`,
+      `(${union}) order by created desc`,
     );
 
     return Promise.resolve(contributions);
