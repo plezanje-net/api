@@ -1,5 +1,6 @@
 import {
   BaseEntity,
+  ObjectLiteral,
   QueryRunner,
   Repository,
   SelectQueryBuilder,
@@ -25,32 +26,41 @@ export class ContributablesService {
     alias: string,
     { user }: InputWithUser,
   ): void {
+    const { conditions, params } = this.getPublishStatusParams(alias, user);
+    builder.andWhere(conditions, params);
+  }
+
+  getPublishStatusParams(
+    alias: string,
+    user: User,
+  ): { conditions: string; params: ObjectLiteral } {
     if (user != null && user.isAdmin()) {
-      builder.andWhere(
-        `(${alias}.publishStatus IN (:...publishStatuses) OR (${alias}."userId" = :userId AND ${alias}.publishStatus = :publishStatus))`,
-        {
+      return {
+        conditions: `${alias}.publishStatus IN (:...publishStatuses) OR (${alias}."userId" = :userId AND ${alias}.publishStatus = :publishStatus)`,
+        params: {
           publishStatuses: ['published', 'in_review'],
           userId: user.id,
           publishStatus: 'draft',
         },
-      );
-      return;
+      };
     }
 
     if (user == null || !user.hasUnpublishedContributions) {
-      builder.andWhere(`${alias}.publishStatus = :publishStatus`, {
-        publishStatus: 'published',
-      });
-      return;
+      return {
+        conditions: `${alias}.publishStatus = :publishStatus`,
+        params: {
+          publishStatus: 'published',
+        },
+      };
     }
 
-    builder.andWhere(
-      `(${alias}.publishStatus = :publishStatus OR ${alias}."userId" = :userId)`,
-      {
+    return {
+      conditions: `(${alias}.publishStatus = :publishStatus OR ${alias}."userId" = :userId)`,
+      params: {
         publishStatus: 'published',
         userId: user.id,
       },
-    );
+    };
   }
 
   protected async cascadePublishStatusToRoutes(

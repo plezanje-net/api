@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateCragInput } from '../dtos/create-crag.input';
 import { Crag } from '../entities/crag.entity';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -36,7 +36,13 @@ export class CragsService extends ContributablesService {
   }
 
   async findOne(params: FindCragsServiceInput = {}): Promise<Crag> {
-    return this.buildQuery(params).getOneOrFail();
+    const crags = await this.find(params);
+
+    if (crags.length == 0) {
+      throw new NotFoundException();
+    }
+
+    return Promise.resolve(crags[0]);
   }
 
   async find(params: FindCragsServiceInput = {}): Promise<Crag[]> {
@@ -209,9 +215,14 @@ export class CragsService extends ContributablesService {
 
     this.setPublishStatusParams(builder, 'c', params);
 
-    builder.innerJoin('c.routes', 'route').groupBy('c.id');
+    const { conditions, params: joinParams } = this.getPublishStatusParams(
+      'route',
+      params.user,
+    );
+    builder
+      .leftJoin('c.routes', 'route', conditions, joinParams)
+      .groupBy('c.id');
     builder.addSelect('COUNT(route.id)', 'routeCount');
-    this.setPublishStatusParams(builder, 'route', params);
 
     if (params.routeTypeId != null) {
       builder.andWhere('(route.routeTypeId = :routeTypeId)', {
