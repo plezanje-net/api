@@ -209,62 +209,27 @@ export class CragsService extends ContributablesService {
 
     this.setPublishStatusParams(builder, 'c', params);
 
-    if (params.routeTypeId != null) {
-      builder
-        .innerJoin('c.routes', 'route')
-        .andWhere('(route.routeTypeId = :routeTypeId)', {
-          routeTypeId: params.routeTypeId,
-        })
-        .groupBy('c.id');
+    builder.innerJoin('c.routes', 'route').groupBy('c.id');
+    builder.addSelect('COUNT(route.id)', 'routeCount');
+    this.setPublishStatusParams(builder, 'route', params);
 
-      builder.addSelect('COUNT(route.id)', 'routeCount');
+    if (params.routeTypeId != null) {
+      builder.andWhere('(route.routeTypeId = :routeTypeId)', {
+        routeTypeId: params.routeTypeId,
+      });
     }
 
     return builder;
   }
 
-  async getNumberOfRoutes(crag: Crag): Promise<number> {
-    return this.routesRepository
+  async getNumberOfRoutes(crag: Crag, user: User): Promise<number> {
+    const builder = this.routesRepository
       .createQueryBuilder('route')
-      .innerJoinAndSelect('route.sector', 'sector')
-      .where('sector.crag_id = :cragId', { cragId: crag.id })
-      .getCount();
-  }
+      .where('route."cragId" = :cragId', { cragId: crag.id });
 
-  async getMinGrade(crag: Crag): Promise<number> {
-    return this.routesRepository
-      .createQueryBuilder('route')
-      .innerJoinAndSelect('route.sector', 'sector')
-      .where('sector.crag_id = :cragId AND route.grade IS NOT NULL', {
-        cragId: crag.id,
-      })
-      .addSelect('route.grade')
-      .addOrderBy('route.grade', 'ASC')
-      .getOne()
-      .then(route => {
-        if (route != null && route.difficulty != null) return route.difficulty;
+    this.setPublishStatusParams(builder, 'route', { user });
 
-        return null;
-      });
-  }
-
-  async getMaxGrade(crag: Crag): Promise<number> {
-    return this.routesRepository
-      .createQueryBuilder('route')
-      .innerJoinAndSelect('route.sector', 'sector')
-      .where('sector.crag_id = :cragId AND route.grade IS NOT NULL', {
-        cragId: crag.id,
-      })
-      .addSelect('route.grade')
-      .addOrderBy('route.grade', 'DESC')
-      .getOne()
-      .then(route => {
-        if (route != null && route.difficulty != null) {
-          return route.difficulty;
-        }
-
-        return null;
-      });
+    return builder.getCount();
   }
 
   async getPopularCrags(

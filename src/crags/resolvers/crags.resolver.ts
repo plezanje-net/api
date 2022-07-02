@@ -148,8 +148,14 @@ export class CragsResolver {
   /* FIELDS */
 
   @ResolveField('nrRoutes', () => Int)
-  nrRoutes(@Parent() crag: Crag): number {
-    return crag.routeCount ?? crag.nrRoutes;
+  async nrRoutes(
+    @Parent() crag: Crag,
+    @CurrentUser() user: User,
+  ): Promise<number> {
+    if (crag.routeCount != null) {
+      return Promise.resolve(crag.routeCount);
+    }
+    return this.cragsService.getNumberOfRoutes(crag, user);
   }
 
   @ResolveField('sectors', () => [Sector])
