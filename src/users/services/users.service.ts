@@ -11,6 +11,7 @@ import { ConfirmInput } from '../dtos/confirm.input';
 import { randomBytes } from 'crypto';
 import * as bcrypt from 'bcrypt';
 import { Role } from '../entities/role.entity';
+import { UpdateUserInput } from '../dtos/update-user.input';
 
 @Injectable()
 export class UsersService {
@@ -58,6 +59,11 @@ export class UsersService {
     user.password = await bcrypt.hash(data.password, 10);
     user.confirmationToken = randomBytes(20).toString('hex');
 
+    return this.usersRepository.save(user).then(() => user);
+  }
+
+  async update(user: User, data: UpdateUserInput): Promise<User> {
+    this.usersRepository.merge(user, data);
     return this.usersRepository.save(user).then(() => user);
   }
 

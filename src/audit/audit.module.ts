@@ -5,10 +5,49 @@ import { AuditService } from './services/audit.service';
 import { AuditSubscriber } from './subscribers/audit.subscriber';
 import { AuthModule } from '../auth/auth.module';
 import { AuditInterceptor } from './interceptors/audit.interceptor';
+import { ContributionsResolver } from './resolvers/contributions.resolver';
+import { ContributionsService } from './services/contributions.service';
+import { Route } from '../crags/entities/route.entity';
+import { Sector } from '../crags/entities/sector.entity';
+import { Crag } from '../crags/entities/crag.entity';
+import { UsersService } from '../users/services/users.service';
+import { User } from '../users/entities/user.entity';
+import { Role } from '../users/entities/role.entity';
+import { CragsService } from '../crags/services/crags.service';
+import { SectorsService } from '../crags/services/sectors.service';
+import { RoutesService } from '../crags/services/routes.service';
+import { Country } from '../crags/entities/country.entity';
+import { Area } from '../crags/entities/area.entity';
+import { GradingSystem } from '../crags/entities/grading-system.entity';
+import { DifficultyVote } from '../crags/entities/difficulty-vote.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Audit]), forwardRef(() => AuthModule)],
-  providers: [AuditService, AuditSubscriber, AuditInterceptor],
+  imports: [
+    TypeOrmModule.forFeature([
+      Audit,
+      Route,
+      Sector,
+      Crag,
+      User,
+      Country,
+      Area,
+      Role,
+      GradingSystem,
+      DifficultyVote,
+    ]),
+    forwardRef(() => AuthModule),
+  ],
+  providers: [
+    UsersService,
+    CragsService,
+    SectorsService,
+    RoutesService,
+    AuditService,
+    AuditSubscriber,
+    AuditInterceptor,
+    ContributionsResolver,
+    ContributionsService,
+  ],
   exports: [AuditService],
 })
 export class AuditModule {}

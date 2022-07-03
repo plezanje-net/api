@@ -37,7 +37,6 @@ import { RouteCommentsLoader } from './loaders/route-comments.loader';
 import { DataLoaderInterceptor } from '../core/interceptors/data-loader.interceptor';
 import { APP_INTERCEPTOR } from '@nestjs/core';
 import { RoutePitchesLoader } from './loaders/route-pitches.loader';
-import { SectorRoutesLoader } from './loaders/sector-routes.loader';
 import { DifficultyVotesService } from './services/difficulty-votes.service';
 import { Grade } from './entities/grade.entity';
 import { GradingSystem } from './entities/grading-system.entity';
@@ -61,6 +60,9 @@ import { EntityPropertiesService } from './services/entity-properties.service';
 import { RouteNrTicksLoader } from './loaders/route-nr-ticks.loader';
 import { RouteNrTriesLoader } from './loaders/route-nr-tries.loader';
 import { RouteNrClimbersLoader } from './loaders/route-nr-climbers.loader';
+import { NotificationService } from '../notification/services/notification.service';
+import { MailService } from '../notification/services/mail.service';
+import { ConfigService } from '@nestjs/config';
 
 @Module({
   imports: [
@@ -107,7 +109,6 @@ import { RouteNrClimbersLoader } from './loaders/route-nr-climbers.loader';
     PitchesService,
     RouteCommentsLoader,
     RoutePitchesLoader,
-    SectorRoutesLoader,
     GradingSystemLoader,
     RouteTypeLoader,
     CountryLoader,
@@ -129,6 +130,9 @@ import { RouteNrClimbersLoader } from './loaders/route-nr-climbers.loader';
     PeaksService,
     RouteTypesService,
     EntityPropertiesService,
+    NotificationService,
+    MailService,
+    ConfigService,
   ],
 })
 export class CragsModule {}

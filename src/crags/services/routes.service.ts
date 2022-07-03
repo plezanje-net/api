@@ -2,57 +2,72 @@ import { Injectable } from '@nestjs/common';
 import { Route } from '../entities/route.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Sector } from '../entities/sector.entity';
-import { In, Not, Repository } from 'typeorm';
+import {
+  Connection,
+  MoreThanOrEqual,
+  Not,
+  Repository,
+  SelectQueryBuilder,
+} from 'typeorm';
 import { CreateRouteInput } from '../dtos/create-route.input';
 import { UpdateRouteInput } from '../dtos/update-route.input';
-import { CragStatus } from '../entities/crag.entity';
 import slugify from 'slugify';
 import { DifficultyVote } from '../entities/difficulty-vote.entity';
+import { User } from '../../users/entities/user.entity';
+import { FindRoutesServiceInput } from '../dtos/find-routes-service.input';
+import { ContributablesService } from './contributables.service';
 import { tickAscentTypes } from '../../activities/entities/activity-route.entity';
+import { Transaction } from '../../core/utils/transaction.class';
+import { Crag } from '../entities/crag.entity';
 
 @Injectable()
-export class RoutesService {
+export class RoutesService extends ContributablesService {
   constructor(
     @InjectRepository(Route)
-    private routesRepository: Repository<Route>,
+    protected routesRepository: Repository<Route>,
     @InjectRepository(Sector)
-    private sectorsRepository: Repository<Sector>,
+    protected sectorsRepository: Repository<Sector>,
+    @InjectRepository(Crag)
+    protected cragRepository: Repository<Crag>,
     @InjectRepository(DifficultyVote)
     private difficultyVoteRepository: Repository<DifficultyVote>,
-  ) {}
-
-  async findBySector(sectorId: string): Promise<Route[]> {
-    return this.routesRepository.find({
-      where: { sector: sectorId },
-      order: { position: 'ASC' },
-    });
+    private connection: Connection,
+  ) {
+    super(cragRepository, sectorsRepository, routesRepository);
   }
 
-  async findBySectorIds(sectorIds: string[]): Promise<Route[]> {
-    return this.routesRepository.find({
-      where: { sectorId: In(sectorIds) },
-      order: { position: 'ASC' },
-    });
+  async find(input: FindRoutesServiceInput): Promise<Route[]> {
+    return this.buildQuery(input).getMany();
+  }
+
+  async findOne(input: FindRoutesServiceInput): Promise<Route> {
+    return this.buildQuery(input).getOneOrFail();
   }
 
   async findByIds(ids: string[]): Promise<Route[]> {
     return this.routesRepository.findByIds(ids);
   }
 
+  async findOneById(id: string): Promise<Route> {
+    return this.routesRepository.findOneOrFail(id);
+  }
+
   async findOneBySlug(
     cragSlug: string,
     routeSlug: string,
-    minStatus: CragStatus,
+    user: User,
   ): Promise<Route> {
     const builder = this.routesRepository.createQueryBuilder('r');
 
     builder
       .innerJoin('crag', 'c', 'c.id = r."cragId"')
       .where('r.slug = :routeSlug', { routeSlug: routeSlug })
-      .andWhere('c.slug = :cragSlug', { cragSlug: cragSlug })
-      .andWhere('c.status <= :minStatus', {
-        minStatus: minStatus,
-      });
+      .andWhere('c.slug = :cragSlug', { cragSlug: cragSlug });
+    // TODO ADD PUBLISH STATUS CONDITION !!
+
+    if (!(user != null)) {
+      builder.andWhere('c.isHidden = false');
+    }
 
     return builder.getOneOrFail();
   }
@@ -95,38 +110,43 @@ export class RoutesService {
     return builder.getRawMany();
   }
 
-  async create(data: CreateRouteInput): Promise<Route> {
+  async create(data: CreateRouteInput, user: User): Promise<Route> {
     const route = new Route();
 
     this.routesRepository.merge(route, data);
 
+    route.user = Promise.resolve(user);
+
     const sector = await this.sectorsRepository.findOneOrFail(data.sectorId);
 
-    route.sector = Promise.resolve(sector);
+    route.sectorId = sector.id;
     route.cragId = sector.cragId;
 
     route.slug = await this.generateRouteSlug(route.name, route.cragId);
 
-    if (data.baseDifficulty == null || route.isProject) {
-      return this.routesRepository.save(route);
+    const transaction = new Transaction(this.connection);
+    await transaction.start();
+
+    try {
+      await transaction.save(route);
+      await this.shiftFollowingRoutes(route, transaction);
+
+      if (data.baseDifficulty != null && !route.isProject) {
+        await this.createBaseGrade(route, data.baseDifficulty, transaction);
+      }
+      await this.updateUserContributionsFlag(
+        route.publishStatus,
+        user,
+        transaction,
+      );
+    } catch (e) {
+      await transaction.rollback();
+      throw e;
     }
 
-    await this.routesRepository.save(route);
-
-    if (data.baseDifficulty != null && !route.isProject) {
-      await this.createBaseGrade(route, data.baseDifficulty);
-    }
+    await transaction.commit();
 
     return Promise.resolve(route);
-  }
-
-  createBaseGrade(route: Route, difficulty: number): Promise<DifficultyVote> {
-    const vote = new DifficultyVote();
-    vote.route = Promise.resolve(route);
-    vote.difficulty = difficulty;
-    vote.isBase = true;
-
-    return this.difficultyVoteRepository.save(vote);
   }
 
   async update(data: UpdateRouteInput): Promise<Route> {
@@ -142,17 +162,106 @@ export class RoutesService {
       );
     }
 
-    return this.routesRepository.save(route);
+    const transaction = new Transaction(this.connection);
+    await transaction.start();
+
+    try {
+      await transaction.save(route);
+      await this.shiftFollowingRoutes(route, transaction);
+      const user = await route.user;
+      await this.updateUserContributionsFlag(
+        route.publishStatus,
+        user,
+        transaction,
+      );
+    } catch (e) {
+      await transaction.rollback();
+      throw e;
+    }
+
+    await transaction.commit();
+
+    return Promise.resolve(route);
+  }
+
+  private async shiftFollowingRoutes(route: Route, transaction: Transaction) {
+    const followingRoutes = await transaction.queryRunner.manager.find(Route, {
+      where: {
+        sectorId: route.sectorId,
+        position: MoreThanOrEqual(route.position),
+        id: Not(route.id),
+      },
+      order: {
+        position: 'ASC',
+      },
+    });
+
+    if (
+      followingRoutes.length > 0 &&
+      followingRoutes[0].position == route.position
+    ) {
+      for (let offset = 0; offset < followingRoutes.length; offset++) {
+        followingRoutes[offset].position = route.position + offset + 1;
+        await transaction.save(followingRoutes[offset]);
+      }
+    }
   }
 
   async delete(id: string): Promise<boolean> {
     const route = await this.routesRepository.findOneOrFail(id);
 
-    return this.routesRepository.remove(route).then(() => true);
+    const transaction = new Transaction(this.connection);
+    await transaction.start();
+
+    try {
+      const user = await route.user;
+      await transaction.delete(route);
+      await this.updateUserContributionsFlag(null, user, transaction);
+    } catch (e) {
+      await transaction.rollback();
+      throw e;
+    }
+
+    await transaction.commit();
+
+    return Promise.resolve(true);
   }
 
-  async findOneById(id: string): Promise<Route> {
-    return this.routesRepository.findOneOrFail(id);
+  private async createBaseGrade(
+    route: Route,
+    difficulty: number,
+    transaction: Transaction,
+  ): Promise<void> {
+    const vote = new DifficultyVote();
+    vote.route = Promise.resolve(route);
+    vote.difficulty = difficulty;
+    vote.isBase = true;
+
+    return transaction.save(vote);
+  }
+
+  private buildQuery(
+    params: FindRoutesServiceInput = {},
+  ): SelectQueryBuilder<Route> {
+    const builder = this.routesRepository.createQueryBuilder('s');
+
+    builder.orderBy('s.position', 'ASC');
+
+    if (params.sectorId != null) {
+      builder.andWhere('s.sector = :sectorId', {
+        sectorId: params.sectorId,
+      });
+    }
+
+    if (params.id != null) {
+      builder.andWhere('s.id = :id', {
+        id: params.id,
+      });
+    }
+
+    this.setPublishStatusParams(builder, 's', params);
+
+    return builder;
   }
 
   private async generateRouteSlug(
@@ -164,10 +273,11 @@ export class RoutesService {
     let slug = slugify(routeName, { lower: true });
     let suffixCounter = 0;
     let suffix = '';
+
     while (
-      (await this.routesRepository.findOne({
-        where: { ...selfCond, slug: slug + suffix, crag: cragId },
-      })) !== undefined
+      (await this.routesRepository.count({
+        where: { ...selfCond, slug: slug + suffix, cragId: cragId },
+      })) > 0
     ) {
       suffixCounter++;
       suffix = '-' + suffixCounter;

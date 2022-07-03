@@ -1,6 +1,6 @@
 import { InputType, Field } from '@nestjs/graphql';
 import { IsOptional } from 'class-validator';
-import { RouteStatus } from '../entities/route.entity';
+import { PublishStatus } from '../entities/enums/publish-status.enum';
 
 @InputType()
 export class UpdateRouteInput {
@@ -29,7 +29,7 @@ export class UpdateRouteInput {
 
   @Field({ nullable: true })
   @IsOptional()
-  status: RouteStatus;
+  publishStatus: PublishStatus;
 
   @Field({ nullable: true })
   @IsOptional()
@@ -42,4 +42,8 @@ export class UpdateRouteInput {
   @Field({ nullable: true })
   @IsOptional()
   defaultGradingSystemId: string;
+
+  @Field({ nullable: true })
+  @IsOptional()
+  rejectionMessage: string;
 }

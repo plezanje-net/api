@@ -1,6 +1,6 @@
 import { InputType, Field } from '@nestjs/graphql';
 import { IsOptional } from 'class-validator';
-import { CragStatus, CragType } from '../entities/crag.entity';
+import { CragType } from '../entities/crag.entity';
 
 @InputType()
 export class FindCragsInput {
@@ -26,7 +26,7 @@ export class FindCragsInput {
 
   @Field({ nullable: true })
   @IsOptional()
-  minStatus?: CragStatus;
+  showPrivate?: boolean;
 
   @Field({ nullable: true })
   @IsOptional()
@@ -40,6 +40,7 @@ export class FindCragsInput {
   @IsOptional()
   slug?: string;
 
+  // deprecated (ignored), frontend should handle this if necessary on crag list
   @Field({ nullable: true })
   @IsOptional()
   allowEmpty?: boolean;

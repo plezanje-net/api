@@ -28,7 +28,9 @@ export class MailService {
 
   send(options: MailOptions): Promise<SentMessageInfo> {
     return this.transporter.sendMail({
-      from: '"Plezanje.net" <noreply@plezanje.net>',
+      from: options.from
+        ? options.from
+        : '"Plezanje.net" <noreply@plezanje.net>',
       to: options.to,
       subject: options.subject,
       text: this.render('plain', options.template, options.templateParams),

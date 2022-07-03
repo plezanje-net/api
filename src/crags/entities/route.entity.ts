@@ -23,16 +23,10 @@ import { GradingSystem } from './grading-system.entity';
 import { RouteType } from './route-type.entity';
 import { RouteEvent } from './route-event.entity';
 import { Book } from './book.entity';
+import { User } from '../../users/entities/user.entity';
+import { EntityStatus } from './enums/entity-status.enum';
 import { ActivityRoute } from '../../activities/entities/activity-route.entity';
-
-export enum RouteStatus {
-  PUBLIC = 'public',
-  HIDDEN = 'hidden',
-  ADMIN = 'admin',
-  ARCHIVE = 'archive',
-  PROPOSAL = 'proposal',
-  USER = 'user',
-}
+import { PublishStatus } from './enums/publish-status.enum';
 
 /**
  * Has Triggers:
@@ -89,11 +83,19 @@ export class Route extends BaseEntity {
 
   @Column({
     type: 'enum',
-    enum: RouteStatus,
-    default: RouteStatus.PUBLIC,
+    enum: EntityStatus,
+    default: EntityStatus.PUBLIC,
   })
   @Field()
-  status: RouteStatus;
+  status: EntityStatus;
+
+  @Column({
+    type: 'enum',
+    enum: PublishStatus,
+    default: PublishStatus.PUBLISHED,
+  })
+  @Field()
+  publishStatus: PublishStatus;
 
   @Column({ default: false })
   @Field()
@@ -104,6 +106,7 @@ export class Route extends BaseEntity {
   description: string;
 
   @CreateDateColumn()
+  @Field()
   created: Date;
 
   @UpdateDateColumn()
@@ -183,6 +186,12 @@ export class Route extends BaseEntity {
   @ManyToMany(() => Book)
   @JoinTable()
   books: Book[];
+
+  @ManyToOne(() => User)
+  @Field(() => User, { nullable: true })
+  user: Promise<User>;
+  @Column({ name: 'userId', nullable: true })
+  userId: string;
 
   @OneToMany(
     () => ActivityRoute,

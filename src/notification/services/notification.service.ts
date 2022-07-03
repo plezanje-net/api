@@ -1,5 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { Crag } from '../../crags/entities/crag.entity';
+import { Route } from '../../crags/entities/route.entity';
+import { Sector } from '../../crags/entities/sector.entity';
 import { ClubMember } from '../../users/entities/club-member.entity';
 import { User } from '../../users/entities/user.entity';
 import { MailService } from './mail.service';
@@ -29,6 +32,45 @@ export class NotificationService {
             user.id +
             '/' +
             user.confirmationToken,
+        },
+      })
+      .then(() => true)
+      .catch(e => {
+        console.log(e);
+        return false;
+      });
+  }
+
+  public async contributionRejection(
+    contribution: { crag?: Crag; sector?: Sector; route?: Route },
+    user: User,
+    admin: User,
+    message: string,
+  ): Promise<boolean> {
+    let contributionName = '';
+
+    if (contribution.crag != null) {
+      contributionName = `Plezališče - ${contribution.crag.name}`;
+    } else if (contribution.sector != null) {
+      contributionName = `Sektor - ${contribution.sector.name}`;
+    } else {
+      contributionName = `Smer - ${contribution.route.name}`;
+    }
+
+    return this.mailService
+      .send({
+        from: admin.email,
+        to: user.email,
+        subject: `Prispevek zavrnjen: ${contributionName}`,
+        template: 'contribution-rejection',
+        templateParams: {
+          user,
+          contributionName,
+          message,
+          userGender: {
+            unknown: !user.gender || user.gender === 'O',
+            female: user.gender && user.gender === 'F',
+          },
         },
       })
       .then(() => true)

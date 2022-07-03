@@ -147,6 +147,7 @@ import { PropertyType } from './crags/entities/property-type.entity';
         ],
       }),
     }),
+    AuditModule,
     UsersModule,
     CragsModule,
     AuditModule,
