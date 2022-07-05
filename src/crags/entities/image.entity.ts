@@ -7,7 +7,7 @@ import {
   BaseEntity,
   ManyToOne,
 } from 'typeorm';
-import { ObjectType, Field } from '@nestjs/graphql';
+import { ObjectType, Field, Float, Int } from '@nestjs/graphql';
 import { Crag } from '../../crags/entities/crag.entity';
 import { Area } from '../../crags/entities/area.entity';
 import { Route } from '../../crags/entities/route.entity';
@@ -52,6 +52,14 @@ export class Image extends BaseEntity {
   @Column()
   @Field()
   extension: string;
+
+  @Column({ type: 'float' })
+  @Field(type => Float)
+  aspectRatio: number;
+
+  @Column({ type: 'integer' })
+  @Field(type => Int)
+  maxIntrinsicWidth: number;
 
   @CreateDateColumn()
   created: Date;
