@@ -2,8 +2,8 @@ import { MigrationInterface, QueryRunner } from 'typeorm';
 import sharp from 'sharp';
 import { env } from 'process';
 
-export class addColumnsToImage1650023444281 implements MigrationInterface {
-  name = 'addColumnsToImage1650023444281';
+export class addColumnsToImage1656774967090 implements MigrationInterface {
+  name = 'addColumnsToImage1656774967090';
 
   public async up(queryRunner: QueryRunner): Promise<void> {
     console.log('Doing migration');
