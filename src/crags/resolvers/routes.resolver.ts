@@ -8,24 +8,27 @@ import {
 } from '@nestjs/graphql';
 import { Route } from '../entities/route.entity';
 import { Roles } from '../../auth/decorators/roles.decorator';
-import { UseInterceptors, UseFilters, UseGuards } from '@nestjs/common';
+import {
+  UseInterceptors,
+  UseFilters,
+  UseGuards,
+  BadRequestException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { AuditInterceptor } from '../../audit/interceptors/audit.interceptor';
 import { NotFoundFilter } from '../filters/not-found.filter';
 import { CreateRouteInput } from '../dtos/create-route.input';
 import { UpdateRouteInput } from '../dtos/update-route.input';
 import { RoutesService } from '../services/routes.service';
-import { CommentsService } from '../services/comments.service';
 import { Comment } from '../entities/comment.entity';
 import { DifficultyVote } from '../entities/difficulty-vote.entity';
 import { Pitch } from '../entities/pitch.entity';
-import { PitchesService } from '../services/pitches.service';
 import { RouteCommentsLoader } from '../loaders/route-comments.loader';
 import DataLoader from 'dataloader';
 import { Loader } from '../../core/interceptors/data-loader.interceptor';
 import { RoutePitchesLoader } from '../loaders/route-pitches.loader';
 import { DifficultyVotesService } from '../services/difficulty-votes.service';
-import { MinCragStatus } from '../decorators/min-crag-status.decorator';
-import { Crag, CragStatus } from '../entities/crag.entity';
+import { Crag } from '../entities/crag.entity';
 import { AllowAny } from '../../auth/decorators/allow-any.decorator';
 import { UserAuthGuard } from '../../auth/guards/user-auth.guard';
 import { ForeignKeyConstraintFilter } from '../filters/foreign-key-constraint.filter';
@@ -34,33 +37,98 @@ import { GradingSystemLoader } from '../loaders/grading-system.loader';
 import { RouteType } from '../entities/route-type.entity';
 import { RouteTypeLoader } from '../loaders/route-type.loader';
 import { CragLoader } from '../loaders/crag.loader';
+import { RouteProperty } from '../entities/route-property.entity';
+import { EntityPropertiesService } from '../services/entity-properties.service';
+import { CurrentUser } from '../../auth/decorators/current-user.decorator';
+import { User } from '../../users/entities/user.entity';
+import { RouteNrTicksLoader } from '../loaders/route-nr-ticks.loader';
+import { RouteNrTriesLoader } from '../loaders/route-nr-tries.loader';
+import { RouteNrClimbersLoader } from '../loaders/route-nr-climbers.loader';
+import { NotificationService } from '../../notification/services/notification.service';
 
 @Resolver(() => Route)
 export class RoutesResolver {
   constructor(
     private routesService: RoutesService,
-    private commentsService: CommentsService,
-    private pitchesService: PitchesService,
     private difficultyVotesService: DifficultyVotesService,
+    private entityPropertiesService: EntityPropertiesService,
+    private notificationService: NotificationService,
   ) {}
 
+  /* QUERIES */
+
+  @Query(() => Route)
+  @UseFilters(NotFoundFilter)
+  async route(@Args('id') id: string): Promise<Route> {
+    return this.routesService.findOneById(id);
+  }
+
+  @Query(() => Route)
+  @UseFilters(NotFoundFilter)
+  @AllowAny()
+  @UseGuards(UserAuthGuard)
+  async routeBySlug(
+    @Args('cragSlug') cragSlug: string,
+    @Args('routeSlug') routeSlug: string,
+    @CurrentUser() user: User,
+  ): Promise<Route> {
+    return this.routesService.findOneBySlug(cragSlug, routeSlug, user);
+  }
+
+  /* MUTATIONS */
+
   @Mutation(() => Route)
-  @Roles('admin')
+  @UseGuards(UserAuthGuard)
   @UseInterceptors(AuditInterceptor)
   @UseFilters(NotFoundFilter)
   async createRoute(
     @Args('input', { type: () => CreateRouteInput }) input: CreateRouteInput,
+    @CurrentUser() user: User,
   ): Promise<Route> {
-    return this.routesService.create(input);
+    if (!user.isAdmin() && input.publishStatus == 'published') {
+      throw new BadRequestException();
+    }
+    return this.routesService.create(input, user);
   }
 
   @Mutation(() => Route)
-  @Roles('admin')
-  @UseInterceptors(AuditInterceptor)
+  @UseGuards(UserAuthGuard)
   @UseFilters(NotFoundFilter)
+  @UseInterceptors(AuditInterceptor)
   async updateRoute(
     @Args('input', { type: () => UpdateRouteInput }) input: UpdateRouteInput,
+    @CurrentUser() user: User,
   ): Promise<Route> {
+    const route = await this.routesService.findOne({
+      id: input.id,
+      user,
+    });
+
+    if (!user.isAdmin() && route.publishStatus != 'draft') {
+      throw new ForbiddenException();
+    }
+
+    if (!user.isAdmin() && input.publishStatus == 'published') {
+      throw new BadRequestException('publish_status_unavailable_to_user');
+    }
+
+    const sector = await route.sector;
+    if (
+      input.publishStatus != null &&
+      sector.publishStatus < input.publishStatus
+    ) {
+      throw new BadRequestException('publish_status_incompatible_with_sector');
+    }
+
+    if (route.publishStatus == 'in_review' && input.publishStatus == 'draft') {
+      this.notificationService.contributionRejection(
+        { route: route },
+        await route.user,
+        user,
+        input.rejectionMessage,
+      );
+    }
+
     return this.routesService.update(input);
   }
 
@@ -76,30 +144,26 @@ export class RoutesResolver {
   }
 
   @Mutation(() => Boolean)
-  @Roles('admin')
+  @UseGuards(UserAuthGuard)
   @UseInterceptors(AuditInterceptor)
   @UseFilters(NotFoundFilter, ForeignKeyConstraintFilter)
-  async deleteRoute(@Args('id') id: string): Promise<boolean> {
+  async deleteRoute(
+    @Args('id') id: string,
+    @CurrentUser() user: User,
+  ): Promise<boolean> {
+    const route = await this.routesService.findOne({
+      id: id,
+      user,
+    });
+
+    if (!user.isAdmin() && route.publishStatus != 'draft') {
+      throw new ForbiddenException();
+    }
+
     return this.routesService.delete(id);
   }
 
-  @Query(() => Route)
-  @UseFilters(NotFoundFilter)
-  async route(@Args('id') id: string): Promise<Route> {
-    return this.routesService.findOneById(id);
-  }
-
-  @Query(() => Route)
-  @UseFilters(NotFoundFilter)
-  @AllowAny()
-  @UseGuards(UserAuthGuard)
-  async routeBySlug(
-    @Args('cragSlug') cragSlug: string,
-    @Args('routeSlug') routeSlug: string,
-    @MinCragStatus() minStatus: CragStatus,
-  ): Promise<Route> {
-    return this.routesService.findOneBySlug(cragSlug, routeSlug, minStatus);
-  }
+  /* FIELDS */
 
   @ResolveField('comments', () => [Comment])
   async getComments(
@@ -108,6 +172,11 @@ export class RoutesResolver {
     loader: DataLoader<Comment['id'], Comment[]>,
   ): Promise<Comment[]> {
     return loader.load(route.id);
+  }
+
+  @ResolveField('properties', () => [RouteProperty])
+  async getProperties(@Parent() route: Route): Promise<RouteProperty[]> {
+    return this.entityPropertiesService.getRouteProperties(route);
   }
 
   @ResolveField('difficultyVotes', () => [DifficultyVote])
@@ -149,5 +218,29 @@ export class RoutesResolver {
     loader: DataLoader<RouteType['id'], RouteType>,
   ): Promise<RouteType> {
     return loader.load(route.routeTypeId);
+  }
+
+  @ResolveField('nrTicks', returns => Number)
+  async nrTicks(
+    @Parent() route: Route,
+    @Loader(RouteNrTicksLoader) loader: DataLoader<string, number>,
+  ) {
+    return loader.load(route.id);
+  }
+
+  @ResolveField('nrTries', returns => Number)
+  async nrTries(
+    @Parent() route: Route,
+    @Loader(RouteNrTriesLoader) loader: DataLoader<string, number>,
+  ) {
+    return loader.load(route.id);
+  }
+
+  @ResolveField('nrClimbers', returns => Number)
+  async nrClimbers(
+    @Parent() route: Route,
+    @Loader(RouteNrClimbersLoader) loader: DataLoader<string, number>,
+  ) {
+    return loader.load(route.id);
   }
 }

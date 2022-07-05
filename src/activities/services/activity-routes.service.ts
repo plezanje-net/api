@@ -10,6 +10,7 @@ import { Club } from '../../users/entities/club.entity';
 import { User } from '../../users/entities/user.entity';
 import {
   Connection,
+  In,
   QueryRunner,
   Repository,
   SelectQueryBuilder,
@@ -27,7 +28,6 @@ import {
 import { Activity } from '../entities/activity.entity';
 import { PaginatedActivityRoutes } from '../utils/paginated-activity-routes.class';
 import { DifficultyVote } from '../../crags/entities/difficulty-vote.entity';
-import { CragStatus } from '../../crags/entities/crag.entity';
 import { StarRatingVote } from '../../crags/entities/star-rating-vote.entity';
 import { UpdateActivityRouteInput } from '../dtos/update-activity-route.input';
 import { RoutesTouches } from '../utils/routes-touches.class';
@@ -131,6 +131,17 @@ export class ActivityRoutesService {
 
     activityRoute.route = Promise.resolve(route);
 
+    if (
+      route.isProject &&
+      this.isTick(routeIn.ascentType) &&
+      !routeIn.votedDifficulty
+    ) {
+      throw new HttpException(
+        'If ticking a project difficulty vote is required.',
+        HttpStatus.NOT_ACCEPTABLE,
+      );
+    }
+
     // if a vote on difficulty is passed add a new difficulty vote or update existing
     if (routeIn.votedDifficulty) {
       // but first check if a user even can vote (can vote only if the log is a tick)
@@ -164,14 +175,6 @@ export class ActivityRoutesService {
 
     // if a vote on star rating (route beauty) is passed add a new star rating vote or update existing one
     if (routeIn.votedStarRating || routeIn.votedStarRating === 0) {
-      // but first check if a user even can vote (can vote only if the log is a tick)
-      if (!this.isTick(routeIn.ascentType)) {
-        throw new HttpException(
-          'Cannot vote on star rating (beauty) if not logging a tick.',
-          HttpStatus.NOT_ACCEPTABLE,
-        );
-      }
-
       let starRatingVote = await queryRunner.manager.findOne(StarRatingVote, {
         user,
         route,
@@ -597,7 +600,7 @@ export class ActivityRoutesService {
   }
 
   async latestTicks(
-    minStatus: CragStatus,
+    showHiddenCrags: boolean,
     latestN: number = null,
     inLastNDays: number = null,
   ): Promise<ActivityRoute[]> {
@@ -620,11 +623,15 @@ export class ActivityRoutesService {
       })
       .andWhere('ar.routeId IS NOT NULL') // TODO: what are activity routes with no route id??
       .andWhere('r.difficulty IS NOT NULL') // TODO: entries with null values for grade? -> multipitch? - skip for now
-      .andWhere('c.status <= :minStatus', { minStatus }) // hide ticks from hidden crags if dictated so by crag status
+      .andWhere("r.publishStatus = 'published'") // only show ticks for published routes
       .orderBy('ardate', 'DESC')
       .addOrderBy('ar.userId', 'DESC')
       .addOrderBy('score', 'DESC')
       .addOrderBy('ar.ascentType', 'ASC');
+
+    if (!showHiddenCrags) {
+      builder.andWhere('c.isHidden = false'); // don't show hidden crags
+    }
 
     if (inLastNDays) {
       builder.andWhere(

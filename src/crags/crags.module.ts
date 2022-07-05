@@ -37,7 +37,6 @@ import { RouteCommentsLoader } from './loaders/route-comments.loader';
 import { DataLoaderInterceptor } from '../core/interceptors/data-loader.interceptor';
 import { APP_INTERCEPTOR } from '@nestjs/core';
 import { RoutePitchesLoader } from './loaders/route-pitches.loader';
-import { SectorRoutesLoader } from './loaders/sector-routes.loader';
 import { DifficultyVotesService } from './services/difficulty-votes.service';
 import { Grade } from './entities/grade.entity';
 import { GradingSystem } from './entities/grading-system.entity';
@@ -54,6 +53,16 @@ import { RouteTypeLoader } from './loaders/route-type.loader';
 import { CountryLoader } from './loaders/country.loader';
 import { RouteLoader } from './loaders/route.loader';
 import { CragLoader } from './loaders/crag.loader';
+import { RouteProperty } from './entities/route-property.entity';
+import { CragProperty } from './entities/crag-property.entity';
+import { IceFallProperty } from './entities/ice-fall-property.entity';
+import { EntityPropertiesService } from './services/entity-properties.service';
+import { RouteNrTicksLoader } from './loaders/route-nr-ticks.loader';
+import { RouteNrTriesLoader } from './loaders/route-nr-tries.loader';
+import { RouteNrClimbersLoader } from './loaders/route-nr-climbers.loader';
+import { NotificationService } from '../notification/services/notification.service';
+import { MailService } from '../notification/services/mail.service';
+import { ConfigService } from '@nestjs/config';
 
 @Module({
   imports: [
@@ -73,6 +82,9 @@ import { CragLoader } from './loaders/crag.loader';
       GradingSystem,
       RouteType,
       DifficultyVote,
+      RouteProperty,
+      CragProperty,
+      IceFallProperty,
     ]),
     AuditModule,
   ],
@@ -97,11 +109,13 @@ import { CragLoader } from './loaders/crag.loader';
     PitchesService,
     RouteCommentsLoader,
     RoutePitchesLoader,
-    SectorRoutesLoader,
     GradingSystemLoader,
     RouteTypeLoader,
     CountryLoader,
     RouteLoader,
+    RouteNrTicksLoader,
+    RouteNrTriesLoader,
+    RouteNrClimbersLoader,
     CragLoader,
     {
       provide: APP_INTERCEPTOR,
@@ -115,6 +129,10 @@ import { CragLoader } from './loaders/crag.loader';
     PeaksResolver,
     PeaksService,
     RouteTypesService,
+    EntityPropertiesService,
+    NotificationService,
+    MailService,
+    ConfigService,
   ],
 })
 export class CragsModule {}

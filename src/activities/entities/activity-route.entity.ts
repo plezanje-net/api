@@ -96,13 +96,11 @@ export class ActivityRoute extends BaseEntity {
   @Column({ nullable: true })
   activityId: string;
 
-  // TODO: why is this many to one relation. One activity route always has only one route
-  // TODO: and why is it nullable. Activity-route without a route makes no sense
-  @ManyToOne(() => Route, { nullable: true })
+  @ManyToOne(() => Route)
   @Field(() => Route)
   route: Promise<Route>;
-  @Column({ nullable: true })
-  @Field({ nullable: true })
+  @Column()
+  @Field()
   routeId: string;
 
   @ManyToOne(() => Pitch, { nullable: true })

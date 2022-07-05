@@ -10,6 +10,7 @@ import {
 } from 'typeorm';
 import { ObjectType, Field } from '@nestjs/graphql';
 import { Route } from './route.entity';
+import { User } from '../../users/entities/user.entity';
 
 @Entity()
 @ObjectType()
@@ -48,4 +49,10 @@ export class Pitch extends BaseEntity {
 
   @Column({ nullable: true })
   legacy: string;
+
+  @ManyToOne(() => User)
+  @Field(() => User, { nullable: true })
+  user: Promise<User>;
+  @Column({ name: 'userId', nullable: true })
+  userId: string;
 }

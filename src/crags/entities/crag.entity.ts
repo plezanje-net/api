@@ -21,15 +21,9 @@ import { Peak } from './peak.entity';
 import { Route } from './route.entity';
 import { Activity } from '../../activities/entities/activity.entity';
 import { GradingSystem } from './grading-system.entity';
-
-export enum CragStatus {
-  PUBLIC = 'public',
-  HIDDEN = 'hidden',
-  ADMIN = 'admin',
-  ARCHIVE = 'archive',
-  PROPOSAL = 'proposal',
-  USER = 'user',
-}
+import { User } from '../../users/entities/user.entity';
+import { EntityStatus } from './enums/entity-status.enum';
+import { PublishStatus } from './enums/publish-status.enum';
 
 export enum CragType {
   SPORT = 'sport',
@@ -61,11 +55,23 @@ export class Crag extends BaseEntity {
 
   @Column({
     type: 'enum',
-    enum: CragStatus,
-    default: CragStatus.PUBLIC,
+    enum: EntityStatus,
+    default: EntityStatus.PUBLIC,
   })
   @Field()
-  status: CragStatus;
+  status: EntityStatus;
+
+  @Column({
+    type: 'enum',
+    enum: PublishStatus,
+    default: PublishStatus.PUBLISHED,
+  })
+  @Field()
+  publishStatus: PublishStatus;
+
+  @Column({ default: false })
+  @Field()
+  isHidden: boolean;
 
   @Column({ type: 'float', nullable: true })
   @Field(() => Float, { nullable: true })
@@ -88,6 +94,7 @@ export class Crag extends BaseEntity {
   description: string;
 
   @CreateDateColumn()
+  @Field()
   created: Date;
 
   @UpdateDateColumn()
@@ -186,4 +193,10 @@ export class Crag extends BaseEntity {
   )
   @Field(() => [Activity])
   activities: Promise<Activity[]>;
+
+  @ManyToOne(() => User)
+  @Field(() => User, { nullable: true })
+  user: Promise<User>;
+  @Column({ name: 'userId', nullable: true })
+  userId: string;
 }

@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { PaginationMeta } from '../../core/utils/pagination-meta.class';
 import { Crag } from '../../crags/entities/crag.entity';
@@ -30,6 +30,16 @@ export class ActivitiesService {
     dryRun = false,
     sideEffects = [],
   ): Promise<Activity> {
+    const today = new Date();
+    today.setUTCHours(0, 0, 0, 0);
+
+    if (activityIn.date.getTime() > today.getTime()) {
+      throw new HttpException(
+        'Invalid date: cannot log into the future.',
+        HttpStatus.NOT_ACCEPTABLE,
+      );
+    }
+
     const queryRunner = this.connection.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
@@ -82,6 +92,16 @@ export class ActivitiesService {
     dryRun = false,
     sideEffects = [],
   ): Promise<Activity> {
+    const today = new Date();
+    today.setUTCHours(0, 0, 0, 0);
+
+    if (activityIn.date.getTime() > today.getTime()) {
+      throw new HttpException(
+        'Invalid date: cannot log into the future.',
+        HttpStatus.NOT_ACCEPTABLE,
+      );
+    }
+
     const queryRunner = this.connection.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();

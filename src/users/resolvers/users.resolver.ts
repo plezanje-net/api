@@ -31,6 +31,7 @@ import { PasswordInput } from '../dtos/password.input';
 import { ClubMember } from '../entities/club-member.entity';
 import { ClubMembersService } from '../services/club-members.service';
 import { UserAuthGuard } from '../../auth/guards/user-auth.guard';
+import { UpdateUserInput } from '../dtos/update-user.input';
 
 @Resolver(() => User)
 export class UsersResolver {
@@ -40,6 +41,8 @@ export class UsersResolver {
     private notificationService: NotificationService,
     private clubMembersService: ClubMembersService,
   ) {}
+
+  /* QUERIES */
 
   @UseGuards(UserAuthGuard)
   @Query(() => User)
@@ -65,6 +68,8 @@ export class UsersResolver {
     return this.usersService.findOneByEmail(email);
   }
 
+  /* MUTATIONS */
+
   @Mutation(() => Boolean)
   @UseFilters(ConflictFilter)
   async register(
@@ -78,6 +83,15 @@ export class UsersResolver {
     }
 
     return true;
+  }
+
+  @Mutation(() => User)
+  @UseGuards(UserAuthGuard)
+  async updateUser(
+    @CurrentUser() user: User,
+    @Args('input', { type: () => UpdateUserInput }) input: UpdateUserInput,
+  ): Promise<User> {
+    return this.usersService.update(user, input);
   }
 
   @Mutation(() => Boolean)
@@ -130,6 +144,8 @@ export class UsersResolver {
       (role: Role) => role.role,
     );
   }
+
+  /* FIELDS */
 
   @ResolveField('fullName', () => String)
   getFullName(@Parent() user: User): string {

@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Brackets, Repository, SelectQueryBuilder } from 'typeorm';
-import { FindCragsInput } from '../dtos/find-crags.input';
 import { Crag } from '../entities/crag.entity';
 import { Route } from '../entities/route.entity';
 import { Sector } from '../entities/sector.entity';
@@ -9,25 +8,28 @@ import { Comment } from '../entities/comment.entity';
 import { User } from '../../users/entities/user.entity';
 import { SearchResults } from '../utils/search-results.class';
 import { FieldNode, GraphQLResolveInfo } from 'graphql';
+import { ContributablesService } from './contributables.service';
 
 @Injectable()
-export class SearchService {
+export class SearchService extends ContributablesService {
   constructor(
     @InjectRepository(Route)
-    private routesRepository: Repository<Route>,
+    protected routesRepository: Repository<Route>,
     @InjectRepository(Crag)
-    private cragsRepository: Repository<Crag>,
+    protected cragsRepository: Repository<Crag>,
     @InjectRepository(Sector)
-    private sectorsRepository: Repository<Sector>,
+    protected sectorsRepository: Repository<Sector>,
     @InjectRepository(Comment)
     private commentsRepository: Repository<Comment>,
     @InjectRepository(User)
     private usersRepository: Repository<User>,
-  ) {}
+  ) {
+    super(cragsRepository, sectorsRepository, routesRepository);
+  }
 
   async find(
     searchString: string,
-    cragParams: FindCragsInput,
+    user: User,
     gqlInfo: GraphQLResolveInfo,
   ): Promise<SearchResults> {
     // get the fields that were requested by the graphql query
@@ -38,22 +40,24 @@ export class SearchService {
     // make search only on fields that were actually requested by graphql query
     let result: SearchResults = {};
 
+    const showHidden = user != null;
+
     result = selectedFields.includes('crags')
-      ? { ...result, crags: await this.findCrags(searchString, cragParams) }
+      ? { ...result, crags: await this.findCrags(searchString, showHidden) }
       : result;
 
     result = selectedFields.includes('routes')
-      ? { ...result, routes: await this.findRoutes(searchString, cragParams) }
+      ? { ...result, routes: await this.findRoutes(searchString, showHidden) }
       : result;
 
     result = selectedFields.includes('sectors')
-      ? { ...result, sectors: await this.findSectors(searchString, cragParams) }
+      ? { ...result, sectors: await this.findSectors(searchString, showHidden) }
       : result;
 
     result = selectedFields.includes('comments')
       ? {
           ...result,
-          comments: await this.findComments(searchString, cragParams),
+          comments: await this.findComments(searchString, showHidden),
         }
       : result;
 
@@ -64,81 +68,74 @@ export class SearchService {
     return result;
   }
 
-  findCrags(searchString: string, cragParams: FindCragsInput): Promise<Crag[]> {
+  findCrags(searchString: string, showHidden: boolean): Promise<Crag[]> {
     const builder = this.cragsRepository.createQueryBuilder('c');
 
-    if (cragParams.minStatus != null) {
-      builder.andWhere('c.status <= :minStatus', {
-        minStatus: cragParams.minStatus,
-      });
+    if (!showHidden) {
+      builder.andWhere('c.isHidden = false');
     }
+
+    builder.andWhere("c.publishStatus = 'published'");
 
     this.tokenizeQueryToBuilder(builder, searchString, 'c');
 
     return builder.getMany();
   }
 
-  findRoutes(
-    searchString: string,
-    cragParams: FindCragsInput,
-  ): Promise<Route[]> {
+  findRoutes(searchString: string, showHidden: boolean): Promise<Route[]> {
     const builder = this.routesRepository.createQueryBuilder('r');
 
     builder.innerJoin('crag', 'c', 'c.id = r."cragId"');
 
-    if (cragParams.minStatus != null) {
-      builder.andWhere('c.status <= :minStatus', {
-        minStatus: cragParams.minStatus,
-      });
+    if (!showHidden) {
+      builder.andWhere('c.isHidden = false');
     }
+
+    builder.andWhere("r.publishStatus = 'published'");
 
     this.tokenizeQueryToBuilder(builder, searchString, 'r');
 
     return builder.getMany();
   }
 
-  findSectors(
-    searchString: string,
-    cragParams: FindCragsInput,
-  ): Promise<Sector[]> {
+  findSectors(searchString: string, showHidden: boolean): Promise<Sector[]> {
     const builder = this.sectorsRepository.createQueryBuilder('s');
 
     builder.innerJoin('crag', 'c', 'c.id = s."cragId"');
 
-    if (cragParams.minStatus != null) {
-      builder.andWhere('c.status <= :minStatus', {
-        minStatus: cragParams.minStatus,
-      });
+    if (!showHidden) {
+      builder.andWhere('c.isHidden = false');
     }
+
+    builder.andWhere("s.publishStatus = 'published'");
 
     this.tokenizeQueryToBuilder(builder, searchString, 's');
 
     return builder.getMany();
   }
 
-  findComments(
-    searchString: string,
-    cragParams: FindCragsInput,
-  ): Promise<Comment[]> {
+  findComments(searchString: string, showHidden: boolean): Promise<Comment[]> {
     const builder = this.commentsRepository.createQueryBuilder('co');
 
     builder.leftJoin('route', 'r', 'r.id = co.routeId');
-    builder.leftJoin('crag', 'cr', 'cr.id = r.cragId'); // join crag through route, to always hide by crag status even if comment is linked to a route
+    builder.leftJoin(
+      'crag',
+      'cr',
+      'cr.id = r.cragId and cr."publishStatus" = \'published\'',
+    ); // join crag through route, to always hide by crag status even if comment is linked to a route
 
-    builder.leftJoin('crag', 'c', 'c.id = co.cragId');
+    builder.leftJoin(
+      'crag',
+      'c',
+      'c.id = co.cragId and c."publishStatus" = \'published\'',
+    );
 
     builder.andWhere('co.iceFallId IS NULL');
 
-    if (cragParams.minStatus != null) {
+    if (!showHidden) {
       builder.andWhere(
         new Brackets(qb =>
-          qb
-            .where('c.status <= :minStatus', {
-              minStatus: cragParams.minStatus,
-            })
-            .orWhere('cr.status <= :minStatus', {
-              minStatus: cragParams.minStatus,
-            }),
+          qb.where('c.isHidden = false').orWhere('cr.isHidden = false'),
         ),
       );
     }

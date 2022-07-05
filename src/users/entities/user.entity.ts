@@ -68,6 +68,10 @@ export class User extends BaseEntity {
   @Column({ default: false })
   isPublic: boolean;
 
+  @Column({ default: false })
+  @Field()
+  hasUnpublishedContributions: boolean;
+
   @Column({ nullable: true })
   lastPasswordChange: Date;
 
@@ -92,4 +96,7 @@ export class User extends BaseEntity {
   )
   @Field(() => [Image])
   images: Promise<Image[]>;
+
+  isAdmin = () =>
+    this.roles ? this.roles.find(r => r.role == 'admin') : false;
 }
