@@ -16,7 +16,10 @@ import { DifficultyVote } from '../entities/difficulty-vote.entity';
 import { User } from '../../users/entities/user.entity';
 import { FindRoutesServiceInput } from '../dtos/find-routes-service.input';
 import { ContributablesService } from './contributables.service';
-import { tickAscentTypes } from '../../activities/entities/activity-route.entity';
+import {
+  ActivityRoute,
+  tickAscentTypes,
+} from '../../activities/entities/activity-route.entity';
 import { Transaction } from '../../core/utils/transaction.class';
 import { Crag } from '../entities/crag.entity';
 
@@ -168,9 +171,13 @@ export class RoutesService extends ContributablesService {
         // First check that route has no difficulty votes yet (except for the base difficulty vote)
         if (await this.hasRealDifficultyVotes(route, transaction)) {
           throw new HttpException(
-            'Cannot update base difficulty of route with existing difficulty votes',
+            'route_has_difficulty_votes',
             HttpStatus.CONFLICT,
           );
+        }
+        // Then check that the route hasn't been logged yet (this condition actually includes the no votes check, as a vote cannot be cast without an ascent, but keep it because of possible legacy data)
+        if (await this.hasLogEntries(route, transaction)) {
+          throw new HttpException('route_has_log_entries', HttpStatus.CONFLICT);
         }
 
         // Project and baseDifficulty mutually exclude each other
@@ -179,12 +186,15 @@ export class RoutesService extends ContributablesService {
           data.baseDifficulty === undefined
             ? route.difficulty
             : data.baseDifficulty;
-        if (
-          (isProjectAfterUpdate && baseDifficultyAfterUpdate) ||
-          (!isProjectAfterUpdate && !baseDifficultyAfterUpdate)
-        ) {
+        if (isProjectAfterUpdate && baseDifficultyAfterUpdate) {
           throw new HttpException(
-            'Base difficulty is required for non-project routes or omitted for project routes',
+            'should_not_pass_difficulty_for_a_project',
+            HttpStatus.CONFLICT,
+          );
+        }
+        if (!isProjectAfterUpdate && !baseDifficultyAfterUpdate) {
+          throw new HttpException(
+            'should_pass_difficulty_for_a_non-project',
             HttpStatus.CONFLICT,
           );
         }
@@ -326,10 +336,20 @@ export class RoutesService extends ContributablesService {
   }
 
   private async hasRealDifficultyVotes(route: Route, transaction: Transaction) {
-    return transaction.queryRunner.manager.count(DifficultyVote, {
+    return (await transaction.queryRunner.manager.count(DifficultyVote, {
       route,
       isBase: false,
-    });
+    }))
+      ? true
+      : false;
+  }
+
+  private async hasLogEntries(route: Route, transaction: Transaction) {
+    return (await transaction.queryRunner.manager.count(ActivityRoute, {
+      routeId: route.id,
+    }))
+      ? true
+      : false;
   }
 
   private buildQuery(
