@@ -128,7 +128,7 @@ export class DifficultyVotesService extends ContributablesService {
     }
 
     if (params.routeId != null) {
-      builder.andWhere('ar."routeId" = :routeId', { routeId: params.routeId });
+      builder.andWhere('v."routeId" = :routeId', { routeId: params.routeId });
     }
 
     return builder;
