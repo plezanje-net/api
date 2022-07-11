@@ -45,6 +45,8 @@ import { RouteNrTicksLoader } from '../loaders/route-nr-ticks.loader';
 import { RouteNrTriesLoader } from '../loaders/route-nr-tries.loader';
 import { RouteNrClimbersLoader } from '../loaders/route-nr-climbers.loader';
 import { NotificationService } from '../../notification/services/notification.service';
+import { LatestDifficultyVotesInput } from '../dtos/latest-difficulty-votes.input';
+import { PaginatedDifficultyVotes } from '../utils/paginated-difficulty-votes';
 
 @Resolver(() => Route)
 export class RoutesResolver {
@@ -73,6 +75,17 @@ export class RoutesResolver {
     @CurrentUser() user: User,
   ): Promise<Route> {
     return this.routesService.findOneBySlug(cragSlug, routeSlug, user);
+  }
+
+  @Query(() => PaginatedDifficultyVotes)
+  @AllowAny()
+  @UseGuards(UserAuthGuard)
+  async latestDifficultyVotes(
+    @Args('input', { type: () => LatestDifficultyVotesInput })
+    input: LatestDifficultyVotesInput,
+    @CurrentUser() user: User,
+  ): Promise<PaginatedDifficultyVotes> {
+    return this.difficultyVotesService.findLatest({ ...input, user: user });
   }
 
   /* MUTATIONS */
