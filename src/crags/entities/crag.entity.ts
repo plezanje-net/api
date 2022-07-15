@@ -191,7 +191,6 @@ export class Crag extends BaseEntity {
     activity => activity.crag,
     { nullable: true },
   )
-  @Field(() => [Activity])
   activities: Promise<Activity[]>;
 
   @ManyToOne(() => User)
