@@ -10,7 +10,6 @@ import { Club } from '../../users/entities/club.entity';
 import { User } from '../../users/entities/user.entity';
 import {
   Connection,
-  In,
   QueryRunner,
   Repository,
   SelectQueryBuilder,
@@ -580,7 +579,10 @@ export class ActivityRoutesService {
       .andWhere('clubMember.status = :status', {
         status: ClubMemberStatus.ACTIVE,
       });
-
+    // enforce publish limitations (regardles of what the input is requesting, max what the user can see through here is club and public ascents)
+    query.andWhere('ar.publish IN (:...publish)', {
+      publish: ['log', 'public', 'club'],
+    });
     const itemCount = await query.getCount();
 
     const pagination = new PaginationMeta(
