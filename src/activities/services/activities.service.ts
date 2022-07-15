@@ -11,6 +11,7 @@ import { PaginatedActivities } from '../utils/paginated-activities.class';
 import { CreateActivityRouteInput } from '../dtos/create-activity-route.input';
 import { ActivityRoutesService } from './activity-routes.service';
 import { UpdateActivityInput } from '../dtos/update-activity.input';
+import { ActivityRoute } from '../entities/activity-route.entity';
 
 @Injectable()
 export class ActivitiesService {
@@ -143,14 +144,17 @@ export class ActivitiesService {
     }
   }
 
-  async findOneById(id: string): Promise<Activity> {
-    return this.activitiesRepository.findOneOrFail(id);
+  async findOneById(id: string, currentUser: User = null): Promise<Activity> {
+    return this.buildQuery({}, currentUser)
+      .andWhereInIds([id])
+      .getOneOrFail();
   }
 
   async paginate(
     params: FindActivitiesInput = {},
+    currentUser: User = null,
   ): Promise<PaginatedActivities> {
-    const query = this.buildQuery(params);
+    const query = this.buildQuery(params, currentUser);
 
     const itemCount = await query.getCount();
 
@@ -174,14 +178,15 @@ export class ActivitiesService {
     return this.buildQuery(params).getMany();
   }
 
-  async findByIds(ids: string[]): Promise<Activity[]> {
-    return this.buildQuery()
+  async findByIds(ids: string[], currentUser: User): Promise<Activity[]> {
+    return this.buildQuery({}, currentUser)
       .whereInIds(ids)
       .getMany();
   }
 
   private buildQuery(
     params: FindActivitiesInput = {},
+    currentUser: User = null,
   ): SelectQueryBuilder<Activity> {
     const builder = this.activitiesRepository.createQueryBuilder('a');
 
@@ -205,10 +210,12 @@ export class ActivitiesService {
         : 'DESC',
     );
 
+    // TODO: ??? activity has no such field as grade
     if (params.orderBy != null && params.orderBy.field == 'grade') {
       builder.andWhere('a.grade IS NOT NULL');
     }
 
+    // TODO: should we rename this param to: forUserId?
     if (params.userId != null) {
       builder.andWhere('a."userId" = :userId', {
         userId: params.userId,
@@ -233,6 +240,28 @@ export class ActivitiesService {
       builder.andWhere('a."cragId" = :cragId', { cragId: params.cragId });
     }
 
+    // If no current user is passed in, that means we are serving a guest
+    if (!currentUser) {
+      // Inner join activity routes to get only activities with at least one public activity route
+      builder.innerJoin(
+        ActivityRoute,
+        'ar',
+        'ar."activityId" = a.id AND ar."publish" IN (:...publish)',
+        { publish: ['log', 'public'] },
+      );
+    } else {
+      // Inner join activity routes to get only activities with at least one activity route that is either public or belongs to the current user
+      builder.innerJoin(
+        ActivityRoute,
+        'ar',
+        'ar."activityId" = a.id AND (ar."publish" IN (:...publish) OR ar."userId" = :userId)',
+        {
+          publish: ['log', 'public'],
+          userId: currentUser.id,
+        },
+      );
+      // TODO: should also allow showing club ascents
+    }
     return builder;
   }
 

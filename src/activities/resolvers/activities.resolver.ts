@@ -30,6 +30,7 @@ import { GraphQLResolveInfo } from 'graphql';
 import { CacheScope } from 'apollo-server-types';
 import { SideEffect } from '../utils/side-effect.class';
 import { UpdateActivityInput } from '../dtos/update-activity.input';
+import { AllowAny } from '../../auth/decorators/allow-any.decorator';
 
 @Resolver(() => Activity)
 export class ActivitiesResolver {
@@ -41,24 +42,44 @@ export class ActivitiesResolver {
   @UseGuards(UserAuthGuard)
   @Query(() => PaginatedActivities)
   myActivities(
-    @CurrentUser() user: User,
+    @CurrentUser() currentUser: User,
     @Args('input', { nullable: true }) input: FindActivitiesInput = {},
     @Info() info: GraphQLResolveInfo,
   ): Promise<PaginatedActivities> {
     info.cacheControl.setCacheHint({ scope: CacheScope.Private });
-    input.userId = user.id;
+    input.userId = currentUser.id;
 
-    return this.activitiesService.paginate(input);
+    return this.activitiesService.paginate(input, currentUser);
   }
 
+  @UseGuards(UserAuthGuard)
   @Query(() => Activity)
   @UseFilters(NotFoundFilter)
   async activity(
+    @CurrentUser() currentUser: User,
     @Args('id') id: string,
     @Info() info: GraphQLResolveInfo,
   ): Promise<Activity> {
     info.cacheControl.setCacheHint({ scope: CacheScope.Private });
-    return this.activitiesService.findOneById(id);
+    return this.activitiesService.findOneById(id, currentUser);
+  }
+
+  @AllowAny()
+  @UseGuards(UserAuthGuard)
+  @Query(() => PaginatedActivities)
+  activities(
+    @CurrentUser() currentUser: User,
+    @Args('input', { nullable: true }) input: FindActivitiesInput = {},
+  ): Promise<PaginatedActivities> {
+    // Should allow to return:
+    //  - all activities with at least one public activity route and
+    //  - all activities belonging to current user (if user is logged in) and
+    //  - all activities with at least one activity route with publish 'club' and belonging to any user in the same club as the current user.
+
+    // Should return:
+    //  - a subset of the above, based on the input params.
+
+    return this.activitiesService.paginate(input, currentUser);
   }
 
   @Mutation(() => Activity)
@@ -181,9 +202,20 @@ export class ActivitiesResolver {
   }
 
   @ResolveField('routes', () => [ActivityRoute])
-  async getRoutes(@Parent() activity: Activity): Promise<ActivityRoute[]> {
-    return this.activityRoutesService.find({
-      activityId: activity.id,
-    });
+  async getRoutes(
+    @Parent() activity: Activity,
+    @CurrentUser() currentUser: User,
+  ): Promise<ActivityRoute[]> {
+    // Should allow to return child activity routes that are:
+    //  - publicly published or
+    //  - belonging to the current user (if user is logged in) or
+    //  - have publish 'club' and belong to any user in the same club as the current user.
+
+    return this.activityRoutesService.find(
+      {
+        activityId: activity.id,
+      },
+      currentUser,
+    );
   }
 }

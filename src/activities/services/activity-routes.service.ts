@@ -656,8 +656,9 @@ export class ActivityRoutesService {
 
   async paginate(
     params: FindActivityRoutesInput = {},
+    currentUser: User = null,
   ): Promise<PaginatedActivityRoutes> {
-    const query = this.buildQuery(params);
+    const query = this.buildQuery(params, currentUser);
 
     const itemCount = await query.getCount();
 
@@ -677,12 +678,16 @@ export class ActivityRoutesService {
     });
   }
 
-  async find(params: FindActivityRoutesInput = {}): Promise<ActivityRoute[]> {
-    return this.buildQuery(params).getMany();
+  async find(
+    params: FindActivityRoutesInput = {},
+    currentUser: User = null,
+  ): Promise<ActivityRoute[]> {
+    return this.buildQuery(params, currentUser).getMany();
   }
 
   private buildQuery(
     params: FindActivityRoutesInput = {},
+    currentUser: User = null,
   ): SelectQueryBuilder<ActivityRoute> {
     const builder = this.activityRoutesRepository.createQueryBuilder('ar');
 
@@ -714,6 +719,7 @@ export class ActivityRoutesService {
       });
     }
 
+    // TODO: should we rename this to forUserId?
     if (params.userId != null) {
       builder.andWhere('ar."userId" = :userId', {
         userId: params.userId,
@@ -748,6 +754,25 @@ export class ActivityRoutesService {
       builder.andWhere('ar."activityId" = :activityId', {
         activityId: params.activityId,
       });
+    }
+
+    // If no current user is passed in, that means we are serving a guest
+    if (!currentUser) {
+      // Allow showing only public ascents to guests
+      builder.andWhere('ar."publish" IN (:...publish)', {
+        publish: ['log', 'public'],
+      });
+    } else {
+      // Allow showing users own ascents and all public ascents
+      builder.andWhere(
+        '(ar."userId" = :userId OR ar."publish" IN (:...publish))',
+        {
+          userId: currentUser.id,
+          publish: ['log', 'public'],
+        },
+      );
+
+      // TODO: should also allow showing club ascents
     }
 
     return builder;

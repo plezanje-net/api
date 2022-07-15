@@ -112,14 +112,16 @@ export class ActivityRoutesResolver {
   @UseGuards(UserAuthGuard)
   @Query(() => PaginatedActivityRoutes)
   myActivityRoutes(
-    @CurrentUser() user: User,
+    @CurrentUser() currentUser: User,
     @Args('input', { nullable: true }) input: FindActivityRoutesInput = {},
     @Info() info: GraphQLResolveInfo,
   ): Promise<PaginatedActivityRoutes> {
     info.cacheControl.setCacheHint({ scope: CacheScope.Private });
 
-    input.userId = user.id;
-    return this.activityRoutesService.paginate(input);
+    // TODO: currentUser should serve as authorization filter (what is allowed to be returned)
+    // userId in input should be renamed to forUserId, and be used as a result filter (what is the client asking for)
+    input.userId = currentUser.id;
+    return this.activityRoutesService.paginate(input, currentUser);
   }
 
   @UseGuards(UserAuthGuard)
