@@ -183,6 +183,7 @@ export class ActivitiesResolver {
   @ResolveField('routes', () => [ActivityRoute])
   async getRoutes(@Parent() activity: Activity): Promise<ActivityRoute[]> {
     return this.activityRoutesService.find({
+      orderBy: { field: 'position', direction: 'ASC' },
       activityId: activity.id,
     });
   }
