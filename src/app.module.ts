@@ -123,7 +123,9 @@ import { PropertyType } from './crags/entities/property-type.entity';
                 );
 
                 const user = await authService.validateJwtPayload(jwt);
-                return { roles: user.roles.map(role => role.role) };
+                if (user) {
+                  return { roles: user.roles.map(role => role.role) };
+                }
               }
             },
           }),

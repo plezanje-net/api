@@ -81,7 +81,9 @@ export class UsersService {
   }
 
   async recover(email: string): Promise<User> {
-    const user = await this.usersRepository.findOneOrFail({ email: email });
+    const user = await this.usersRepository.findOneOrFail({
+      email: email.toLowerCase(),
+    });
 
     user.passwordToken = randomBytes(20).toString('hex');
 

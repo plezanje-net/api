@@ -17,7 +17,6 @@ import { CacheControlService } from '../core/services/cache-control.service';
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => ({
         secret: configService.get('JWT_SECRET'),
-        signOptions: { expiresIn: '30d' },
       }),
       inject: [ConfigService],
     }),
