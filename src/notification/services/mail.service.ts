@@ -38,7 +38,7 @@ export class MailService {
     });
   }
 
-  render(type: string, templateName: string, params: any = {}): string {
+  private render(type: string, templateName: string, params: any = {}): string {
     const template = compile(
       readFileSync(
         __dirname + '/../templates/' + templateName + '.' + type + '.hbs',

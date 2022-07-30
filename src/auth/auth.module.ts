@@ -25,4 +25,10 @@ import { CacheControlService } from '../core/services/cache-control.service';
   providers: [AuthService, CacheControlService, JwtStrategy],
   exports: [AuthService, CacheControlService],
 })
-export class AuthModule {}
+export class AuthModule {
+  constructor(private readonly cacheControlService: CacheControlService) {}
+
+  onModuleDestroy = async () => {
+    this.cacheControlService.close();
+  };
+}

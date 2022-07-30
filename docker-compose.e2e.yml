@@ -1,0 +1,11 @@
+version: '3.7'
+services:
+  postgres_test:
+    image: postgres:12
+    restart: always
+    environment:
+      POSTGRES_DB: plezanjenet
+      POSTGRES_USER: plezanjenet
+      POSTGRES_PASSWORD: plezanjenet
+    ports:
+      - "5434:5432"
