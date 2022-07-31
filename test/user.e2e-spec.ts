@@ -21,6 +21,9 @@ describe('User', () => {
     process.env.DB_NAME = 'plezanjenet';
     process.env.DB_PORT = '5434';
 
+    process.env.REDIS_HOST = 'localhost';
+    process.env.REDIS_PORT = '6381';
+
     const mailService = { send: () => Promise.resolve({}) };
 
     const moduleRef = await Test.createTestingModule({
@@ -279,9 +282,8 @@ describe('User', () => {
             }
         `,
       })
-      // .expect(200)
+      .expect(200)
       .then(res => {
-        console.log(res.body);
         expect(res.body.data).toBe(null);
       });
   });

@@ -9,3 +9,8 @@ services:
       POSTGRES_PASSWORD: plezanjenet
     ports:
       - "5434:5432"
+  redis_test: 
+    image: redis:6
+    restart: always
+    ports:
+      - "6381:6379"
