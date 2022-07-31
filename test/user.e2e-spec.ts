@@ -14,6 +14,7 @@ describe('User', () => {
   let queryRunner: QueryRunner;
 
   beforeAll(async () => {
+    process.env.JWT_SECRET = '456755345g6345g63456g345g63456';
     process.env.DB_HOST = 'localhost';
     process.env.DB_USER = 'plezanjenet';
     process.env.DB_PASSWORD = 'plezanjenet';
@@ -46,6 +47,7 @@ describe('User', () => {
     queryRunner = conn.createQueryRunner();
 
     await queryRunner.query(query);
+    await conn.synchronize(true);
   });
 
   const mockData: any = {
