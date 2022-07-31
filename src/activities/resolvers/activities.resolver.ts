@@ -31,6 +31,7 @@ import { CacheScope } from 'apollo-server-types';
 import { SideEffect } from '../utils/side-effect.class';
 import { UpdateActivityInput } from '../dtos/update-activity.input';
 import { AllowAny } from '../../auth/decorators/allow-any.decorator';
+import { FindActivityRoutesInput } from '../dtos/find-activity-routes.input';
 
 @Resolver(() => Activity)
 export class ActivitiesResolver {
@@ -189,12 +190,12 @@ export class ActivitiesResolver {
   @UseInterceptors(AuditInterceptor)
   @UseGuards(UserAuthGuard)
   async deleteActivity(
-    @CurrentUser() user: User,
+    @CurrentUser() currentUser: User,
     @Args('id') id: string,
   ): Promise<boolean> {
-    const activity = await this.activitiesService.findOneById(id);
+    const activity = await this.activitiesService.findOneById(id, currentUser);
 
-    if (activity.userId != user.id) {
+    if (activity.userId != currentUser.id) {
       throw new ForbiddenException();
     }
 
@@ -205,17 +206,14 @@ export class ActivitiesResolver {
   async getRoutes(
     @Parent() activity: Activity,
     @CurrentUser() currentUser: User,
+    @Args('input', { nullable: true }) input: FindActivityRoutesInput = {},
   ): Promise<ActivityRoute[]> {
     // Should allow to return child activity routes that are:
     //  - publicly published or
     //  - belonging to the current user (if user is logged in) or
     //  - have publish 'club' and belong to any user in the same club as the current user.
 
-    return this.activityRoutesService.find(
-      {
-        activityId: activity.id,
-      },
-      currentUser,
-    );
+    input.activityId = activity.id;
+    return this.activityRoutesService.find(input, currentUser);
   }
 }

@@ -38,7 +38,6 @@ import { ActivitiesService } from '../services/activities.service';
 import { UpdateActivityRouteInput } from '../dtos/update-activity-route.input';
 import { FindRoutesTouchesInput } from '../dtos/find-routes-touches.input';
 import { RoutesTouches } from '../utils/routes-touches.class';
-import { RouteTouched } from '../utils/route-touched.class';
 
 @Resolver(() => ActivityRoute)
 export class ActivityRoutesResolver {
@@ -80,21 +79,6 @@ export class ActivityRoutesResolver {
     loader: DataLoader<ActivityRoute['userId'], User>,
   ): Promise<User> {
     return loader.load(activityRoute.userId);
-  }
-
-  /**
-   * find out if currently logged in user has already tried and/or ticked a certain route
-   */
-  // Deprecated: Noone uses this. First remove leftover query file on FE then remove.
-  @UseGuards(UserAuthGuard)
-  @Query(() => RouteTouched)
-  routeTouched(
-    @CurrentUser() user: User,
-    @Args('routeId') routeId: string,
-    @Info() info: GraphQLResolveInfo,
-  ) {
-    info.cacheControl.setCacheHint({ scope: CacheScope.Private });
-    // return this.activityRoutesService.routeTouched(user, routeId);
   }
 
   /**
@@ -212,5 +196,10 @@ export class ActivityRoutesResolver {
       latestN,
       inLastNDays,
     );
+  }
+
+  @ResolveField()
+  score(@Parent() activityRoute: ActivityRoute): Promise<number> {
+    return this.activityRoutesService.calculateScore(activityRoute);
   }
 }

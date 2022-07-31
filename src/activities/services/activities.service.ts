@@ -262,6 +262,16 @@ export class ActivitiesService {
       );
       // TODO: should also allow showing club ascents
     }
+
+    if (params.hasRoutesWithPublish) {
+      builder.innerJoin(
+        ActivityRoute,
+        'arp',
+        'arp."activityId" = a.id AND arp."publish" IN (:...publish)',
+        { publish: params.hasRoutesWithPublish },
+      );
+    }
+
     return builder;
   }
 
