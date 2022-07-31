@@ -14,6 +14,10 @@ describe('User', () => {
   let queryRunner: QueryRunner;
 
   beforeAll(async () => {
+    process.env.DB_HOST = 'localhost';
+    process.env.DB_USER = 'plezanjenet';
+    process.env.DB_PASSWORD = 'plezanjenet';
+    process.env.DB_NAME = 'plezanjenet';
     process.env.DB_PORT = '5434';
 
     const mailService = { send: () => Promise.resolve({}) };
@@ -42,7 +46,6 @@ describe('User', () => {
     queryRunner = conn.createQueryRunner();
 
     await queryRunner.query(query);
-    await conn.synchronize(true);
   });
 
   const mockData: any = {
