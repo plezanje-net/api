@@ -45,6 +45,17 @@ describe('User', () => {
     await conn.synchronize(true);
   });
 
+  const mockData: any = {
+    id: null,
+    confirmationToken: null,
+    authorizationToken: null,
+    passwordToken: null,
+    email: 'test@test.com',
+    password: 'Test',
+    firstname: 'Janez',
+    lastname: 'Testnik',
+  };
+
   it(`should not return profile without auth`, async () => {
     await request(app.getHttpServer())
       .post('/graphql')
@@ -69,7 +80,7 @@ describe('User', () => {
       .send({
         query: `
             mutation {
-                login(input: { email: "test@test.com", password: "Test" }) {
+                login(input: { email: "${mockData.email}", password: "${mockData.password}" }) {
                     token
                 }
             }
@@ -81,16 +92,13 @@ describe('User', () => {
       });
   });
 
-  let userId: string;
-  let confirmationToken: string;
-
   it(`should register new user`, async () => {
     await request(app.getHttpServer())
       .post('/graphql')
       .send({
         query: `
             mutation {
-                register(input: { email: "test@test.com", password: "Test", firstname: "Test", lastname: "Test" })
+                register(input: { email: "${mockData.email}", password: "${mockData.password}", firstname: "${mockData.firstname}", lastname: "${mockData.lastname}" })
             }
         `,
       })
@@ -100,10 +108,10 @@ describe('User', () => {
       });
 
     const user = await queryRunner.query(
-      `SELECT * FROM public.user WHERE email = 'test@test.com'`,
+      `SELECT * FROM public.user WHERE email = '${mockData.email}'`,
     );
-    userId = user[0].id;
-    confirmationToken = user[0].confirmationToken;
+    mockData.userId = user[0].id;
+    mockData.confirmationToken = user[0].confirmationToken;
   });
 
   it(`should not allow duplicate emails`, async () => {
@@ -112,7 +120,7 @@ describe('User', () => {
       .send({
         query: `
             mutation {
-                register(input: { email: "test@test.com", password: "Test", firstname: "Test", lastname: "Test" })
+                register(input: { email: "${mockData.email}", password: "${mockData.password}", firstname: "${mockData.firstname}", lastname: "${mockData.lastname}" })
             }
         `,
       })
@@ -129,7 +137,7 @@ describe('User', () => {
       .send({
         query: `
             mutation {
-                confirm(input: { id: "${userId}", token: "invalid_token" })
+                confirm(input: { id: "${mockData.userId}", token: "invalid_token" })
             }
         `,
       })
@@ -146,7 +154,7 @@ describe('User', () => {
       .send({
         query: `
             mutation {
-                confirm(input: { id: "${userId}", token: "${confirmationToken}" })
+                confirm(input: { id: "${mockData.userId}", token: "${mockData.confirmationToken}" })
             }
         `,
       })
@@ -162,7 +170,7 @@ describe('User', () => {
       .send({
         query: `
           mutation {
-            login(input: { email: "test@test.com", password: "Test" }) {
+            login(input: { email: "${mockData.email}", password: "${mockData.password}" }) {
                 token
             }
           }
@@ -171,6 +179,124 @@ describe('User', () => {
       .expect(200)
       .then(res => {
         expect(res.body.data.login.token).toBeDefined();
+        mockData.authorizationToken = res.body.data.login.token;
+      });
+  });
+
+  it(`should return profile for the new user`, async () => {
+    await request(app.getHttpServer())
+      .post('/graphql')
+      .set('Authorization', `Bearer ${mockData.authorizationToken}`)
+      .send({
+        query: `
+            query {
+                profile {
+                    id
+                    firstname
+                    lastname
+                }
+            }
+        `,
+      })
+      .expect(200)
+      .then(res => {
+        expect(res.body.data.profile.id).toBe(mockData.userId);
+        expect(res.body.data.profile.firstname).toBe(mockData.firstname);
+        expect(res.body.data.profile.lastname).toBe(mockData.lastname);
+      });
+  });
+
+  it(`should not recover on unexisting email`, async () => {
+    await request(app.getHttpServer())
+      .post('/graphql')
+      .send({
+        query: `
+          mutation {
+            recover(email: "t-${mockData.email}")
+          }
+        `,
+      })
+      .expect(200)
+      .then(res => {
+        expect(res.body.data).toBe(null);
+      });
+  });
+
+  it(`should initialize password recovery`, async () => {
+    await request(app.getHttpServer())
+      .post('/graphql')
+      .send({
+        query: `
+          mutation {
+            recover(email: "${mockData.email}")
+          }
+        `,
+      })
+      .expect(200)
+      .then(async res => {
+        expect(res.body.data.recover).toBe(true);
+        const user = await queryRunner.query(
+          `SELECT * FROM public.user WHERE email = '${mockData.email}'`,
+        );
+        mockData.passwordToken = user[0].passwordToken;
+      });
+  });
+
+  it(`should save the new password`, async () => {
+    mockData.password = 'ChangedPassword';
+    await request(app.getHttpServer())
+      .post('/graphql')
+      .send({
+        query: `
+          mutation {
+            setPassword(input: { id: "${mockData.userId}", token: "${mockData.passwordToken}", password: "${mockData.password}" })
+          }
+        `,
+      })
+      .expect(200)
+      .then(res => {
+        expect(res.body.data.setPassword).toBe(true);
+      });
+  });
+
+  it(`should not return profile with the previous token`, async () => {
+    await request(app.getHttpServer())
+      .post('/graphql')
+      .set('Authorization', `Bearer ${mockData.authorizationToken}`)
+      .send({
+        query: `
+            query {
+                profile {
+                    id
+                    firstname
+                    lastname
+                }
+            }
+        `,
+      })
+      // .expect(200)
+      .then(res => {
+        console.log(res.body);
+        expect(res.body.data).toBe(null);
+      });
+  });
+
+  it(`should sign in with the changed password`, async () => {
+    await request(app.getHttpServer())
+      .post('/graphql')
+      .send({
+        query: `
+          mutation {
+            login(input: { email: "${mockData.email}", password: "${mockData.password}" }) {
+                token
+            }
+          }
+        `,
+      })
+      .expect(200)
+      .then(res => {
+        expect(res.body.data.login.token).toBeDefined();
+        mockData.authorizationToken = res.body.data.login.token;
       });
   });
 
