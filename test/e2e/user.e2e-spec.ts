@@ -1,28 +1,20 @@
 import request from 'supertest';
 import { Test } from '@nestjs/testing';
-import { AppModule } from '../src/app.module';
-import { Connection, QueryRunner } from 'typeorm';
-import * as fs from 'fs';
+import { AppModule } from '../../src/app.module';
+import { QueryRunner } from 'typeorm';
 import {
   FastifyAdapter,
   NestFastifyApplication,
 } from '@nestjs/platform-fastify';
-import { MailService } from '../src/notification/services/mail.service';
+import { MailService } from '../../src/notification/services/mail.service';
+import { initializeDbConn, prepareEnvironment } from './helpers';
 
 describe('User', () => {
   let app: NestFastifyApplication;
   let queryRunner: QueryRunner;
 
   beforeAll(async () => {
-    process.env.JWT_SECRET = '456755345g6345g63456g345g63456';
-    process.env.DB_HOST = 'localhost';
-    process.env.DB_USER = 'plezanjenet';
-    process.env.DB_PASSWORD = 'plezanjenet';
-    process.env.DB_NAME = 'plezanjenet';
-    process.env.DB_PORT = '5434';
-
-    process.env.REDIS_HOST = 'localhost';
-    process.env.REDIS_PORT = '6381';
+    prepareEnvironment();
 
     const mailService = { send: () => Promise.resolve({}) };
 
@@ -43,14 +35,8 @@ describe('User', () => {
       .getInstance()
       .ready();
 
-    const conn = app.get(Connection);
-
-    const query = fs.readFileSync('./test/sql/init.sql', 'utf8');
-
+    const conn = await initializeDbConn(app);
     queryRunner = conn.createQueryRunner();
-
-    await queryRunner.query(query);
-    await conn.synchronize(true);
   });
 
   const mockData: any = {
