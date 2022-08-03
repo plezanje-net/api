@@ -64,7 +64,9 @@ export class RoutesService extends ContributablesService {
       .innerJoin('crag', 'c', 'c.id = r."cragId"')
       .where('r.slug = :routeSlug', { routeSlug: routeSlug })
       .andWhere('c.slug = :cragSlug', { cragSlug: cragSlug });
-    // TODO ADD PUBLISH STATUS CONDITION !!
+
+    const { conditions, params } = this.getPublishStatusParams('r', user);
+    builder.andWhere(conditions, params);
 
     if (!(user != null)) {
       builder.andWhere('c.isHidden = false');
