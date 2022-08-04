@@ -12,6 +12,7 @@ import { CreateActivityRouteInput } from '../dtos/create-activity-route.input';
 import { ActivityRoutesService } from './activity-routes.service';
 import { UpdateActivityInput } from '../dtos/update-activity.input';
 import { ActivityRoute } from '../entities/activity-route.entity';
+import { Route } from '../../crags/entities/route.entity';
 
 @Injectable()
 export class ActivitiesService {
@@ -240,27 +241,82 @@ export class ActivitiesService {
       builder.andWhere('a."cragId" = :cragId', { cragId: params.cragId });
     }
 
+    builder.leftJoin(Crag, 'c', 'c.id = a."cragId"');
     // If no current user is passed in, that means we are serving a guest
     if (!currentUser) {
-      // Inner join activity routes to get only activities with at least one public activity route
+      // Right now, only crag activity might be public, so disallow all other types
+      builder.andWhere("a.type = 'crag'");
+
+      // Allow/disallow based on publish type of contained activity routes
+      //  --> Inner join activity routes to get only activities with at least one public activity route
       builder.innerJoin(
         ActivityRoute,
         'ar',
-        'ar."activityId" = a.id AND ar."publish" IN (:...publish)',
+        'ar."activityId" = a.id AND (ar."publish" IN (:...publish))',
         { publish: ['log', 'public'] },
       );
-    } else {
-      // Inner join activity routes to get only activities with at least one activity route that is either public or belongs to the current user
+
+      // Allow/disallow based on publishStatus of contained activity routes
+      //  --> allow only activities with at least one valid activity route
       builder.innerJoin(
-        ActivityRoute,
-        'ar',
-        'ar."activityId" = a.id AND (ar."publish" IN (:...publish) OR ar."userId" = :userId)',
+        Route,
+        'r',
+        'r.id = ar."routeId" AND r."publishStatus" = \'published\'',
+      );
+
+      // Disallow activities in crags that are hidden
+      builder.andWhere('c."isHidden" = false');
+
+      // Allow/disallow based on publishStatus of activitiy's crag (might be redundant to the ar condition)
+      builder.andWhere("(a.type <> 'crag' OR c.publishStatus = 'published')");
+    } else {
+      // Allow/disallow based on publish type of contained activity routes
+      // --> allow only activities with at least one activity route that is either public or belongs to the current user
+      builder.leftJoin(ActivityRoute, 'ar', 'ar."activityId" = a.id');
+      builder.andWhere(
+        "(a.type <> 'crag' OR ar.\"publish\" IN ('log', 'public') OR ar.\"userId\" = :userId)",
         {
-          publish: ['log', 'public'],
           userId: currentUser.id,
         },
       );
+
       // TODO: should also allow showing club ascents
+
+      builder.leftJoin(Route, 'r', 'r.id = ar."routeId"');
+
+      // TODO: role admin should be renamed to editor and isAdmin condition to isEditor...
+      if (currentUser.isAdmin()) {
+        // Allow/disallow based on publishStatus
+        // --> Allow only activities in crags that are mine and are drafts or are in_review or public (i am editor)
+        builder.andWhere(
+          "(a.type <> 'crag' OR c.\"publishStatus\" IN ('in_review', 'published') OR (c.\"publishStatus\" = 'draft' AND c.\"userId\" = :userId))",
+          {
+            userId: currentUser.id,
+          },
+        );
+
+        // Allow/disallow based on publishStatus of at least one route of the activity_route in the activity
+        builder.andWhere(
+          "(a.type <> 'crag' OR r.\"publishStatus\" IN ('published', 'in_review') OR (r.\"publishStatus\" = 'draft' AND r.\"userId\" = :userId))",
+          { userId: currentUser.id },
+        );
+      } else {
+        //Not an editor
+
+        // Allow/disallow based on publishStatus of the crag
+        builder.andWhere(
+          "(a.type <> 'crag' OR c.\"publishStatus\" = 'published' OR (c.\"publishStatus\" IN ('draft', 'in_review') AND c.\"userId\" = :userId))",
+          {
+            userId: currentUser.id,
+          },
+        );
+
+        // Allow/disallow based on publishStatus of at least one route of the activity_route in the activity
+        builder.andWhere(
+          '(r."publishStatus" = \'published\' OR (r."publishStatus" IN (\'draft\', \'in_review\') AND r."userId" = :userId))',
+          { userId: currentUser.id },
+        );
+      }
     }
 
     if (params.hasRoutesWithPublish) {

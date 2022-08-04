@@ -73,9 +73,23 @@ export class ActivitiesResolver {
     @Args('input', { nullable: true }) input: FindActivitiesInput = {},
   ): Promise<PaginatedActivities> {
     // Should allow to return:
+    // based on logged in user:
     //  - all activities with at least one public activity route and
     //  - all activities belonging to current user (if user is logged in) and
     //  - all activities with at least one activity route with publish 'club' and belonging to any user in the same club as the current user.
+    // TODO: clubs
+    //
+    // based on crag visibility:
+    //  - all activities in public crags if the user is not logged in
+    //  - all activities if a user is logged in
+    //
+    // based on publish status of the crag:
+    //  - all activities in draft crags if the logged in user is the author of the crag and all activities in published crags
+    //  - all activities in in_review crags if the logged in user is the author of the crag or has a role of editor and all activities in published crags
+    //  - only activities in published crags if the user is not logged in
+    //
+    // based on publish status of routes of contained activity routes
+    // - similar to above, but only activities with at least one 'allowed' route
 
     // Should return:
     //  - a subset of the above, based on the input params.
@@ -211,7 +225,9 @@ export class ActivitiesResolver {
     // Should allow to return child activity routes that are:
     //  - publicly published or
     //  - belonging to the current user (if user is logged in) or
-    //  - have publish 'club' and belong to any user in the same club as the current user.
+    //  - have publish 'club' and belong to any user in the same club as the current user
+    // TODO: clubs
+    //  - have any of the 'allowed' publishStatuses based on currentUser and 'ownership'
 
     input.activityId = activity.id;
     return this.activityRoutesService.find(input, currentUser);

@@ -727,6 +727,9 @@ export class ActivityRoutesService {
       builder.andWhere('ar."publish" IN (:...publish)', {
         publish: ['log', 'public'],
       });
+
+      // Allow showing only published routes (no drafts or in_reviews)
+      builder.andWhere('r."publishStatus" = \'published\'');
     } else {
       // Allow showing users own ascents and all public ascents
       builder.andWhere(
@@ -736,8 +739,21 @@ export class ActivityRoutesService {
           publish: ['log', 'public'],
         },
       );
-
       // TODO: should also allow showing club ascents
+
+      if (currentUser.isAdmin()) {
+        // Allow showing only published and in_review routes and also own drafts
+        builder.andWhere(
+          '(r."publishStatus" IN (\'published\', \'in_review\') OR (r."publishStatus" = \'draft\' AND ar."userId" = :userId))',
+          { userId: currentUser.id },
+        );
+      } else {
+        // Allow showing only published routes and also own drafts and in_reviews
+        builder.andWhere(
+          '(r."publishStatus" = \'published\' OR (r."publishStatus" IN (\'draft\', \'in_review\') AND ar."userId" = :userId))',
+          { userId: currentUser.id },
+        );
+      }
     }
 
     return builder;
