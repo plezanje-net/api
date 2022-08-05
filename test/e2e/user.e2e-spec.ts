@@ -295,8 +295,10 @@ describe('User', () => {
 
   afterAll(async () => {
     // not very nice, but it does the trick because db connection is still running somehow
-    setTimeout(async () => {
-      await app.close();
-    }, 100);
+    // setTimeout(async () => {
+    //   await app.close();
+    // }, 100);
+
+    await app.close();
   });
 });
