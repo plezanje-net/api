@@ -669,10 +669,12 @@ export class ActivityRoutesService {
         params.orderBy.direction || 'DESC',
       );
 
-      builder.addOrderBy(
-        'ar.position',
-        params.orderBy.field === 'date' ? params.orderBy.direction : 'DESC',
-      );
+      if (params.orderBy.field != 'position') {
+        builder.addOrderBy(
+          'ar.position',
+          params.orderBy.field === 'date' ? params.orderBy.direction : 'DESC',
+        );
+      }
     } else {
       builder.orderBy('ar.created', 'DESC').addOrderBy('ar.position', 'DESC');
     }

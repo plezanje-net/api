@@ -12,4 +12,10 @@ export class CacheControlService {
   flush() {
     this.cache.flush();
   }
+
+  close() {
+    if (this.cache) {
+      this.cache.close();
+    }
+  }
 }

@@ -230,6 +230,7 @@ export class ActivitiesResolver {
     //  - have any of the 'allowed' publishStatuses based on currentUser and 'ownership'
 
     input.activityId = activity.id;
+    input.orderBy = { field: 'position', direction: 'ASC' };
     return this.activityRoutesService.find(input, currentUser);
   }
 }
