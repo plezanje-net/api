@@ -55,6 +55,8 @@ import { PropertyType } from './crags/entities/property-type.entity';
         username: configService.get('DB_USER'),
         password: configService.get('DB_PASSWORD'),
         database: configService.get('DB_NAME'),
+        port: configService.get('DB_PORT'),
+        synchronize: false,
         // logging: true,
         entities: [
           Activity,
@@ -86,7 +88,6 @@ import { PropertyType } from './crags/entities/property-type.entity';
           IceFallProperty,
           PropertyType,
         ],
-        synchronize: false,
         // logging: ['query', 'error'],
       }),
       inject: [ConfigService],
