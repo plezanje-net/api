@@ -384,7 +384,7 @@ export class RoutesService extends ContributablesService {
     selfId?: string,
   ) {
     const selfCond = selfId != null ? { id: Not(selfId) } : {};
-    let slug = slugify(routeName, { lower: true });
+    let slug = slugify(routeName, { lower: true, strict: true });
     let suffixCounter = 0;
     let suffix = '';
 

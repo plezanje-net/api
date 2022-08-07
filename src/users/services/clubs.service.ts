@@ -85,7 +85,7 @@ export class ClubsService {
 
   private async generateClubSlug(clubName: string, selfId?: string) {
     const selfCond = selfId != null ? { id: Not(selfId) } : {};
-    let slug = slugify(clubName, { lower: true });
+    let slug = slugify(clubName, { lower: true, strict: true });
     let suffixCounter = 0;
     let suffix = '';
     while (

@@ -304,7 +304,7 @@ export class CragsService extends ContributablesService {
 
   private async generateCragSlug(cragName: string, selfId?: string) {
     const selfCond = selfId != null ? { id: Not(selfId) } : {};
-    let slug = slugify(cragName, { lower: true });
+    let slug = slugify(cragName, { lower: true, strict: true });
     let suffixCounter = 0;
     let suffix = '';
 
