@@ -5,6 +5,7 @@ import {
   Args,
   ResolveField,
   Parent,
+  Int,
 } from '@nestjs/graphql';
 import { CommentsService } from '../services/comments.service';
 import { Comment } from '../entities/comment.entity';
@@ -80,5 +81,13 @@ export class CommentsResolver {
   @Query(returns => [Comment], { name: 'exposedWarnings' })
   getExposedWarnings(@CurrentUser() user: User) {
     return this.commentsService.getExposedWarnings(user != null);
+  }
+
+  @AllowAny()
+  @Query(returns => [Comment], { name: 'latestComments' })
+  getLatestComments(@Args('limit', { type: () => Int }) limit: number) {
+    return this.commentsService.find({
+      limit,
+    });
   }
 }

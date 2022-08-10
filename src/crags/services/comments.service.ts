@@ -94,6 +94,10 @@ export class CommentsService {
       options.where['type'] = params.type;
     }
 
+    if (params.limit != null) {
+      options.take = params.limit;
+    }
+
     options.order = { created: 'DESC' };
 
     return this.commentsRepository.find(options);

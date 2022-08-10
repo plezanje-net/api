@@ -18,4 +18,8 @@ export class FindCommentsInput {
   @Field({ nullable: true })
   @IsOptional()
   type?: string;
+
+  @Field({ nullable: true })
+  @IsOptional()
+  limit?: number;
 }
