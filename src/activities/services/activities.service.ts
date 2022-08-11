@@ -313,7 +313,7 @@ export class ActivitiesService {
 
         // Allow/disallow based on publishStatus of at least one route of the activity_route in the activity
         builder.andWhere(
-          '(r."publishStatus" = \'published\' OR (r."publishStatus" IN (\'draft\', \'in_review\') AND r."userId" = :userId))',
+          "(a.type <> 'crag' OR r.\"publishStatus\" = 'published' OR (r.\"publishStatus\" IN ('draft', 'in_review') AND r.\"userId\" = :userId))",
           { userId: currentUser.id },
         );
       }
