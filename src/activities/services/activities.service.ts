@@ -271,10 +271,10 @@ export class ActivitiesService {
       builder.andWhere("(a.type <> 'crag' OR c.publishStatus = 'published')");
     } else {
       // Allow/disallow based on publish type of contained activity routes
-      // --> allow only activities with at least one activity route that is either public or belongs to the current user
+      // --> allow only activities with at least one activity route that is either public or belongs to the current user, or is an activity of type other than 'crag' and is owned by the current user
       builder.leftJoin(ActivityRoute, 'ar', 'ar."activityId" = a.id');
       builder.andWhere(
-        "(a.type <> 'crag' OR ar.\"publish\" IN ('log', 'public') OR ar.\"userId\" = :userId)",
+        '((a.type <> \'crag\' AND a."userId" = :userId) OR ar."publish" IN (\'log\', \'public\') OR ar."userId" = :userId)',
         {
           userId: currentUser.id,
         },
@@ -287,9 +287,9 @@ export class ActivitiesService {
       // TODO: role admin should be renamed to editor and isAdmin condition to isEditor...
       if (currentUser.isAdmin()) {
         // Allow/disallow based on publishStatus
-        // --> Allow only activities in crags that are mine and are drafts or are in_review or public (i am editor)
+        // --> Allow only activities in crags that are mine and are drafts or are in_review or public (i am editor), or current user's activities other than crag
         builder.andWhere(
-          "(a.type <> 'crag' OR c.\"publishStatus\" IN ('in_review', 'published') OR (c.\"publishStatus\" = 'draft' AND c.\"userId\" = :userId))",
+          '((a.type <> \'crag\' AND a."userId" = :userId) OR c."publishStatus" IN (\'in_review\', \'published\') OR (c."publishStatus" = \'draft\' AND c."userId" = :userId))',
           {
             userId: currentUser.id,
           },
@@ -297,7 +297,7 @@ export class ActivitiesService {
 
         // Allow/disallow based on publishStatus of at least one route of the activity_route in the activity
         builder.andWhere(
-          "(a.type <> 'crag' OR r.\"publishStatus\" IN ('published', 'in_review') OR (r.\"publishStatus\" = 'draft' AND r.\"userId\" = :userId))",
+          '((a.type <> \'crag\' AND a."userId" = :userId) OR r."publishStatus" IN (\'published\', \'in_review\') OR (r."publishStatus" = \'draft\' AND r."userId" = :userId))',
           { userId: currentUser.id },
         );
       } else {
@@ -305,7 +305,7 @@ export class ActivitiesService {
 
         // Allow/disallow based on publishStatus of the crag
         builder.andWhere(
-          "(a.type <> 'crag' OR c.\"publishStatus\" = 'published' OR (c.\"publishStatus\" IN ('draft', 'in_review') AND c.\"userId\" = :userId))",
+          '((a.type <> \'crag\' AND a."userId" = :userId) OR c."publishStatus" = \'published\' OR (c."publishStatus" IN (\'draft\', \'in_review\') AND c."userId" = :userId))',
           {
             userId: currentUser.id,
           },
@@ -313,7 +313,7 @@ export class ActivitiesService {
 
         // Allow/disallow based on publishStatus of at least one route of the activity_route in the activity
         builder.andWhere(
-          '(r."publishStatus" = \'published\' OR (r."publishStatus" IN (\'draft\', \'in_review\') AND r."userId" = :userId))',
+          '((a.type <> \'crag\' AND a."userId" = :userId) OR r."publishStatus" = \'published\' OR (r."publishStatus" IN (\'draft\', \'in_review\') AND r."userId" = :userId))',
           { userId: currentUser.id },
         );
       }
@@ -327,6 +327,7 @@ export class ActivitiesService {
         { publish: params.hasRoutesWithPublish },
       );
     }
+    // console.log(builder.getQueryAndParameters());
 
     return builder;
   }
