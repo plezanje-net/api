@@ -257,7 +257,7 @@ export class ActivitiesService {
       );
 
       // Allow/disallow based on publishStatus of contained activity routes
-      //  --> allow only activities with at least one valid activity route
+      //  --> allow only activities with at least one published activity route
       builder.innerJoin(
         Route,
         'r',
@@ -268,13 +268,15 @@ export class ActivitiesService {
       builder.andWhere('c."isHidden" = false');
 
       // Allow/disallow based on publishStatus of activitiy's crag (might be redundant to the ar condition)
-      builder.andWhere("(a.type <> 'crag' OR c.publishStatus = 'published')");
+      builder.andWhere("c.publishStatus = 'published'");
     } else {
+      // User is logged in
+
       // Allow/disallow based on publish type of contained activity routes
-      // --> allow only activities with at least one activity route that is either public or belongs to the current user, or is an activity of type other than 'crag' and is owned by the current user
+      // --> allow only activities that belong to the current user or contain at least one activity route that is public (or log)
       builder.leftJoin(ActivityRoute, 'ar', 'ar."activityId" = a.id');
       builder.andWhere(
-        '((a.type <> \'crag\' AND a."userId" = :userId) OR ar."publish" IN (\'log\', \'public\') OR ar."userId" = :userId)',
+        '(a."userId" = :userId OR ar."publish" IN (\'log\', \'public\'))',
         {
           userId: currentUser.id,
         },
@@ -286,10 +288,12 @@ export class ActivitiesService {
 
       // TODO: role admin should be renamed to editor and isAdmin condition to isEditor...
       if (currentUser.isAdmin()) {
+        // Logged in user is an editor
+
         // Allow/disallow based on publishStatus
         // --> Allow only activities in crags that are mine and are drafts or are in_review or public (i am editor), or current user's activities other than crag
         builder.andWhere(
-          '((a.type <> \'crag\' AND a."userId" = :userId) OR c."publishStatus" IN (\'in_review\', \'published\') OR (c."publishStatus" = \'draft\' AND c."userId" = :userId))',
+          '(a."userId" = :userId OR c."publishStatus" IN (\'in_review\', \'published\') OR (c."publishStatus" = \'draft\' AND c."userId" = :userId))',
           {
             userId: currentUser.id,
           },
@@ -297,15 +301,15 @@ export class ActivitiesService {
 
         // Allow/disallow based on publishStatus of at least one route of the activity_route in the activity
         builder.andWhere(
-          '((a.type <> \'crag\' AND a."userId" = :userId) OR r."publishStatus" IN (\'published\', \'in_review\') OR (r."publishStatus" = \'draft\' AND r."userId" = :userId))',
+          '(a."userId" = :userId OR r."publishStatus" IN (\'published\', \'in_review\') OR (r."publishStatus" = \'draft\' AND r."userId" = :userId))',
           { userId: currentUser.id },
         );
       } else {
-        //Not an editor
+        // Logged in user is not an editor
 
         // Allow/disallow based on publishStatus of the crag
         builder.andWhere(
-          '((a.type <> \'crag\' AND a."userId" = :userId) OR c."publishStatus" = \'published\' OR (c."publishStatus" IN (\'draft\', \'in_review\') AND c."userId" = :userId))',
+          '(a."userId" = :userId OR c."publishStatus" = \'published\' OR (c."publishStatus" IN (\'draft\', \'in_review\') AND c."userId" = :userId))',
           {
             userId: currentUser.id,
           },
@@ -313,7 +317,7 @@ export class ActivitiesService {
 
         // Allow/disallow based on publishStatus of at least one route of the activity_route in the activity
         builder.andWhere(
-          '((a.type <> \'crag\' AND a."userId" = :userId) OR r."publishStatus" = \'published\' OR (r."publishStatus" IN (\'draft\', \'in_review\') AND r."userId" = :userId))',
+          '(a."userId" = :userId OR r."publishStatus" = \'published\' OR (r."publishStatus" IN (\'draft\', \'in_review\') AND r."userId" = :userId))',
           { userId: currentUser.id },
         );
       }
