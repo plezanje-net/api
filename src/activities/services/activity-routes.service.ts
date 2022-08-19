@@ -175,9 +175,10 @@ export class ActivityRoutesService {
     // if a vote on star rating (route beauty) is passed add a new star rating vote or update existing one
     if (routeIn.votedStarRating || routeIn.votedStarRating === 0) {
       let starRatingVote = await queryRunner.manager.findOne(StarRatingVote, {
-        user,
-        route,
+        userId: user.id,
+        routeId: route.id,
       });
+
       if (!starRatingVote) {
         starRatingVote = new StarRatingVote();
         starRatingVote.route = Promise.resolve(route);
@@ -188,17 +189,7 @@ export class ActivityRoutesService {
       await queryRunner.manager.save(starRatingVote);
 
       // Recalculate the average star rating for the route and count the number of star ratings for the route and save it to the route table
-      ({
-        avg: route.starRating,
-        count: route.nrStarRatingVotes,
-      } = await queryRunner.manager
-        .createQueryBuilder(StarRatingVote, 'srv')
-        .select('avg(srv.stars)')
-        .addSelect('count(srv.stars)')
-        .where('srv."routeId" = :routeId', { routeId: route.id })
-        .getRawOne());
-
-      await queryRunner.manager.save(route);
+      await this.recalculateStarRating(route, queryRunner);
     }
 
     // Deprecated: unnecessary if statement -> activity should not be null anymore ?? // TODO: make final decision on this!
@@ -795,6 +786,68 @@ export class ActivityRoutesService {
   }
 
   async delete(activityRoute: ActivityRoute): Promise<boolean> {
-    return this.activityRoutesRepository.remove(activityRoute).then(() => true);
+    const queryRunner = this.connection.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    try {
+      await queryRunner.manager.remove(ActivityRoute, activityRoute);
+
+      // If this was the last ascent of this route for this user, we should also delete the possible starRating vote and recalculate starRating for the route
+      const nrAscentsLeft = await queryRunner.manager
+        .createQueryBuilder(ActivityRoute, 'ar')
+        .select('count(*)')
+        .where('ar."routeId" = :routeId', { routeId: activityRoute.routeId })
+        .andWhere('ar."userId" = :userId', { userId: activityRoute.userId })
+        .getRawOne();
+
+      if (nrAscentsLeft.count == 0) {
+        const starRatingVote = await queryRunner.manager.findOne(
+          StarRatingVote,
+          {
+            userId: activityRoute.userId,
+            routeId: activityRoute.routeId,
+          },
+        );
+
+        // If the user even has cast a star ratig vote for this route
+        if (starRatingVote) {
+          await queryRunner.manager.remove(StarRatingVote, starRatingVote);
+
+          const route = await queryRunner.manager.findOne(Route, {
+            id: activityRoute.routeId,
+          });
+
+          await this.recalculateStarRating(route, queryRunner);
+        }
+      }
+
+      await queryRunner.commitTransaction();
+      return true;
+    } catch (exception) {
+      await queryRunner.rollbackTransaction();
+      throw exception;
+    } finally {
+      await queryRunner.release();
+    }
+  }
+
+  /**
+   *
+   * Recalculate the average star rating for the route and count the number of star ratings for the route and save it to the route table
+   *
+   */
+  private async recalculateStarRating(route: Route, queryRunner: QueryRunner) {
+    ({
+      avg: route.starRating,
+      count: route.nrStarRatingVotes,
+    } = await queryRunner.manager
+      .createQueryBuilder(StarRatingVote, 'srv')
+      .select('avg(srv.stars)')
+      .addSelect('count(srv.stars)')
+      .where('srv."routeId" = :routeId', { routeId: route.id })
+      .getRawOne());
+
+    await queryRunner.manager.save(route);
   }
 }
