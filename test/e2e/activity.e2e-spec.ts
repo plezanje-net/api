@@ -8,19 +8,13 @@ import {
 } from '@nestjs/platform-fastify';
 import { MailService } from '../../src/notification/services/mail.service';
 import { initializeDbConn, prepareEnvironment, seedDatabase } from './helpers';
-import { UsersService } from '../../src/users/services/users.service';
 import { UsersModule } from '../../src/users/users.module';
 import { CragsModule } from '../../src/crags/crags.module';
-import { CragsService } from '../../src/crags/services/crags.service';
-import { CountriesService } from '../../src/crags/services/countries.service';
-import { SectorsService } from '../../src/crags/services/sectors.service';
-import { RoutesService } from '../../src/crags/services/routes.service';
 import { AscentType } from '../../src/activities/entities/activity-route.entity';
 import {
   Activity,
   ActivityType,
 } from '../../src/activities/entities/activity.entity';
-import { ActivitiesService } from '../../src/activities/services/activities.service';
 
 describe('Activity', () => {
   let app: NestFastifyApplication;
@@ -588,10 +582,10 @@ describe('Activity', () => {
     );
   });
 
-  it('should fail to get activities in a crag that is in status in_review and logged in with a user that is not an editor', async () => {
+  it('should fail to get activities in a crag that is in status in_review and logged in with a user that is not an editor nor the owner of the crag', async () => {
     const response = await request(app.getHttpServer())
       .post('/graphql')
-      .set('Authorization', `Bearer ${mockData.users.basicUser1.authToken}`)
+      .set('Authorization', `Bearer ${mockData.users.basicUser2.authToken}`)
       .send({
         query: `
           query {
