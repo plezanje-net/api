@@ -131,6 +131,7 @@ export class SearchService extends ContributablesService {
     );
 
     builder.andWhere('co.iceFallId IS NULL');
+    builder.andWhere('co.peakId IS NULL');
 
     if (!showHidden) {
       builder.andWhere(
@@ -169,12 +170,19 @@ export class SearchService extends ContributablesService {
     searchingInHtml = false,
   ): void {
     searchString = searchString.trim().replace(/\s+/g, ' '); // remove multiple spaces
+    searchString = searchString.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&'); // escape all regex special characters
 
     if (searchingInHtml) {
-      // replace csz in search terms with character sets so that all accents are matched
+      // replace ascenter characters with full variant character sets so that all accents are matched
       searchString = searchString.replace(/[cčć]/gi, '[cčć]');
       searchString = searchString.replace(/[sš]/gi, '[sš]');
       searchString = searchString.replace(/[zž]/gi, '[zž]');
+      searchString = searchString.replace(/[aàáâäæãåā]/gi, '[aàáâäæãåā]');
+      searchString = searchString.replace(/[eèéêëēėę]/gi, '[eèéêëēėę]');
+      searchString = searchString.replace(/[iîïíīįì]/gi, '[iîïíīįì]');
+      searchString = searchString.replace(/[oôöòóœøōõ]/gi, '[oôöòóœøōõ]');
+      searchString = searchString.replace(/[uûüùúū]/gi, '[uûüùúū]');
+      searchString = searchString.replace(/[dđ]/gi, '[dđ]');
     }
 
     const searchTerms = searchString.split(' ');
@@ -202,12 +210,19 @@ export class SearchService extends ContributablesService {
               {
                 [`search_start_${index}`]: `${searchTerm}%`,
               },
-            ).orWhere(
-              `unaccent(lower(${searchFieldName})) like unaccent(lower(:search_mid_${index}))`,
-              {
-                [`search_mid_${index}`]: `% ${searchTerm}%`,
-              },
-            );
+            )
+              .orWhere(
+                `unaccent(lower(${searchFieldName})) like unaccent(lower(:search_mid_${index}))`,
+                {
+                  [`search_mid_${index}`]: `% ${searchTerm}%`,
+                },
+              )
+              .orWhere(
+                `unaccent(lower(${searchFieldName})) like unaccent(lower(:search_after_parenthesis_${index}))`,
+                {
+                  [`search_after_parenthesis_${index}`]: `% (${searchTerm}%`,
+                },
+              );
           }),
         );
       });
