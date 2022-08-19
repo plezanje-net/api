@@ -186,6 +186,19 @@ export class ActivityRoutesService {
       starRatingVote.stars = routeIn.votedStarRating;
 
       await queryRunner.manager.save(starRatingVote);
+
+      // Recalculate the average star rating for the route and count the number of star ratings for the route and save it to the route table
+      ({
+        avg: route.starRating,
+        count: route.nrStarRatingVotes,
+      } = await queryRunner.manager
+        .createQueryBuilder(StarRatingVote, 'srv')
+        .select('avg(srv.stars)')
+        .addSelect('count(srv.stars)')
+        .where('srv."routeId" = :routeId', { routeId: route.id })
+        .getRawOne());
+
+      await queryRunner.manager.save(route);
     }
 
     // Deprecated: unnecessary if statement -> activity should not be null anymore ?? // TODO: make final decision on this!

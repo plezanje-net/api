@@ -207,4 +207,8 @@ export class Route extends BaseEntity {
 
   @Field()
   nrClimbers: number;
+
+  @Column({ type: 'int', nullable: true, default: 0 })
+  @Field({ nullable: true, defaultValue: 0 })
+  nrStarRatingVotes?: number;
 }
