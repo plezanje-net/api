@@ -11,8 +11,8 @@ export class StarRatingVotesResolver {
   constructor(private starRatingVotesService: StarRatingVotesService) {}
 
   @UseGuards(UserAuthGuard)
-  @Query(returns => [StarRatingVote], { name: 'myStarRatingVotes' })
-  getMyStarRatingVotes(
+  @Query(returns => [StarRatingVote], { name: 'starRatingVotes' })
+  getStarRatingVotes(
     @CurrentUser() currentUser: User,
     @Args('routeIds', { type: () => [String] })
     routeIds?: string[],
