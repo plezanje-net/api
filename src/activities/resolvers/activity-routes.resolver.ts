@@ -34,17 +34,17 @@ import { PaginatedActivityRoutes } from '../utils/paginated-activity-routes.clas
 import { GraphQLResolveInfo } from 'graphql';
 import { CacheScope } from 'apollo-server-types';
 import { CreateActivityRouteInput } from '../dtos/create-activity-route.input';
-import { ActivitiesService } from '../services/activities.service';
 import { UpdateActivityRouteInput } from '../dtos/update-activity-route.input';
 import { FindRoutesTouchesInput } from '../dtos/find-routes-touches.input';
 import { RoutesTouches } from '../utils/routes-touches.class';
 import { RouteTouched } from '../utils/route-touched.class';
+import { Connection } from 'typeorm';
 
 @Resolver(() => ActivityRoute)
 export class ActivityRoutesResolver {
   constructor(
     private activityRoutesService: ActivityRoutesService,
-    private activitiesService: ActivitiesService,
+    private connection: Connection,
   ) {}
 
   @Query(() => ActivityRoute)
@@ -168,7 +168,7 @@ export class ActivityRoutesResolver {
     return this.activityRoutesService.update(input);
   }
 
-  @Mutation(() => Boolean)
+  @Mutation(returns => Boolean)
   @UseInterceptors(AuditInterceptor)
   @UseGuards(UserAuthGuard)
   async deleteActivityRoute(
@@ -181,7 +181,20 @@ export class ActivityRoutesResolver {
       throw new ForbiddenException();
     }
 
-    return this.activityRoutesService.delete(activityRoute);
+    const queryRunner = this.connection.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    try {
+      await this.activityRoutesService.delete(activityRoute, queryRunner);
+      await queryRunner.commitTransaction();
+      return true;
+    } catch (exception) {
+      await queryRunner.rollbackTransaction();
+      throw exception;
+    } finally {
+      await queryRunner.release();
+    }
   }
 
   @UseGuards(UserAuthGuard)

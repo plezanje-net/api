@@ -237,6 +237,24 @@ export class ActivitiesService {
   }
 
   async delete(activity: Activity): Promise<boolean> {
-    return this.activitiesRepository.remove(activity).then(() => true);
+    const queryRunner = this.connection.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    try {
+      const activityRoutes = await activity.routes;
+      for (const activityRoute of activityRoutes) {
+        await this.activityRoutesService.delete(activityRoute, queryRunner);
+      }
+
+      await queryRunner.manager.remove(Activity, activity);
+      await queryRunner.commitTransaction();
+      return true;
+    } catch (exception) {
+      await queryRunner.rollbackTransaction();
+      throw exception;
+    } finally {
+      await queryRunner.release();
+    }
   }
 }

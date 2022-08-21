@@ -785,68 +785,87 @@ export class ActivityRoutesService {
     return this.activityRoutesRepository.save(activityRoute);
   }
 
-  async delete(activityRoute: ActivityRoute): Promise<boolean> {
-    const queryRunner = this.connection.createQueryRunner();
-    await queryRunner.connect();
-    await queryRunner.startTransaction();
+  async delete(
+    activityRoute: ActivityRoute,
+    queryRunner: QueryRunner,
+  ): Promise<boolean> {
+    await queryRunner.manager.remove(ActivityRoute, activityRoute);
 
-    try {
-      await queryRunner.manager.remove(ActivityRoute, activityRoute);
+    // // If this was the last ascent of this route for this user, we should also delete the possible starRating vote and recalculate starRating for the route
+    const nrAscentsLeft = await queryRunner.manager
+      .createQueryBuilder(ActivityRoute, 'ar')
+      .select('count(*)')
+      .where('ar."routeId" = :routeId', { routeId: activityRoute.routeId })
+      .andWhere('ar."userId" = :userId', { userId: activityRoute.userId })
+      .getRawOne();
 
-      // If this was the last ascent of this route for this user, we should also delete the possible starRating vote and recalculate starRating for the route
-      const nrAscentsLeft = await queryRunner.manager
-        .createQueryBuilder(ActivityRoute, 'ar')
-        .select('count(*)')
-        .where('ar."routeId" = :routeId', { routeId: activityRoute.routeId })
-        .andWhere('ar."userId" = :userId', { userId: activityRoute.userId })
-        .getRawOne();
+    if (nrAscentsLeft.count == 0) {
+      const starRatingVote = await queryRunner.manager.findOne(StarRatingVote, {
+        userId: activityRoute.userId,
+        routeId: activityRoute.routeId,
+      });
 
-      if (nrAscentsLeft.count == 0) {
-        const starRatingVote = await queryRunner.manager.findOne(
-          StarRatingVote,
-          {
-            userId: activityRoute.userId,
-            routeId: activityRoute.routeId,
-          },
-        );
+      // If the user even has cast a star ratig vote for this route
+      if (starRatingVote) {
+        await queryRunner.manager.remove(StarRatingVote, starRatingVote);
 
-        // If the user even has cast a star ratig vote for this route
-        if (starRatingVote) {
-          await queryRunner.manager.remove(StarRatingVote, starRatingVote);
-
-          const route = await queryRunner.manager.findOne(Route, {
-            id: activityRoute.routeId,
-          });
-
-          await this.recalculateStarRating(route, queryRunner);
-        }
+        const route = await queryRunner.manager.findOne(Route, {
+          id: activityRoute.routeId,
+        });
+        await this.recalculateStarRating(route, queryRunner);
       }
-
-      await queryRunner.commitTransaction();
-      return true;
-    } catch (exception) {
-      await queryRunner.rollbackTransaction();
-      throw exception;
-    } finally {
-      await queryRunner.release();
     }
+    return true;
   }
 
   /**
-   *
-   * Recalculate the average star rating for the route and count the number of star ratings for the route and save it to the route table
-   *
+   * Recalculate the star rating for a route based on conditions explained below
    */
   private async recalculateStarRating(route: Route, queryRunner: QueryRunner) {
-    ({
-      avg: route.starRating,
-      count: route.nrStarRatingVotes,
-    } = await queryRunner.manager
+    const minNumOfVotes = 5;
+    const majorityThreshold = 0.5;
+
+    /*
+     * There are 3 conditions for a route to actually get a star rating:
+     * 1. The route need to have some minimum total number of votes (3)
+     * 2. One of the star options (0, 1 or 2) needs to have more then some predefined majority within all the votes (50%)
+     * 3. The rounded average of the stars given needs to be the same as the majority star option. (this prevents from averaging out the star rating and instead shows any stars only when there is an actual consensus on the star rating)
+     */
+
+    const starRatingVoteCounts = await queryRunner.manager
       .createQueryBuilder(StarRatingVote, 'srv')
-      .select('avg(srv.stars)')
-      .addSelect('count(srv.stars)')
+      .select(['count(srv.stars) as count', 'srv.stars as stars'])
       .where('srv."routeId" = :routeId', { routeId: route.id })
-      .getRawOne());
+      .groupBy('stars')
+      .getRawMany();
+
+    let nrAllVotes = 0; // the number of all star rating votes for the route
+    let starsSum = 0; // sum of values of all stars (used to calculate the average)
+    let mostVotedStar = null; // kind of star that received the most votes. 0, 1 or 2
+    let nrVotesForMostVotedStar = 0; // how many votes do we have for the most voted star
+
+    for (const voteCount of starRatingVoteCounts) {
+      nrAllVotes += +voteCount['count'];
+      starsSum += +voteCount['stars'] * +voteCount['count'];
+
+      if (
+        mostVotedStar == null ||
+        +voteCount['count'] > nrVotesForMostVotedStar
+      ) {
+        nrVotesForMostVotedStar = +voteCount['count'];
+        mostVotedStar = +voteCount['stars'];
+      }
+    }
+
+    if (
+      nrAllVotes < minNumOfVotes ||
+      nrVotesForMostVotedStar / nrAllVotes < majorityThreshold ||
+      Math.round(starsSum / nrAllVotes) != mostVotedStar
+    ) {
+      route.starRating = null;
+    } else {
+      route.starRating = mostVotedStar;
+    }
 
     await queryRunner.manager.save(route);
   }
