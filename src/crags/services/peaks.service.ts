@@ -2,6 +2,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Peak } from '../entities/peak.entity';
 import { Crag } from '../entities/crag.entity';
+import { setBuilderCache } from '../../core/utils/entity-cache/entity-cache-helpers';
 
 export class PeaksService {
   constructor(
@@ -24,6 +25,8 @@ export class PeaksService {
     }
 
     qb.orderBy('peak.name');
+
+    setBuilderCache(qb);
 
     return qb.getMany();
   }

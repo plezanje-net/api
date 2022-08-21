@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, SelectQueryBuilder } from 'typeorm';
 import { PaginationMeta } from '../../core/utils/pagination-meta.class';
+import { setBuilderCache } from '../../core/utils/entity-cache/entity-cache-helpers';
 import { LatestDifficultyVotesInputServiceInput } from '../dtos/latest-difficulty-votes-service.input';
 import { Crag } from '../entities/crag.entity';
 import { DifficultyVote } from '../entities/difficulty-vote.entity';
@@ -130,6 +131,8 @@ export class DifficultyVotesService extends ContributablesService {
     if (params.routeId != null) {
       builder.andWhere('v."routeId" = :routeId', { routeId: params.routeId });
     }
+
+    setBuilderCache(builder);
 
     return builder;
   }

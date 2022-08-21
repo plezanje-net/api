@@ -17,6 +17,7 @@ import { FindSectorsServiceInput } from '../dtos/find-sectors-service.input';
 import { ContributablesService } from './contributables.service';
 import { Transaction } from '../../core/utils/transaction.class';
 import { PublishStatus } from '../entities/enums/publish-status.enum';
+import { setBuilderCache } from '../../core/utils/entity-cache/entity-cache-helpers';
 
 @Injectable()
 export class SectorsService extends ContributablesService {
@@ -177,6 +178,8 @@ export class SectorsService extends ContributablesService {
     }
 
     this.setPublishStatusParams(builder, 's', params);
+
+    setBuilderCache(builder);
 
     return builder;
   }

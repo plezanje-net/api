@@ -22,6 +22,7 @@ import {
 } from '../../activities/entities/activity-route.entity';
 import { Transaction } from '../../core/utils/transaction.class';
 import { Crag } from '../entities/crag.entity';
+import { setBuilderCache } from '../../core/utils/entity-cache/entity-cache-helpers';
 
 @Injectable()
 export class RoutesService extends ContributablesService {
@@ -86,6 +87,8 @@ export class RoutesService extends ContributablesService {
       .where('r.id IN (:...rIds)', { rIds: keys })
       .groupBy('r.id');
 
+    setBuilderCache(builder);
+
     return builder.getRawMany();
   }
 
@@ -98,6 +101,8 @@ export class RoutesService extends ContributablesService {
       .where('r.id IN (:...rIds)', { rIds: keys })
       .groupBy('r.id');
 
+    setBuilderCache(builder);
+
     return builder.getRawMany();
   }
 
@@ -109,6 +114,8 @@ export class RoutesService extends ContributablesService {
       .addSelect('COUNT(DISTINCT(ar."userId")) as "nrClimbers"')
       .where('r.id IN (:...rIds)', { rIds: keys })
       .groupBy('r.id');
+
+    setBuilderCache(builder);
 
     return builder.getRawMany();
   }
@@ -374,6 +381,8 @@ export class RoutesService extends ContributablesService {
     }
 
     this.setPublishStatusParams(builder, 's', params);
+
+    setBuilderCache(builder);
 
     return builder;
   }

@@ -13,6 +13,7 @@ import { ActivityRoutesService } from './activity-routes.service';
 import { UpdateActivityInput } from '../dtos/update-activity.input';
 import { ActivityRoute } from '../entities/activity-route.entity';
 import { Route } from '../../crags/entities/route.entity';
+import { setBuilderCache } from '../../core/utils/entity-cache/entity-cache-helpers';
 
 @Injectable()
 export class ActivitiesService {
@@ -332,6 +333,8 @@ export class ActivitiesService {
       );
     }
     // console.log(builder.getQueryAndParameters());
+
+    setBuilderCache(builder);
 
     return builder;
   }

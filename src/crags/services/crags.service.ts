@@ -14,6 +14,7 @@ import { ContributablesService } from './contributables.service';
 import { Transaction } from '../../core/utils/transaction.class';
 import { Sector } from '../entities/sector.entity';
 import { PublishStatus } from '../entities/enums/publish-status.enum';
+import { setBuilderCache } from '../../core/utils/entity-cache/entity-cache-helpers';
 
 @Injectable()
 export class CragsService extends ContributablesService {
@@ -230,6 +231,8 @@ export class CragsService extends ContributablesService {
       });
     }
 
+    setBuilderCache(builder);
+
     return builder;
   }
 
@@ -239,6 +242,8 @@ export class CragsService extends ContributablesService {
       .where('route."cragId" = :cragId', { cragId: crag.id });
 
     this.setPublishStatusParams(builder, 'route', { user });
+
+    setBuilderCache(builder);
 
     return builder.getCount();
   }
@@ -277,11 +282,13 @@ export class CragsService extends ContributablesService {
       };
     });
 
+    setBuilderCache(builder);
+
     return popularCrags;
   }
 
   async getAcitivityByMonth(crag: Crag): Promise<number[]> {
-    const results = await this.routesRepository
+    const builder = this.routesRepository
       .createQueryBuilder('r')
       .select([
         'EXTRACT(month FROM ar.date) -1 as month',
@@ -290,8 +297,11 @@ export class CragsService extends ContributablesService {
       .innerJoin('activity_route', 'ar', 'ar.routeId = r.id')
       .where('r.cragId = :cid', { cid: crag.id })
       .groupBy('EXTRACT(month FROM ar.date)')
-      .orderBy('EXTRACT(month FROM ar.date)', 'ASC')
-      .getRawMany();
+      .orderBy('EXTRACT(month FROM ar.date)', 'ASC');
+
+    setBuilderCache(builder);
+
+    const results = await builder.getRawMany();
 
     const response = new Array(12).fill(0);
 
