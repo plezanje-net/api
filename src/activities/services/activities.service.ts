@@ -11,6 +11,8 @@ import { PaginatedActivities } from '../utils/paginated-activities.class';
 import { CreateActivityRouteInput } from '../dtos/create-activity-route.input';
 import { ActivityRoutesService } from './activity-routes.service';
 import { UpdateActivityInput } from '../dtos/update-activity.input';
+import { ActivityRoute } from '../entities/activity-route.entity';
+import { Route } from '../../crags/entities/route.entity';
 
 @Injectable()
 export class ActivitiesService {
@@ -143,14 +145,17 @@ export class ActivitiesService {
     }
   }
 
-  async findOneById(id: string): Promise<Activity> {
-    return this.activitiesRepository.findOneOrFail(id);
+  async findOneById(id: string, currentUser: User = null): Promise<Activity> {
+    return this.buildQuery({}, currentUser)
+      .andWhereInIds([id])
+      .getOneOrFail();
   }
 
   async paginate(
     params: FindActivitiesInput = {},
+    currentUser: User = null,
   ): Promise<PaginatedActivities> {
-    const query = this.buildQuery(params);
+    const query = this.buildQuery(params, currentUser);
 
     const itemCount = await query.getCount();
 
@@ -174,14 +179,15 @@ export class ActivitiesService {
     return this.buildQuery(params).getMany();
   }
 
-  async findByIds(ids: string[]): Promise<Activity[]> {
-    return this.buildQuery()
+  async findByIds(ids: string[], currentUser: User): Promise<Activity[]> {
+    return this.buildQuery({}, currentUser)
       .whereInIds(ids)
       .getMany();
   }
 
   private buildQuery(
     params: FindActivitiesInput = {},
+    currentUser: User = null,
   ): SelectQueryBuilder<Activity> {
     const builder = this.activitiesRepository.createQueryBuilder('a');
 
@@ -205,10 +211,12 @@ export class ActivitiesService {
         : 'DESC',
     );
 
+    // TODO: ??? activity has no such field as grade
     if (params.orderBy != null && params.orderBy.field == 'grade') {
       builder.andWhere('a.grade IS NOT NULL');
     }
 
+    // TODO: should we rename this param to: forUserId?
     if (params.userId != null) {
       builder.andWhere('a."userId" = :userId', {
         userId: params.userId,
@@ -232,6 +240,98 @@ export class ActivitiesService {
     if (params.cragId != null) {
       builder.andWhere('a."cragId" = :cragId', { cragId: params.cragId });
     }
+
+    builder.leftJoin(Crag, 'c', 'c.id = a."cragId"');
+    // If no current user is passed in, that means we are serving a guest
+    if (!currentUser) {
+      // Right now, only crag activity might be public, so disallow all other types
+      builder.andWhere("a.type = 'crag'");
+
+      // Allow/disallow based on publish type of contained activity routes
+      //  --> Inner join activity routes to get only activities with at least one public activity route
+      builder.innerJoin(
+        ActivityRoute,
+        'ar',
+        'ar."activityId" = a.id AND (ar."publish" IN (:...publish))',
+        { publish: ['log', 'public'] },
+      );
+
+      // Allow/disallow based on publishStatus of contained activity routes
+      //  --> allow only activities with at least one published activity route
+      builder.innerJoin(
+        Route,
+        'r',
+        'r.id = ar."routeId" AND r."publishStatus" = \'published\'',
+      );
+
+      // Disallow activities in crags that are hidden
+      builder.andWhere('c."isHidden" = false');
+
+      // Allow/disallow based on publishStatus of activitiy's crag (might be redundant to the ar condition)
+      builder.andWhere("c.publishStatus = 'published'");
+    } else {
+      // User is logged in
+
+      // Allow/disallow based on publish type of contained activity routes
+      // --> allow only activities that belong to the current user or contain at least one activity route that is public (or log)
+      builder.leftJoin(ActivityRoute, 'ar', 'ar."activityId" = a.id');
+      builder.andWhere(
+        '(a."userId" = :userId OR ar."publish" IN (\'log\', \'public\'))',
+        {
+          userId: currentUser.id,
+        },
+      );
+
+      // TODO: should also allow showing club ascents
+
+      builder.leftJoin(Route, 'r', 'r.id = ar."routeId"');
+
+      // TODO: role admin should be renamed to editor and isAdmin condition to isEditor...
+      if (currentUser.isAdmin()) {
+        // Logged in user is an editor
+
+        // Allow/disallow based on publishStatus
+        // --> Allow only activities in crags that are mine and are drafts or are in_review or public (i am editor), or current user's activities other than crag
+        builder.andWhere(
+          '(a."userId" = :userId OR c."publishStatus" IN (\'in_review\', \'published\') OR (c."publishStatus" = \'draft\' AND c."userId" = :userId))',
+          {
+            userId: currentUser.id,
+          },
+        );
+
+        // Allow/disallow based on publishStatus of at least one route of the activity_route in the activity
+        builder.andWhere(
+          '(a."userId" = :userId OR r."publishStatus" IN (\'published\', \'in_review\') OR (r."publishStatus" = \'draft\' AND r."userId" = :userId))',
+          { userId: currentUser.id },
+        );
+      } else {
+        // Logged in user is not an editor
+
+        // Allow/disallow based on publishStatus of the crag
+        builder.andWhere(
+          '(a."userId" = :userId OR c."publishStatus" = \'published\' OR (c."publishStatus" IN (\'draft\', \'in_review\') AND c."userId" = :userId))',
+          {
+            userId: currentUser.id,
+          },
+        );
+
+        // Allow/disallow based on publishStatus of at least one route of the activity_route in the activity
+        builder.andWhere(
+          '(a."userId" = :userId OR r."publishStatus" = \'published\' OR (r."publishStatus" IN (\'draft\', \'in_review\') AND r."userId" = :userId))',
+          { userId: currentUser.id },
+        );
+      }
+    }
+
+    if (params.hasRoutesWithPublish) {
+      builder.innerJoin(
+        ActivityRoute,
+        'arp',
+        'arp."activityId" = a.id AND arp."publish" IN (:...publish)',
+        { publish: params.hasRoutesWithPublish },
+      );
+    }
+    // console.log(builder.getQueryAndParameters());
 
     return builder;
   }

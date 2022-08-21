@@ -422,47 +422,6 @@ export class ActivityRoutesService {
     return true;
   }
 
-  // Deprecated, use getTouchesForRoutes instead
-  async routeTouched(user: User, routeId: string, queryRunner: QueryRunner) {
-    const query = queryRunner.manager
-      .createQueryBuilder()
-      .select('tried')
-      .addSelect('ticked')
-      .addSelect('trticked')
-      .from(subQuery => {
-        return subQuery
-          .select('count(*) > 0', 'tried')
-          .from('activity_route', 'ar')
-          .where('ar.routeId = :routeId', { routeId: routeId })
-          .andWhere('ar.userId = :userId', { userId: user.id });
-      }, 'tried')
-      .addFrom(subQuery => {
-        return subQuery
-          .select('count(*) > 0', 'ticked')
-          .from('activity_route', 'ar')
-          .where('ar.routeId = :routeId', { routeId: routeId })
-          .andWhere('ar.userId = :userId', { userId: user.id })
-          .andWhere('ar.ascentType IN (:...aTypes)', {
-            aTypes: [...tickAscentTypes],
-          });
-      }, 'ticked')
-      .addFrom(subQuery => {
-        return subQuery
-          .select('count(*) > 0', 'trticked')
-          .from('activity_route', 'ar')
-          .where('ar.routeId = :routeId', { routeId: routeId })
-          .andWhere('ar.userId = :userId', { userId: user.id })
-          .andWhere('ar.ascentType IN (:...aTypes2)', {
-            aTypes2: [...trTickAscentTypes],
-          });
-      }, 'trticked')
-      .getRawMany();
-
-    const result = await query;
-
-    return result[0];
-  }
-
   /**
    * For an array of route ids check which of the routes has a user already tried, ticked or ticked on toprope before (or on) a given date
    * (Pass in a queryRunner instance if you are inside a transaction)
@@ -656,8 +615,9 @@ export class ActivityRoutesService {
 
   async paginate(
     params: FindActivityRoutesInput = {},
+    currentUser: User = null,
   ): Promise<PaginatedActivityRoutes> {
-    const query = this.buildQuery(params);
+    const query = this.buildQuery(params, currentUser);
 
     const itemCount = await query.getCount();
 
@@ -677,12 +637,16 @@ export class ActivityRoutesService {
     });
   }
 
-  async find(params: FindActivityRoutesInput = {}): Promise<ActivityRoute[]> {
-    return this.buildQuery(params).getMany();
+  async find(
+    params: FindActivityRoutesInput = {},
+    currentUser: User = null,
+  ): Promise<ActivityRoute[]> {
+    return this.buildQuery(params, currentUser).getMany();
   }
 
   private buildQuery(
     params: FindActivityRoutesInput = {},
+    currentUser: User = null,
   ): SelectQueryBuilder<ActivityRoute> {
     const builder = this.activityRoutesRepository.createQueryBuilder('ar');
 
@@ -692,6 +656,12 @@ export class ActivityRoutesService {
     builder.leftJoin('pitch', 'p', 'p.id = ar."pitchId"');
     builder.addSelect('p.difficulty');
     builder.addSelect('coalesce(p.difficulty, r.difficulty)', 'difficulty');
+
+    // TODO: this is inclomplete --> we should define scoring for all possible ascent types!
+    // TODO: how to DRY this and calclulateScore bellow?
+    builder.addSelect(
+      "(r.difficulty + (ar.ascentType='onsight')::int * 100 + (ar.ascentType='flash')::int * 50) as score",
+    );
 
     if (params.orderBy != null) {
       builder.orderBy(
@@ -716,6 +686,7 @@ export class ActivityRoutesService {
       });
     }
 
+    // TODO: should we rename this to forUserId?
     if (params.userId != null) {
       builder.andWhere('ar."userId" = :userId', {
         userId: params.userId,
@@ -752,6 +723,41 @@ export class ActivityRoutesService {
       });
     }
 
+    // If no current user is passed in, that means we are serving a guest
+    if (!currentUser) {
+      // Allow showing only public ascents to guests
+      builder.andWhere('ar."publish" IN (:...publish)', {
+        publish: ['log', 'public'],
+      });
+
+      // Allow showing only published routes (no drafts or in_reviews)
+      builder.andWhere('r."publishStatus" = \'published\'');
+    } else {
+      // Allow showing users own ascents and all public ascents
+      builder.andWhere(
+        '(ar."userId" = :userId OR ar."publish" IN (:...publish))',
+        {
+          userId: currentUser.id,
+          publish: ['log', 'public'],
+        },
+      );
+      // TODO: should also allow showing club ascents
+
+      if (currentUser.isAdmin()) {
+        // Allow showing only published and in_review routes and also own drafts
+        builder.andWhere(
+          '(r."publishStatus" IN (\'published\', \'in_review\') OR (r."publishStatus" = \'draft\' AND ar."userId" = :userId))',
+          { userId: currentUser.id },
+        );
+      } else {
+        // Allow showing only published routes and also own drafts and in_reviews
+        builder.andWhere(
+          '(r."publishStatus" = \'published\' OR (r."publishStatus" IN (\'draft\', \'in_review\') AND ar."userId" = :userId))',
+          { userId: currentUser.id },
+        );
+      }
+    }
+
     return builder;
   }
 
@@ -762,6 +768,10 @@ export class ActivityRoutesService {
 
     if (field == 'grade') {
       return 'difficulty';
+    }
+
+    if (field === 'score') {
+      return 'score';
     }
 
     return `ar.${field}`;
@@ -783,5 +793,15 @@ export class ActivityRoutesService {
 
   async delete(activityRoute: ActivityRoute): Promise<boolean> {
     return this.activityRoutesRepository.remove(activityRoute).then(() => true);
+  }
+
+  // TODO: this is inclomplete --> we chould define scoring for all possible ascent types!
+  async calculateScore(activityRoute: ActivityRoute): Promise<number> {
+    const route = await activityRoute.route;
+    let score = route.difficulty;
+    score += activityRoute.ascentType === 'onsight' ? 100 : 0;
+    score += activityRoute.ascentType === 'flash' ? 50 : 0;
+
+    return score;
   }
 }

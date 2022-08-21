@@ -143,4 +143,8 @@ export class ActivityRoute extends BaseEntity {
   user: Promise<User>;
   @Column()
   userId: string;
+
+  // Score is calculated from difficulty and ascentType. The idea is that os > f > rp
+  @Field({ nullable: true })
+  score: number;
 }
