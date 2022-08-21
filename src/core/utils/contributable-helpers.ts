@@ -7,6 +7,7 @@ import {
 } from 'typeorm';
 import { Contribution } from '../../audit/utils/contribution.class';
 import { Transaction } from '../../core/utils/transaction.class';
+import { Crag } from '../../crags/entities/crag.entity';
 import { PublishStatus } from '../../crags/entities/enums/publish-status.enum';
 import { Route } from '../../crags/entities/route.entity';
 import { Sector } from '../../crags/entities/sector.entity';
@@ -112,9 +113,9 @@ async function getUserContributions(
   queryRunner: QueryRunner,
 ): Promise<Contribution[]> {
   const queries = [
-    [this.cragsRepository, 'crag'],
-    [this.sectorsRepository, 'sector'],
-    [this.routesRepository, 'route'],
+    [queryRunner.connection.getRepository(Crag), 'crag'],
+    [queryRunner.connection.getRepository(Sector), 'sector'],
+    [queryRunner.connection.getRepository(Route), 'route'],
   ];
 
   const union = queries
