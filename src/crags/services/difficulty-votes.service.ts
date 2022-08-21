@@ -65,6 +65,7 @@ export class DifficultyVotesService extends ContributablesService {
     query.orderBy('v.created', 'DESC');
     query.andWhere('v.userId IS NOT NULL');
 
+    setBuilderCache(query, 'getCount');
     const itemCount = await query.getCount();
 
     const pagination = new PaginationMeta(
@@ -77,6 +78,7 @@ export class DifficultyVotesService extends ContributablesService {
       .skip(pagination.pageSize * (pagination.pageNumber - 1))
       .take(pagination.pageSize);
 
+    setBuilderCache(query);
     return Promise.resolve({
       items: await query.getMany(),
       meta: pagination,
@@ -131,8 +133,6 @@ export class DifficultyVotesService extends ContributablesService {
     if (params.routeId != null) {
       builder.andWhere('v."routeId" = :routeId', { routeId: params.routeId });
     }
-
-    setBuilderCache(builder);
 
     return builder;
   }

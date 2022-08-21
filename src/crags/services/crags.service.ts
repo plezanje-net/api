@@ -243,7 +243,7 @@ export class CragsService extends ContributablesService {
 
     this.setPublishStatusParams(builder, 'route', { user });
 
-    setBuilderCache(builder);
+    setBuilderCache(builder, 'getCount');
 
     return builder.getCount();
   }

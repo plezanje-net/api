@@ -158,6 +158,7 @@ export class ActivitiesService {
   ): Promise<PaginatedActivities> {
     const query = this.buildQuery(params, currentUser);
 
+    setBuilderCache(query, 'getCount');
     const itemCount = await query.getCount();
 
     const pagination = new PaginationMeta(
@@ -169,6 +170,8 @@ export class ActivitiesService {
     query
       .skip(pagination.pageSize * (pagination.pageNumber - 1))
       .take(pagination.pageSize);
+
+    setBuilderCache(query);
 
     return Promise.resolve({
       items: await query.getMany(),
@@ -333,8 +336,6 @@ export class ActivitiesService {
       );
     }
     // console.log(builder.getQueryAndParameters());
-
-    setBuilderCache(builder);
 
     return builder;
   }
