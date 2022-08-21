@@ -273,6 +273,8 @@ export class CragsService extends ContributablesService {
       builder.limit(top);
     }
 
+    setBuilderCache(builder);
+
     const rawAndEntities = await builder.getRawAndEntities();
 
     const popularCrags = rawAndEntities.raw.map((element, index) => {
@@ -281,8 +283,6 @@ export class CragsService extends ContributablesService {
         nrVisits: element.nrvisits,
       };
     });
-
-    setBuilderCache(builder);
 
     return popularCrags;
   }
