@@ -13,6 +13,7 @@ import { ActivityRoutesService } from './activity-routes.service';
 import { UpdateActivityInput } from '../dtos/update-activity.input';
 import { ActivityRoute } from '../entities/activity-route.entity';
 import { Route } from '../../crags/entities/route.entity';
+import { getPublishStatusParams } from '../../core/utils/contributable-helpers';
 
 @Injectable()
 export class ActivitiesService {
@@ -272,8 +273,25 @@ export class ActivitiesService {
     } else {
       // User is logged in
 
+      const {
+        conditions: cragPublishConditions,
+        params: cragPublishParams,
+      } = getPublishStatusParams('c', currentUser);
+
+      const {
+        conditions: routePublishConditions,
+        params: routePublishParams,
+      } = getPublishStatusParams('r', currentUser);
+
+      // Apply crag publish rules unless activity user is the current user
+      builder.andWhere(
+        `(a."userId" = :userId OR (${cragPublishConditions}))`,
+        cragPublishParams,
+      );
+
       // Allow/disallow based on publish type of contained activity routes
       // --> allow only activities that belong to the current user or contain at least one activity route that is public (or log)
+      // builder.leftJoin(ActivityRoute, 'ar', 'ar."activityId" = a.id');
       builder.leftJoin(ActivityRoute, 'ar', 'ar."activityId" = a.id');
       builder.andWhere(
         '(a."userId" = :userId OR ar."publish" IN (\'log\', \'public\'))',
@@ -282,45 +300,14 @@ export class ActivitiesService {
         },
       );
 
+      // Apply route publish rules unless activity user is the current user
+      builder.leftJoin(Route, 'r', `r.id = ar."routeId"`, routePublishParams);
+      builder.andWhere(
+        `(a."userId" = :userId OR (${routePublishConditions}))`,
+        routePublishParams,
+      );
+
       // TODO: should also allow showing club ascents
-
-      builder.leftJoin(Route, 'r', 'r.id = ar."routeId"');
-
-      // TODO: role admin should be renamed to editor and isAdmin condition to isEditor...
-      if (currentUser.isAdmin()) {
-        // Logged in user is an editor
-
-        // Allow/disallow based on publishStatus
-        // --> Allow only activities in crags that are mine and are drafts or are in_review or public (i am editor), or current user's activities other than crag
-        builder.andWhere(
-          '(a."userId" = :userId OR c."publishStatus" IN (\'in_review\', \'published\') OR (c."publishStatus" = \'draft\' AND c."userId" = :userId))',
-          {
-            userId: currentUser.id,
-          },
-        );
-
-        // Allow/disallow based on publishStatus of at least one route of the activity_route in the activity
-        builder.andWhere(
-          '(a."userId" = :userId OR r."publishStatus" IN (\'published\', \'in_review\') OR (r."publishStatus" = \'draft\' AND r."userId" = :userId))',
-          { userId: currentUser.id },
-        );
-      } else {
-        // Logged in user is not an editor
-
-        // Allow/disallow based on publishStatus of the crag
-        builder.andWhere(
-          '(a."userId" = :userId OR c."publishStatus" = \'published\' OR (c."publishStatus" IN (\'draft\', \'in_review\') AND c."userId" = :userId))',
-          {
-            userId: currentUser.id,
-          },
-        );
-
-        // Allow/disallow based on publishStatus of at least one route of the activity_route in the activity
-        builder.andWhere(
-          '(a."userId" = :userId OR r."publishStatus" = \'published\' OR (r."publishStatus" IN (\'draft\', \'in_review\') AND r."userId" = :userId))',
-          { userId: currentUser.id },
-        );
-      }
     }
 
     if (params.hasRoutesWithPublish) {
