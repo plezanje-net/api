@@ -158,17 +158,23 @@ export class ActivitiesService {
   ): Promise<PaginatedActivities> {
     const query = this.buildQuery(params, currentUser);
 
-    const itemCount = await query.getCount();
+    const itemCount = await query
+      .clone()
+      .select('COUNT(DISTINCT(a.id))', 'count')
+      .groupBy(null)
+      .orderBy(null)
+      .getRawOne();
 
     const pagination = new PaginationMeta(
-      itemCount,
+      itemCount.count,
       params.pageNumber,
       params.pageSize,
     );
 
     query
-      .skip(pagination.pageSize * (pagination.pageNumber - 1))
-      .take(pagination.pageSize);
+      .groupBy('a.id')
+      .offset(pagination.pageSize * (pagination.pageNumber - 1))
+      .limit(pagination.pageSize);
 
     return Promise.resolve({
       items: await query.getMany(),
@@ -311,12 +317,9 @@ export class ActivitiesService {
     }
 
     if (params.hasRoutesWithPublish) {
-      builder.innerJoin(
-        ActivityRoute,
-        'arp',
-        'arp."activityId" = a.id AND arp."publish" IN (:...publish)',
-        { publish: params.hasRoutesWithPublish },
-      );
+      builder.where('ar."publish" IN (:...publish)', {
+        publish: params.hasRoutesWithPublish,
+      });
     }
     // console.log(builder.getQueryAndParameters());
 

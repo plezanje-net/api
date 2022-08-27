@@ -53,17 +53,22 @@ export class DifficultyVotesService {
     query.orderBy('v.created', 'DESC');
     query.andWhere('v.userId IS NOT NULL');
 
-    const itemCount = await query.getCount();
+    const itemCount = await query
+      .clone()
+      .select('COUNT(DISTINCT(v.id))', 'count')
+      .orderBy(null)
+      .getRawOne();
 
     const pagination = new PaginationMeta(
-      itemCount,
+      itemCount.count,
       params.pageNumber,
       params.pageSize,
     );
 
     query
-      .skip(pagination.pageSize * (pagination.pageNumber - 1))
-      .take(pagination.pageSize);
+      .groupBy('v.id')
+      .offset(pagination.pageSize * (pagination.pageNumber - 1))
+      .limit(pagination.pageSize);
 
     return Promise.resolve({
       items: await query.getMany(),
