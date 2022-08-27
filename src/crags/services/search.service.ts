@@ -8,10 +8,9 @@ import { Comment } from '../entities/comment.entity';
 import { User } from '../../users/entities/user.entity';
 import { SearchResults } from '../utils/search-results.class';
 import { FieldNode, GraphQLResolveInfo } from 'graphql';
-import { ContributablesService } from './contributables.service';
 
 @Injectable()
-export class SearchService extends ContributablesService {
+export class SearchService {
   constructor(
     @InjectRepository(Route)
     protected routesRepository: Repository<Route>,
@@ -23,9 +22,7 @@ export class SearchService extends ContributablesService {
     private commentsRepository: Repository<Comment>,
     @InjectRepository(User)
     private usersRepository: Repository<User>,
-  ) {
-    super(cragsRepository, sectorsRepository, routesRepository);
-  }
+  ) {}
 
   async find(
     searchString: string,

@@ -10,27 +10,28 @@ import { FindCragsServiceInput } from '../dtos/find-crags-service.input';
 import { PopularCrag } from '../utils/popular-crag.class';
 import slugify from 'slugify';
 import { User } from '../../users/entities/user.entity';
-import { ContributablesService } from './contributables.service';
 import { Transaction } from '../../core/utils/transaction.class';
 import { Sector } from '../entities/sector.entity';
 import { PublishStatus } from '../entities/enums/publish-status.enum';
+import {
+  cascadePublishStatusToRoutes,
+  getPublishStatusParams,
+  setPublishStatusParams,
+  updateUserContributionsFlag,
+} from '../../core/utils/contributable-helpers';
 import { setBuilderCache } from '../../core/utils/entity-cache/entity-cache-helpers';
 
 @Injectable()
-export class CragsService extends ContributablesService {
+export class CragsService {
   constructor(
     @InjectRepository(Route)
     protected routesRepository: Repository<Route>,
-    @InjectRepository(Sector)
-    protected sectorsRepository: Repository<Sector>,
     @InjectRepository(Crag)
     protected cragsRepository: Repository<Crag>,
     @InjectRepository(Country)
     private countryRepository: Repository<Country>,
     private connection: Connection,
-  ) {
-    super(cragsRepository, sectorsRepository, routesRepository);
-  }
+  ) {}
 
   async findByIds(ids: string[]): Promise<Crag[]> {
     return this.cragsRepository.findByIds(ids);
@@ -109,11 +110,7 @@ export class CragsService extends ContributablesService {
           transaction,
         );
       }
-      await this.updateUserContributionsFlag(
-        crag.publishStatus,
-        user,
-        transaction,
-      );
+      await updateUserContributionsFlag(crag.publishStatus, user, transaction);
     } catch (e) {
       await transaction.rollback();
       throw e;
@@ -137,7 +134,7 @@ export class CragsService extends ContributablesService {
     for (const sector of sectors) {
       sector.publishStatus = crag.publishStatus;
       await transaction.save(sector);
-      await this.cascadePublishStatusToRoutes(sector, oldStatus, transaction);
+      await cascadePublishStatusToRoutes(sector, oldStatus, transaction);
     }
   }
 
@@ -150,7 +147,7 @@ export class CragsService extends ContributablesService {
     try {
       const user = await crag.user;
       await transaction.delete(crag);
-      await this.updateUserContributionsFlag(null, user, transaction);
+      await updateUserContributionsFlag(null, user, transaction);
     } catch (e) {
       await transaction.rollback();
       throw e;
@@ -214,9 +211,9 @@ export class CragsService extends ContributablesService {
       builder.andWhere('c.isHidden = false');
     }
 
-    this.setPublishStatusParams(builder, 'c', params);
+    setPublishStatusParams(builder, 'c', params);
 
-    const { conditions, params: joinParams } = this.getPublishStatusParams(
+    const { conditions, params: joinParams } = getPublishStatusParams(
       'route',
       params.user,
     );
@@ -241,7 +238,7 @@ export class CragsService extends ContributablesService {
       .createQueryBuilder('route')
       .where('route."cragId" = :cragId', { cragId: crag.id });
 
-    this.setPublishStatusParams(builder, 'route', { user });
+    setPublishStatusParams(builder, 'route', { user });
 
     setBuilderCache(builder, 'getCount');
 
