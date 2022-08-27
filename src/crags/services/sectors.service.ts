@@ -21,6 +21,7 @@ import {
   setPublishStatusParams,
   updateUserContributionsFlag,
 } from '../../core/utils/contributable-helpers';
+import { setBuilderCache } from '../../core/utils/entity-cache/entity-cache-helpers';
 
 @Injectable()
 export class SectorsService {
@@ -177,6 +178,8 @@ export class SectorsService {
     }
 
     setPublishStatusParams(builder, 's', params);
+
+    setBuilderCache(builder);
 
     return builder;
   }

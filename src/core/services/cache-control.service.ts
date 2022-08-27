@@ -10,7 +10,7 @@ export class CacheControlService {
   }
 
   flush() {
-    this.cache.flush();
+    // this.cache.flush();
   }
 
   close() {

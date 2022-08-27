@@ -25,6 +25,7 @@ import {
   setPublishStatusParams,
   updateUserContributionsFlag,
 } from '../../core/utils/contributable-helpers';
+import { setBuilderCache } from '../../core/utils/entity-cache/entity-cache-helpers';
 
 @Injectable()
 export class RoutesService {
@@ -85,6 +86,8 @@ export class RoutesService {
       .where('r.id IN (:...rIds)', { rIds: keys })
       .groupBy('r.id');
 
+    setBuilderCache(builder);
+
     return builder.getRawMany();
   }
 
@@ -97,6 +100,8 @@ export class RoutesService {
       .where('r.id IN (:...rIds)', { rIds: keys })
       .groupBy('r.id');
 
+    setBuilderCache(builder);
+
     return builder.getRawMany();
   }
 
@@ -108,6 +113,8 @@ export class RoutesService {
       .addSelect('COUNT(DISTINCT(ar."userId")) as "nrClimbers"')
       .where('r.id IN (:...rIds)', { rIds: keys })
       .groupBy('r.id');
+
+    setBuilderCache(builder);
 
     return builder.getRawMany();
   }
@@ -365,6 +372,8 @@ export class RoutesService {
     }
 
     setPublishStatusParams(builder, 's', params);
+
+    setBuilderCache(builder);
 
     return builder;
   }

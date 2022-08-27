@@ -19,6 +19,7 @@ import {
   setPublishStatusParams,
   updateUserContributionsFlag,
 } from '../../core/utils/contributable-helpers';
+import { setBuilderCache } from '../../core/utils/entity-cache/entity-cache-helpers';
 
 @Injectable()
 export class CragsService {
@@ -227,6 +228,8 @@ export class CragsService {
       });
     }
 
+    setBuilderCache(builder);
+
     return builder;
   }
 
@@ -236,6 +239,8 @@ export class CragsService {
       .where('route."cragId" = :cragId', { cragId: crag.id });
 
     setPublishStatusParams(builder, 'route', { user });
+
+    setBuilderCache(builder, 'getCount');
 
     return builder.getCount();
   }
@@ -265,6 +270,8 @@ export class CragsService {
       builder.limit(top);
     }
 
+    setBuilderCache(builder);
+
     const rawAndEntities = await builder.getRawAndEntities();
 
     const popularCrags = rawAndEntities.raw.map((element, index) => {
@@ -278,7 +285,7 @@ export class CragsService {
   }
 
   async getAcitivityByMonth(crag: Crag): Promise<number[]> {
-    const results = await this.routesRepository
+    const builder = this.routesRepository
       .createQueryBuilder('r')
       .select([
         'EXTRACT(month FROM ar.date) -1 as month',
@@ -287,8 +294,11 @@ export class CragsService {
       .innerJoin('activity_route', 'ar', 'ar.routeId = r.id')
       .where('r.cragId = :cid', { cid: crag.id })
       .groupBy('EXTRACT(month FROM ar.date)')
-      .orderBy('EXTRACT(month FROM ar.date)', 'ASC')
-      .getRawMany();
+      .orderBy('EXTRACT(month FROM ar.date)', 'ASC');
+
+    setBuilderCache(builder);
+
+    const results = await builder.getRawMany();
 
     const response = new Array(12).fill(0);
 

@@ -13,6 +13,7 @@ import { ActivityRoutesService } from './activity-routes.service';
 import { UpdateActivityInput } from '../dtos/update-activity.input';
 import { ActivityRoute } from '../entities/activity-route.entity';
 import { Route } from '../../crags/entities/route.entity';
+import { setBuilderCache } from '../../core/utils/entity-cache/entity-cache-helpers';
 import { getPublishStatusParams } from '../../core/utils/contributable-helpers';
 
 @Injectable()
@@ -158,6 +159,7 @@ export class ActivitiesService {
   ): Promise<PaginatedActivities> {
     const query = this.buildQuery(params, currentUser);
 
+    setBuilderCache(query, 'getCount');
     const itemCount = await query
       .clone()
       .select('COUNT(DISTINCT(a.id))', 'count')
@@ -175,6 +177,8 @@ export class ActivitiesService {
       .groupBy('a.id')
       .offset(pagination.pageSize * (pagination.pageNumber - 1))
       .limit(pagination.pageSize);
+
+    setBuilderCache(query);
 
     return Promise.resolve({
       items: await query.getMany(),

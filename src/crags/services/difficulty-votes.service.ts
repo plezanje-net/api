@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, SelectQueryBuilder } from 'typeorm';
 import { getPublishStatusParams } from '../../core/utils/contributable-helpers';
 import { PaginationMeta } from '../../core/utils/pagination-meta.class';
+import { setBuilderCache } from '../../core/utils/entity-cache/entity-cache-helpers';
 import { LatestDifficultyVotesInputServiceInput } from '../dtos/latest-difficulty-votes-service.input';
 import { DifficultyVote } from '../entities/difficulty-vote.entity';
 import { PaginatedDifficultyVotes } from '../utils/paginated-difficulty-votes';
@@ -53,6 +54,7 @@ export class DifficultyVotesService {
     query.orderBy('v.created', 'DESC');
     query.andWhere('v.userId IS NOT NULL');
 
+    setBuilderCache(query, 'getCount');
     const itemCount = await query
       .clone()
       .select('COUNT(DISTINCT(v.id))', 'count')
@@ -70,6 +72,7 @@ export class DifficultyVotesService {
       .offset(pagination.pageSize * (pagination.pageNumber - 1))
       .limit(pagination.pageSize);
 
+    setBuilderCache(query);
     return Promise.resolve({
       items: await query.getMany(),
       meta: pagination,

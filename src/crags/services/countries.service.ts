@@ -5,6 +5,7 @@ import { Repository } from 'typeorm';
 import { CreateCountryInput } from '../dtos/create-country.input';
 import { UpdateCountryInput } from '../dtos/update-country.input';
 import { FindCountriesInput } from '../dtos/find-countries.input';
+import { setBuilderCache } from '../../core/utils/entity-cache/entity-cache-helpers';
 
 export interface CountryFindParams {
   orderBy: any;
@@ -55,6 +56,8 @@ export class CountriesService {
     } else if (params.hasPeaks != null && !params.hasPeaks) {
       qb.leftJoinAndSelect('country.peaks', 'peak').andWhere('peak.id is null');
     }
+
+    setBuilderCache(qb);
 
     return qb.getMany();
   }
