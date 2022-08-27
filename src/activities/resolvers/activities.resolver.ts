@@ -68,7 +68,7 @@ export class ActivitiesResolver {
   @AllowAny()
   @UseGuards(UserAuthGuard)
   @Query(() => PaginatedActivities)
-  activities(
+  async activities(
     @CurrentUser() currentUser: User,
     @Args('input', { nullable: true }) input: FindActivitiesInput = {},
   ): Promise<PaginatedActivities> {

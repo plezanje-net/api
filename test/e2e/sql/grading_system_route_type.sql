@@ -1,0 +1,16 @@
+insert into public.grading_system_route_type ("routeTypeId", "gradingSystemId")
+values  ('alpine', 'alpine-ice'),
+        ('boulder', 'hueco'),
+        ('sport', 'yds'),
+        ('boulder', 'font'),
+        ('alpine', 'angle'),
+        ('alpine', 'water-ice'),
+        ('sport', 'uiaa'),
+        ('sport', 'french'),
+        ('alpine', 'aid'),
+        ('alpine', 'mix'),
+        ('multipitch', 'uiaa'),
+        ('multipitch', 'french'),
+        ('multipitch', 'yds'),
+        ('alpine', 'uiaa'),
+        ('combined', 'ifas');

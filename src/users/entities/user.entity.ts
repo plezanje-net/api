@@ -10,7 +10,6 @@ import {
 import { ObjectType, Field, Extensions } from '@nestjs/graphql';
 import { Role } from './role.entity';
 import { Image } from '../../crags/entities/image.entity';
-import { Club } from './club.entity';
 import { ClubMember } from './club-member.entity';
 import { checkRoleMiddleware } from '../../core/middleware/check-role.middleware';
 
@@ -40,10 +39,10 @@ export class User extends BaseEntity {
 
   @Column({ nullable: true })
   @Field({ nullable: true })
-  gender: string;
+  gender?: string;
 
   @Column({ nullable: true })
-  picture: string;
+  picture?: string;
 
   @OneToMany(
     () => Role,
