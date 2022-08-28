@@ -1,29 +1,18 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, SelectQueryBuilder } from 'typeorm';
+import { getPublishStatusParams } from '../../core/utils/contributable-helpers';
 import { PaginationMeta } from '../../core/utils/pagination-meta.class';
 import { LatestDifficultyVotesInputServiceInput } from '../dtos/latest-difficulty-votes-service.input';
-import { Crag } from '../entities/crag.entity';
 import { DifficultyVote } from '../entities/difficulty-vote.entity';
-import { Route } from '../entities/route.entity';
-import { Sector } from '../entities/sector.entity';
 import { PaginatedDifficultyVotes } from '../utils/paginated-difficulty-votes';
-import { ContributablesService } from './contributables.service';
 
 @Injectable()
-export class DifficultyVotesService extends ContributablesService {
+export class DifficultyVotesService {
   constructor(
-    @InjectRepository(Route)
-    protected routesRepository: Repository<Route>,
-    @InjectRepository(Sector)
-    protected sectorsRepository: Repository<Sector>,
-    @InjectRepository(Crag)
-    protected cragRepository: Repository<Crag>,
     @InjectRepository(DifficultyVote)
     private difficultyVoteRepository: Repository<DifficultyVote>,
-  ) {
-    super(cragRepository, sectorsRepository, routesRepository);
-  }
+  ) {}
 
   async findByRouteId(routeId: string): Promise<DifficultyVote[]> {
     const grades = this.difficultyVoteRepository.find({
@@ -90,7 +79,7 @@ export class DifficultyVotesService extends ContributablesService {
     const {
       conditions: routePublishConditions,
       params: routePublishParams,
-    } = this.getPublishStatusParams('route', params.user);
+    } = getPublishStatusParams('route', params.user);
 
     builder.innerJoin(
       'route',
@@ -102,7 +91,7 @@ export class DifficultyVotesService extends ContributablesService {
     const {
       conditions: cragPublishConditions,
       params: cragPublishParams,
-    } = this.getPublishStatusParams('crag', params.user);
+    } = getPublishStatusParams('crag', params.user);
 
     builder.innerJoin(
       'crag',

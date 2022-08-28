@@ -15,27 +15,26 @@ import slugify from 'slugify';
 import { DifficultyVote } from '../entities/difficulty-vote.entity';
 import { User } from '../../users/entities/user.entity';
 import { FindRoutesServiceInput } from '../dtos/find-routes-service.input';
-import { ContributablesService } from './contributables.service';
 import {
   ActivityRoute,
   tickAscentTypes,
 } from '../../activities/entities/activity-route.entity';
 import { Transaction } from '../../core/utils/transaction.class';
-import { Crag } from '../entities/crag.entity';
+import {
+  getPublishStatusParams,
+  setPublishStatusParams,
+  updateUserContributionsFlag,
+} from '../../core/utils/contributable-helpers';
 
 @Injectable()
-export class RoutesService extends ContributablesService {
+export class RoutesService {
   constructor(
     @InjectRepository(Route)
     protected routesRepository: Repository<Route>,
     @InjectRepository(Sector)
     protected sectorsRepository: Repository<Sector>,
-    @InjectRepository(Crag)
-    protected cragsRepository: Repository<Crag>,
     private connection: Connection,
-  ) {
-    super(cragsRepository, sectorsRepository, routesRepository);
-  }
+  ) {}
 
   async find(input: FindRoutesServiceInput): Promise<Route[]> {
     return this.buildQuery(input).getMany();
@@ -65,7 +64,7 @@ export class RoutesService extends ContributablesService {
       .where('r.slug = :routeSlug', { routeSlug: routeSlug })
       .andWhere('c.slug = :cragSlug', { cragSlug: cragSlug });
 
-    const { conditions, params } = this.getPublishStatusParams('r', user);
+    const { conditions, params } = getPublishStatusParams('r', user);
     builder.andWhere(conditions, params);
 
     if (!(user != null)) {
@@ -141,11 +140,7 @@ export class RoutesService extends ContributablesService {
           transaction,
         );
       }
-      await this.updateUserContributionsFlag(
-        route.publishStatus,
-        user,
-        transaction,
-      );
+      await updateUserContributionsFlag(route.publishStatus, user, transaction);
     } catch (e) {
       await transaction.rollback();
       throw e;
@@ -240,11 +235,7 @@ export class RoutesService extends ContributablesService {
       await transaction.save(route);
       await this.shiftFollowingRoutes(route, transaction);
       const user = await route.user;
-      await this.updateUserContributionsFlag(
-        route.publishStatus,
-        user,
-        transaction,
-      );
+      await updateUserContributionsFlag(route.publishStatus, user, transaction);
     } catch (e) {
       await transaction.rollback();
       throw e;
@@ -286,7 +277,7 @@ export class RoutesService extends ContributablesService {
     try {
       const user = await route.user;
       await transaction.delete(route);
-      await this.updateUserContributionsFlag(null, user, transaction);
+      await updateUserContributionsFlag(null, user, transaction);
     } catch (e) {
       await transaction.rollback();
       throw e;
@@ -373,7 +364,7 @@ export class RoutesService extends ContributablesService {
       });
     }
 
-    this.setPublishStatusParams(builder, 's', params);
+    setPublishStatusParams(builder, 's', params);
 
     return builder;
   }

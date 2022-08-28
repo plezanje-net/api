@@ -14,23 +14,23 @@ import { Crag } from '../entities/crag.entity';
 import { Route } from '../entities/route.entity';
 import { User } from '../../users/entities/user.entity';
 import { FindSectorsServiceInput } from '../dtos/find-sectors-service.input';
-import { ContributablesService } from './contributables.service';
 import { Transaction } from '../../core/utils/transaction.class';
 import { PublishStatus } from '../entities/enums/publish-status.enum';
+import {
+  cascadePublishStatusToRoutes,
+  setPublishStatusParams,
+  updateUserContributionsFlag,
+} from '../../core/utils/contributable-helpers';
 
 @Injectable()
-export class SectorsService extends ContributablesService {
+export class SectorsService {
   constructor(
-    @InjectRepository(Crag)
-    protected cragsRepository: Repository<Crag>,
     @InjectRepository(Sector)
     protected sectorsRepository: Repository<Sector>,
     @InjectRepository(Route)
     protected routesRepository: Repository<Route>,
     private connection: Connection,
-  ) {
-    super(cragsRepository, sectorsRepository, routesRepository);
-  }
+  ) {}
 
   async find(input: FindSectorsServiceInput): Promise<Sector[]> {
     return this.buildQuery(input).getMany();
@@ -75,7 +75,7 @@ export class SectorsService extends ContributablesService {
     try {
       const user = await sector.user;
       await transaction.delete(sector);
-      await this.updateUserContributionsFlag(null, user, transaction);
+      await updateUserContributionsFlag(null, user, transaction);
     } catch (e) {
       await transaction.rollback();
       throw e;
@@ -107,13 +107,13 @@ export class SectorsService extends ContributablesService {
       await transaction.save(sector);
       await this.shiftFollowingSectors(sector, transaction);
       if (cascadeFromPublishStatus != null) {
-        await this.cascadePublishStatusToRoutes(
+        await cascadePublishStatusToRoutes(
           sector,
           cascadeFromPublishStatus,
           transaction,
         );
       }
-      await this.updateUserContributionsFlag(
+      await updateUserContributionsFlag(
         sector.publishStatus,
         user,
         transaction,
@@ -176,7 +176,7 @@ export class SectorsService extends ContributablesService {
       });
     }
 
-    this.setPublishStatusParams(builder, 's', params);
+    setPublishStatusParams(builder, 's', params);
 
     return builder;
   }
