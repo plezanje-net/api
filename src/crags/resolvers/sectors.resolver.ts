@@ -28,6 +28,9 @@ import { CurrentUser } from '../../auth/decorators/current-user.decorator';
 import { User } from '../../users/entities/user.entity';
 import { RoutesService } from '../services/routes.service';
 import { NotificationService } from '../../notification/services/notification.service';
+import { SectorRoutesLoader } from '../loaders/sector-routes.loader';
+import DataLoader from 'dataloader';
+import { Loader } from '../../core/interceptors/data-loader.interceptor';
 
 @Resolver(() => Sector)
 export class SectorsResolver {
@@ -140,12 +143,10 @@ export class SectorsResolver {
   @ResolveField('routes', () => [Route])
   async getRoutes(
     @Parent() sector: Sector,
-    @CurrentUser() user: User,
+    @Loader(SectorRoutesLoader)
+    loader: DataLoader<Route['id'], Route[]>,
   ): Promise<Route[]> {
-    return this.routesService.find({
-      sectorId: sector.id,
-      user,
-    });
+    return loader.load(sector.id);
   }
 
   @ResolveField('bouldersOnly', () => Boolean)

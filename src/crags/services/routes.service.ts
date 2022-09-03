@@ -365,6 +365,12 @@ export class RoutesService {
       });
     }
 
+    if (params.sectorIds != null) {
+      builder.andWhere('s.sector IN (:...sectorIds)', {
+        sectorIds: params.sectorIds,
+      });
+    }
+
     if (params.id != null) {
       builder.andWhere('s.id = :id', {
         id: params.id,

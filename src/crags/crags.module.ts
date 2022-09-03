@@ -63,6 +63,7 @@ import { RouteNrClimbersLoader } from './loaders/route-nr-climbers.loader';
 import { NotificationService } from '../notification/services/notification.service';
 import { MailService } from '../notification/services/mail.service';
 import { ConfigService } from '@nestjs/config';
+import { SectorRoutesLoader } from './loaders/sector-routes.loader';
 
 @Module({
   imports: [
@@ -117,6 +118,7 @@ import { ConfigService } from '@nestjs/config';
     RouteNrTriesLoader,
     RouteNrClimbersLoader,
     CragLoader,
+    SectorRoutesLoader,
     {
       provide: APP_INTERCEPTOR,
       useClass: DataLoaderInterceptor,
