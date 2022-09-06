@@ -19,7 +19,6 @@ import { Route } from './route.entity';
  */
 @Entity()
 @Unique(['route', 'user'])
-@Unique(['user', 'route'])
 @Index(['created'])
 @ObjectType()
 export class DifficultyVote extends BaseEntity {
