@@ -9,6 +9,7 @@ import {
   OneToMany,
   ManyToMany,
   JoinTable,
+  Index,
 } from 'typeorm';
 import { ObjectType, Field, Int, Float } from '@nestjs/graphql';
 import { Country } from './country.entity';
@@ -31,6 +32,7 @@ export enum CragType {
 }
 
 @Entity()
+@Index(['publishStatus'])
 @ObjectType()
 export class Crag extends BaseEntity {
   @PrimaryGeneratedColumn('uuid')

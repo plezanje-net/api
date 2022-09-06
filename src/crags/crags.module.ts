@@ -51,8 +51,6 @@ import { GradingSystemLoader } from './loaders/grading-system.loader';
 import { RouteTypesService } from './services/route-types.service';
 import { RouteTypeLoader } from './loaders/route-type.loader';
 import { CountryLoader } from './loaders/country.loader';
-import { RouteLoader } from './loaders/route.loader';
-import { CragLoader } from './loaders/crag.loader';
 import { RouteProperty } from './entities/route-property.entity';
 import { CragProperty } from './entities/crag-property.entity';
 import { IceFallProperty } from './entities/ice-fall-property.entity';
@@ -112,11 +110,9 @@ import { ConfigService } from '@nestjs/config';
     GradingSystemLoader,
     RouteTypeLoader,
     CountryLoader,
-    RouteLoader,
     RouteNrTicksLoader,
     RouteNrTriesLoader,
     RouteNrClimbersLoader,
-    CragLoader,
     {
       provide: APP_INTERCEPTOR,
       useClass: DataLoaderInterceptor,

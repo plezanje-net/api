@@ -6,6 +6,7 @@ import {
   UpdateDateColumn,
   BaseEntity,
   ManyToOne,
+  Index,
 } from 'typeorm';
 import { ObjectType, Field } from '@nestjs/graphql';
 import { Route } from '../../crags/entities/route.entity';
@@ -70,6 +71,8 @@ export enum PublishType {
  *  - delete_difficulty_and_beauty_vote
  */
 @Entity()
+@Index(['route', 'publish'])
+@Index(['publish', 'activity'])
 @ObjectType()
 export class ActivityRoute extends BaseEntity {
   @PrimaryGeneratedColumn('uuid')

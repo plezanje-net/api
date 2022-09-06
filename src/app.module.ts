@@ -57,7 +57,6 @@ import { PropertyType } from './crags/entities/property-type.entity';
         database: configService.get('DB_NAME'),
         port: configService.get('DB_PORT'),
         synchronize: false,
-        // logging: true,
         entities: [
           Activity,
           ActivityRoute,
@@ -89,6 +88,7 @@ import { PropertyType } from './crags/entities/property-type.entity';
           PropertyType,
         ],
         // logging: ['query', 'error'],
+        // maxQueryExecutionTime: 60,
       }),
       inject: [ConfigService],
     }),
