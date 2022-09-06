@@ -57,7 +57,7 @@ export class DifficultyVotesService {
     setBuilderCache(query, 'getCount');
     const itemCount = await query
       .clone()
-      .select('COUNT(DISTINCT(v.id))', 'count')
+      .select('COUNT(*)', 'count')
       .orderBy(null)
       .getRawOne();
 
@@ -68,7 +68,6 @@ export class DifficultyVotesService {
     );
 
     query
-      .groupBy('v.id')
       .offset(pagination.pageSize * (pagination.pageNumber - 1))
       .limit(pagination.pageSize);
 

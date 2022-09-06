@@ -65,7 +65,6 @@ import EntityCacheSubscriber from './core/utils/entity-cache/entity-cache.subscr
               }
             : null,
         synchronize: false,
-        logging: false,
         entities: [
           Activity,
           ActivityRoute,
@@ -98,6 +97,7 @@ import EntityCacheSubscriber from './core/utils/entity-cache/entity-cache.subscr
         ],
         subscribers: [EntityCacheSubscriber],
         // logging: ['query', 'error'],
+        // maxQueryExecutionTime: 60,
       }),
       inject: [ConfigService],
     }),

@@ -32,6 +32,9 @@ import { SideEffect } from '../utils/side-effect.class';
 import { UpdateActivityInput } from '../dtos/update-activity.input';
 import { AllowAny } from '../../auth/decorators/allow-any.decorator';
 import { FindActivityRoutesInput } from '../dtos/find-activity-routes.input';
+import { Loader } from '../../core/interceptors/data-loader.interceptor';
+import { UserLoader } from '../../users/loaders/user.loader';
+import DataLoader from 'dataloader';
 
 @Resolver(() => Activity)
 export class ActivitiesResolver {
@@ -234,5 +237,14 @@ export class ActivitiesResolver {
       input.orderBy = { field: 'position', direction: 'ASC' };
     }
     return this.activityRoutesService.find(input, currentUser);
+  }
+
+  @ResolveField('user', () => User)
+  async getUser(
+    @Parent() activityRoute: ActivityRoute,
+    @Loader(UserLoader)
+    loader: DataLoader<ActivityRoute['userId'], User>,
+  ): Promise<User> {
+    return loader.load(activityRoute.userId);
   }
 }
