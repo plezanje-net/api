@@ -150,15 +150,18 @@ export class ActivitiesResolver {
   @Query(() => [SideEffect])
   @UseGuards(UserAuthGuard)
   async dryRunUpdateActivity(
-    @CurrentUser() user: User,
+    @CurrentUser() currentUser: User,
     @Args('input', { type: () => UpdateActivityInput })
     activityIn: UpdateActivityInput,
     @Args('routes', { type: () => [CreateActivityRouteInput] })
     routesIn: CreateActivityRouteInput[],
   ): Promise<SideEffect[]> {
-    const activity = await this.activitiesService.findOneById(activityIn.id);
+    const activity = await this.activitiesService.findOneById(
+      activityIn.id,
+      currentUser,
+    );
 
-    if (activity.userId != user.id) {
+    if (activity.userId != currentUser.id) {
       throw new ForbiddenException();
     }
 
@@ -166,7 +169,7 @@ export class ActivitiesResolver {
       const sideEffects = [];
       await this.activitiesService.updateActivityWithRoutes(
         activityIn,
-        user,
+        currentUser,
         routesIn,
         true,
         sideEffects,
@@ -180,22 +183,25 @@ export class ActivitiesResolver {
   @Mutation(() => Activity)
   @UseGuards(UserAuthGuard)
   async updateActivity(
-    @CurrentUser() user: User,
+    @CurrentUser() currentUser: User,
     @Args('input', { type: () => UpdateActivityInput })
     activityIn: UpdateActivityInput,
     @Args('routes', { type: () => [CreateActivityRouteInput] })
     routesIn: CreateActivityRouteInput[],
   ): Promise<Activity> {
-    const activity = await this.activitiesService.findOneById(activityIn.id);
+    const activity = await this.activitiesService.findOneById(
+      activityIn.id,
+      currentUser,
+    );
 
-    if (activity.userId != user.id) {
+    if (activity.userId != currentUser.id) {
       throw new ForbiddenException();
     }
 
     try {
       return this.activitiesService.updateActivityWithRoutes(
         activityIn,
-        user,
+        currentUser,
         routesIn,
       );
     } catch (exception) {
