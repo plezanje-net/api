@@ -159,13 +159,14 @@ export class ActivitiesService {
   ): Promise<PaginatedActivities> {
     const query = this.buildQuery(params, currentUser);
 
-    setBuilderCache(query, 'getCount');
-    const itemCount = await query
+    const countQuery = query
       .clone()
       .select('COUNT(DISTINCT(a.id))', 'count')
       .groupBy(null)
-      .orderBy(null)
-      .getRawOne();
+      .orderBy(null);
+
+    setBuilderCache(countQuery, 'getRawOne');
+    const itemCount = await countQuery.getRawOne();
 
     const pagination = new PaginationMeta(
       itemCount.count,

@@ -247,10 +247,10 @@ export class ActivitiesResolver {
 
   @ResolveField('user', () => User)
   async getUser(
-    @Parent() activityRoute: ActivityRoute,
+    @Parent() activity: Activity,
     @Loader(UserLoader)
-    loader: DataLoader<ActivityRoute['userId'], User>,
+    loader: DataLoader<Activity['userId'], User>,
   ): Promise<User> {
-    return loader.load(activityRoute.userId);
+    return loader.load(activity.userId);
   }
 }

@@ -236,13 +236,14 @@ export class CragsService {
   async getNumberOfRoutes(crag: Crag, user: User): Promise<number> {
     const builder = this.routesRepository
       .createQueryBuilder('route')
+      .select('COUNT(DISTINCT(route.id))', 'count')
       .where('route."cragId" = :cragId', { cragId: crag.id });
 
     setPublishStatusParams(builder, 'route', { user });
 
-    setBuilderCache(builder, 'getCount');
-
-    return builder.getCount();
+    setBuilderCache(builder, 'getRawOne');
+    const itemCount = await builder.getRawOne();
+    return itemCount.count;
   }
 
   async getPopularCrags(
@@ -270,7 +271,7 @@ export class CragsService {
       builder.limit(top);
     }
 
-    setBuilderCache(builder);
+    setBuilderCache(builder, 'getRawAndEntities');
 
     const rawAndEntities = await builder.getRawAndEntities();
 
@@ -296,7 +297,7 @@ export class CragsService {
       .groupBy('EXTRACT(month FROM ar.date)')
       .orderBy('EXTRACT(month FROM ar.date)', 'ASC');
 
-    setBuilderCache(builder);
+    setBuilderCache(builder, 'getRawMany');
 
     const results = await builder.getRawMany();
 
