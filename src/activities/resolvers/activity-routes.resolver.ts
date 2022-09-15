@@ -19,7 +19,10 @@ import { AuditInterceptor } from '../../audit/interceptors/audit.interceptor';
 import { AllowAny } from '../../auth/decorators/allow-any.decorator';
 import { CurrentUser } from '../../auth/decorators/current-user.decorator';
 import { UserAuthGuard } from '../../auth/guards/user-auth.guard';
-import { Loader } from '../../core/interceptors/data-loader.interceptor';
+import {
+  DataLoaderInterceptor,
+  Loader,
+} from '../../core/interceptors/data-loader.interceptor';
 import { Route } from '../../crags/entities/route.entity';
 import { NotFoundFilter } from '../../crags/filters/not-found.filter';
 import { RouteLoader } from '../../crags/loaders/route.loader';
@@ -40,6 +43,7 @@ import { FindRoutesTouchesInput } from '../dtos/find-routes-touches.input';
 import { RoutesTouches } from '../utils/routes-touches.class';
 
 @Resolver(() => ActivityRoute)
+@UseInterceptors(DataLoaderInterceptor)
 export class ActivityRoutesResolver {
   constructor(
     private activityRoutesService: ActivityRoutesService,

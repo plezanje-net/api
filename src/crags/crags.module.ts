@@ -34,8 +34,6 @@ import { ImagesResolver } from './resolvers/images.resolver';
 import { ImagesService } from './services/images.service';
 import { PitchesService } from './services/pitches.service';
 import { RouteCommentsLoader } from './loaders/route-comments.loader';
-import { DataLoaderInterceptor } from '../core/interceptors/data-loader.interceptor';
-import { APP_INTERCEPTOR } from '@nestjs/core';
 import { RoutePitchesLoader } from './loaders/route-pitches.loader';
 import { DifficultyVotesService } from './services/difficulty-votes.service';
 import { Grade } from './entities/grade.entity';
@@ -115,10 +113,6 @@ import { SectorRoutesLoader } from './loaders/sector-routes.loader';
     RouteNrTriesLoader,
     RouteNrClimbersLoader,
     SectorRoutesLoader,
-    {
-      provide: APP_INTERCEPTOR,
-      useClass: DataLoaderInterceptor,
-    },
     DifficultyVotesService,
     GradingSystemsResolver,
     GradingSystemsService,
