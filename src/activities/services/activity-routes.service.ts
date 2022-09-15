@@ -32,6 +32,7 @@ import { UpdateActivityRouteInput } from '../dtos/update-activity-route.input';
 import { RoutesTouches } from '../utils/routes-touches.class';
 import { FindRoutesTouchesInput } from '../dtos/find-routes-touches.input';
 import { SideEffect } from '../utils/side-effect.class';
+import { setBuilderCache } from '../../core/utils/entity-cache/entity-cache-helpers';
 
 @Injectable()
 export class ActivityRoutesService {
@@ -641,7 +642,9 @@ export class ActivityRoutesService {
     params: FindActivityRoutesInput = {},
     currentUser: User = null,
   ): Promise<ActivityRoute[]> {
-    return this.buildQuery(params, currentUser).getMany();
+    const query = this.buildQuery(params, currentUser);
+    setBuilderCache(query);
+    return query.getMany();
   }
 
   private buildQuery(

@@ -13,6 +13,7 @@ import { ActivityRoutesService } from './activity-routes.service';
 import { UpdateActivityInput } from '../dtos/update-activity.input';
 import { ActivityRoute } from '../entities/activity-route.entity';
 import { Route } from '../../crags/entities/route.entity';
+import { setBuilderCache } from '../../core/utils/entity-cache/entity-cache-helpers';
 import { getPublishStatusParams } from '../../core/utils/contributable-helpers';
 
 @Injectable()
@@ -158,17 +159,27 @@ export class ActivitiesService {
   ): Promise<PaginatedActivities> {
     const query = this.buildQuery(params, currentUser);
 
-    const itemCount = await query.getCount();
+    const countQuery = query
+      .clone()
+      .select('COUNT(DISTINCT(a.id))', 'count')
+      .groupBy(null)
+      .orderBy(null);
+
+    setBuilderCache(countQuery, 'getRawOne');
+    const itemCount = await countQuery.getRawOne();
 
     const pagination = new PaginationMeta(
-      itemCount,
+      itemCount.count,
       params.pageNumber,
       params.pageSize,
     );
 
     query
-      .skip(pagination.pageSize * (pagination.pageNumber - 1))
-      .take(pagination.pageSize);
+      .groupBy('a.id')
+      .offset(pagination.pageSize * (pagination.pageNumber - 1))
+      .limit(pagination.pageSize);
+
+    setBuilderCache(query);
 
     return Promise.resolve({
       items: await query.getMany(),
@@ -311,12 +322,9 @@ export class ActivitiesService {
     }
 
     if (params.hasRoutesWithPublish) {
-      builder.innerJoin(
-        ActivityRoute,
-        'arp',
-        'arp."activityId" = a.id AND arp."publish" IN (:...publish)',
-        { publish: params.hasRoutesWithPublish },
-      );
+      builder.where('ar."publish" IN (:...publish)', {
+        publish: params.hasRoutesWithPublish,
+      });
     }
     // console.log(builder.getQueryAndParameters());
 
