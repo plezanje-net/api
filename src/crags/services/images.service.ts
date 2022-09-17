@@ -1,5 +1,6 @@
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { User } from '../../users/entities/user.entity';
 import { CreateImageDto } from '../dtos/create-image.dto';
 import { Image } from '../entities/image.entity';
 
@@ -34,8 +35,10 @@ export class ImagesService {
     return builder.getMany();
   }
 
-  // TODO: add current user to params.
-  async createImage(createImageDto: CreateImageDto): Promise<Image> {
+  async createImage(
+    createImageDto: CreateImageDto,
+    currentUser: User,
+  ): Promise<Image> {
     const {
       path,
       extension,
@@ -60,6 +63,8 @@ export class ImagesService {
     if (createImageDto.crag) {
       image.crag = Promise.resolve(createImageDto.crag);
     }
+    image.user = Promise.resolve(currentUser);
+
     await this.imagesRepository.save(image);
     return image;
   }

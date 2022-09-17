@@ -4,6 +4,7 @@ import {
   Post,
   Req,
   Res,
+  UseGuards,
 } from '@nestjs/common';
 
 import * as fs from 'fs';
@@ -18,8 +19,12 @@ import { Crag } from '../../entities/crag.entity';
 import { CreateImageDto } from '../../dtos/create-image.dto';
 import { Route } from '../../entities/route.entity';
 import { ImageType } from '../../entities/image.entity';
+import { NonGQLUserAuthGuard } from '../../../auth/guards/non-gql-user-auth.guard';
+import { User } from '../../../users/entities/user.entity';
+import { NonGqlCurrentUser } from '../../../auth/decorators/non-gql-current-user.decorator';
 
 @Controller('upload')
+@UseGuards(NonGQLUserAuthGuard)
 export class UploadController {
   maxSize = { width: 6000, height: 6000 };
   targetSizes = [300, 600, 1040]; // Add to this list if other sizes needed by FE (if changed, should reprocess all images)
@@ -30,10 +35,8 @@ export class UploadController {
     private imagesService: ImagesService,
   ) {}
 
-  // TODO: auth and user
-
   @Post('image')
-  async image(@Req() req, @Res() res) {
+  async image(@NonGqlCurrentUser() currentUser: User, @Req() req, @Res() res) {
     try {
       if (!req.isMultipart()) {
         throw new BadRequestException();
@@ -110,7 +113,10 @@ export class UploadController {
       };
       createImageDto[entityType] = parentEntity;
 
-      const image = await this.imagesService.createImage(createImageDto);
+      const image = await this.imagesService.createImage(
+        createImageDto,
+        currentUser,
+      );
 
       res.code(201).send(image.id);
     } catch (error) {
