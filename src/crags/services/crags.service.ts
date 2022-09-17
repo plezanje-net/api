@@ -37,6 +37,10 @@ export class CragsService {
     return this.cragsRepository.findByIds(ids);
   }
 
+  async findOneById(id: string): Promise<Crag> {
+    return this.cragsRepository.findOneOrFail(id);
+  }
+
   async findOne(params: FindCragsServiceInput = {}): Promise<Crag> {
     const crags = await this.find(params);
 

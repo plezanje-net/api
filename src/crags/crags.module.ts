@@ -60,6 +60,7 @@ import { NotificationService } from '../notification/services/notification.servi
 import { MailService } from '../notification/services/mail.service';
 import { ConfigService } from '@nestjs/config';
 import { SectorRoutesLoader } from './loaders/sector-routes.loader';
+import { UploadController } from './controllers/upload/upload.controller';
 
 @Module({
   imports: [
@@ -126,5 +127,6 @@ import { SectorRoutesLoader } from './loaders/sector-routes.loader';
     MailService,
     ConfigService,
   ],
+  controllers: [UploadController],
 })
 export class CragsModule {}
