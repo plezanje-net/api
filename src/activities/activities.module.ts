@@ -22,8 +22,6 @@ import { RoutesService } from '../crags/services/routes.service';
 import { CragsService } from '../crags/services/crags.service';
 import { Sector } from '../crags/entities/sector.entity';
 import { Country } from '../crags/entities/country.entity';
-import { APP_INTERCEPTOR } from '@nestjs/core';
-import { DataLoaderInterceptor } from '../core/interceptors/data-loader.interceptor';
 
 @Module({
   imports: [
@@ -44,10 +42,6 @@ import { DataLoaderInterceptor } from '../core/interceptors/data-loader.intercep
     UsersModule,
   ],
   providers: [
-    {
-      provide: APP_INTERCEPTOR,
-      useClass: DataLoaderInterceptor,
-    },
     ActivitiesResolver,
     ActivitiesService,
     ActivityRoutesResolver,

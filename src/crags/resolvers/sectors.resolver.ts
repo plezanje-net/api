@@ -30,9 +30,13 @@ import { RoutesService } from '../services/routes.service';
 import { NotificationService } from '../../notification/services/notification.service';
 import { SectorRoutesLoader } from '../loaders/sector-routes.loader';
 import DataLoader from 'dataloader';
-import { Loader } from '../../core/interceptors/data-loader.interceptor';
+import {
+  DataLoaderInterceptor,
+  Loader,
+} from '../../core/interceptors/data-loader.interceptor';
 
 @Resolver(() => Sector)
+@UseInterceptors(DataLoaderInterceptor)
 export class SectorsResolver {
   constructor(
     private sectorsService: SectorsService,

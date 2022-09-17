@@ -29,8 +29,10 @@ import { IceFallsService } from '../services/ice-falls.service';
 import { IceFall } from '../entities/ice-fall.entity';
 import { CurrentUser } from '../../auth/decorators/current-user.decorator';
 import { User } from '../../users/entities/user.entity';
+import { DataLoaderInterceptor } from '../../core/interceptors/data-loader.interceptor';
 
 @Resolver(() => Country)
+@UseInterceptors(DataLoaderInterceptor)
 export class CountriesResolver {
   constructor(
     private countriesService: CountriesService,
