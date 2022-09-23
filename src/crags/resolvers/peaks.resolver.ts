@@ -1,5 +1,7 @@
+import { UseInterceptors } from '@nestjs/common';
 import { Args, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql';
 import { CurrentUser } from '../../auth/decorators/current-user.decorator';
+import { DataLoaderInterceptor } from '../../core/interceptors/data-loader.interceptor';
 import { User } from '../../users/entities/user.entity';
 import { FindCragsServiceInput } from '../dtos/find-crags-service.input';
 import { Crag } from '../entities/crag.entity';
@@ -8,6 +10,7 @@ import { CragsService } from '../services/crags.service';
 import { PeaksService } from '../services/peaks.service';
 
 @Resolver(of => Peak)
+@UseInterceptors(DataLoaderInterceptor)
 export class PeaksResolver {
   constructor(
     private peaksService: PeaksService,
