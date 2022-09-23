@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { PaginationMeta } from '../../core/utils/pagination-meta.class';
 import { Crag } from '../../crags/entities/crag.entity';
 import { User } from '../../users/entities/user.entity';
-import { Connection, Repository, SelectQueryBuilder } from 'typeorm';
+import { DataSource, Repository, SelectQueryBuilder } from 'typeorm';
 import { CreateActivityInput } from '../dtos/create-activity.input';
 import { FindActivitiesInput } from '../dtos/find-activities.input';
 import { Activity } from '../entities/activity.entity';
@@ -23,7 +23,7 @@ export class ActivitiesService {
     private activitiesRepository: Repository<Activity>,
     @InjectRepository(Crag)
     private cragRepository: Repository<Crag>,
-    private connection: Connection,
+    private dataSource: DataSource,
     private activityRoutesService: ActivityRoutesService,
   ) {}
 
@@ -44,7 +44,7 @@ export class ActivitiesService {
       );
     }
 
-    const queryRunner = this.connection.createQueryRunner();
+    const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
 
@@ -106,7 +106,7 @@ export class ActivitiesService {
       );
     }
 
-    const queryRunner = this.connection.createQueryRunner();
+    const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
 

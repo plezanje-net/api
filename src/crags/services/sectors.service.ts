@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Sector } from '../entities/sector.entity';
 import {
-  Connection,
+  DataSource,
   MoreThanOrEqual,
   Not,
   Repository,
@@ -29,7 +29,7 @@ export class SectorsService {
     protected sectorsRepository: Repository<Sector>,
     @InjectRepository(Route)
     protected routesRepository: Repository<Route>,
-    private connection: Connection,
+    private dataSource: DataSource,
   ) {}
 
   async find(input: FindSectorsServiceInput): Promise<Sector[]> {
@@ -71,7 +71,7 @@ export class SectorsService {
   async delete(id: string): Promise<boolean> {
     const sector = await this.sectorsRepository.findOneByOrFail({ id });
 
-    const transaction = new Transaction(this.connection);
+    const transaction = new Transaction(this.dataSource);
     await transaction.start();
 
     try {
@@ -102,7 +102,7 @@ export class SectorsService {
     user: User,
     cascadeFromPublishStatus: PublishStatus = null,
   ) {
-    const transaction = new Transaction(this.connection);
+    const transaction = new Transaction(this.dataSource);
     await transaction.start();
 
     try {

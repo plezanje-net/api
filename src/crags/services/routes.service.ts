@@ -3,7 +3,7 @@ import { Route } from '../entities/route.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Sector } from '../entities/sector.entity';
 import {
-  Connection,
+  DataSource,
   In,
   MoreThanOrEqual,
   Not,
@@ -35,7 +35,7 @@ export class RoutesService {
     protected routesRepository: Repository<Route>,
     @InjectRepository(Sector)
     protected sectorsRepository: Repository<Sector>,
-    private connection: Connection,
+    private dataSource: DataSource,
   ) {}
 
   async find(input: FindRoutesServiceInput): Promise<Route[]> {
@@ -136,7 +136,7 @@ export class RoutesService {
 
     route.slug = await this.generateRouteSlug(route.name, route.cragId);
 
-    const transaction = new Transaction(this.connection);
+    const transaction = new Transaction(this.dataSource);
     await transaction.start();
 
     try {
@@ -162,7 +162,7 @@ export class RoutesService {
   }
 
   async update(data: UpdateRouteInput): Promise<Route> {
-    const transaction = new Transaction(this.connection);
+    const transaction = new Transaction(this.dataSource);
     await transaction.start();
     let route = await transaction.queryRunner.manager.findOneByOrFail(Route, {
       id: data.id,
@@ -279,7 +279,7 @@ export class RoutesService {
   async delete(id: string): Promise<boolean> {
     const route = await this.routesRepository.findOneByOrFail({ id });
 
-    const transaction = new Transaction(this.connection);
+    const transaction = new Transaction(this.dataSource);
     await transaction.start();
 
     try {

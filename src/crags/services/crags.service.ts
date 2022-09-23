@@ -2,7 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateCragInput } from '../dtos/create-crag.input';
 import { Crag } from '../entities/crag.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Connection, In, Not, Repository, SelectQueryBuilder } from 'typeorm';
+import { DataSource, In, Not, Repository, SelectQueryBuilder } from 'typeorm';
 import { UpdateCragInput } from '../dtos/update-crag.input';
 import { Country } from '../../crags/entities/country.entity';
 import { Route } from '../entities/route.entity';
@@ -30,7 +30,7 @@ export class CragsService {
     protected cragsRepository: Repository<Crag>,
     @InjectRepository(Country)
     private countryRepository: Repository<Country>,
-    private connection: Connection,
+    private dataSource: DataSource,
   ) {}
 
   async findByIds(ids: string[]): Promise<Crag[]> {
@@ -104,7 +104,7 @@ export class CragsService {
     user: User,
     cascadeFromPublishStatus: PublishStatus = null,
   ) {
-    const transaction = new Transaction(this.connection);
+    const transaction = new Transaction(this.dataSource);
     await transaction.start();
 
     try {
@@ -147,7 +147,7 @@ export class CragsService {
   async delete(id: string): Promise<boolean> {
     const crag = await this.cragsRepository.findOneByOrFail({ id });
 
-    const transaction = new Transaction(this.connection);
+    const transaction = new Transaction(this.dataSource);
     await transaction.start();
 
     try {

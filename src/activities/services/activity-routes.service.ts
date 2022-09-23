@@ -9,7 +9,7 @@ import {
 import { Club } from '../../users/entities/club.entity';
 import { User } from '../../users/entities/user.entity';
 import {
-  Connection,
+  DataSource,
   QueryRunner,
   Repository,
   SelectQueryBuilder,
@@ -37,7 +37,7 @@ import { setBuilderCache } from '../../core/utils/entity-cache/entity-cache-help
 @Injectable()
 export class ActivityRoutesService {
   constructor(
-    private connection: Connection,
+    private dataSource: DataSource,
     @InjectRepository(ActivityRoute)
     private activityRoutesRepository: Repository<ActivityRoute>,
     @InjectRepository(ClubMember)
@@ -50,7 +50,7 @@ export class ActivityRoutesService {
     user: User,
     routesIn: CreateActivityRouteInput[],
   ): Promise<ActivityRoute[]> {
-    const queryRunner = this.connection.createQueryRunner();
+    const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
 

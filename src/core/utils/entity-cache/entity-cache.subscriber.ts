@@ -1,5 +1,5 @@
 import {
-  Connection,
+  DataSource,
   EntitySubscriberInterface,
   EventSubscriber,
   InsertEvent,
@@ -22,9 +22,9 @@ export default class EntityCacheSubscriber
     this.clearCache(event.connection, event.metadata.tableName);
   }
 
-  private async clearCache(connection: Connection, tableName: string) {
-    if (connection.queryResultCache) {
-      const client = connection.queryResultCache['client'];
+  private async clearCache(dataSource: DataSource, tableName: string) {
+    if (dataSource.queryResultCache) {
+      const client = dataSource.queryResultCache['client'];
       const keys = await client.keys(`*:${tableName}:*`);
       if (keys.length > 0) await client.del(keys);
     }
