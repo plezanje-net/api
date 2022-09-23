@@ -10,7 +10,6 @@ import {
 } from 'typeorm';
 import { UpdateSectorInput } from '../dtos/update-sector.input';
 import { CreateSectorInput } from '../dtos/create-sector.input';
-import { Crag } from '../entities/crag.entity';
 import { Route } from '../entities/route.entity';
 import { User } from '../../users/entities/user.entity';
 import { FindSectorsServiceInput } from '../dtos/find-sectors-service.input';
@@ -55,7 +54,9 @@ export class SectorsService {
   }
 
   async update(data: UpdateSectorInput): Promise<Sector> {
-    const sector = await this.sectorsRepository.findOneOrFail(data.id);
+    const sector = await this.sectorsRepository.findOneByOrFail({
+      id: data.id,
+    });
     const previousPublishStatus = sector.publishStatus;
 
     this.sectorsRepository.merge(sector, data);
@@ -68,7 +69,7 @@ export class SectorsService {
   }
 
   async delete(id: string): Promise<boolean> {
-    const sector = await this.sectorsRepository.findOneOrFail(id);
+    const sector = await this.sectorsRepository.findOneByOrFail({ id });
 
     const transaction = new Transaction(this.connection);
     await transaction.start();
@@ -88,7 +89,7 @@ export class SectorsService {
   }
 
   async bouldersOnly(sectorId: string): Promise<boolean> {
-    const cnt = this.routesRepository.count({
+    const cnt = this.routesRepository.countBy({
       sectorId: sectorId,
       routeTypeId: Not('boulder'),
     });

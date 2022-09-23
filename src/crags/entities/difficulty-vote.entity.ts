@@ -33,6 +33,8 @@ export class DifficultyVote extends BaseEntity {
   @ManyToOne(() => User, { nullable: true })
   @Field(() => User, { nullable: true })
   user: Promise<User>;
+  @Column({ nullable: true })
+  userId: string;
 
   @CreateDateColumn()
   @Field()
@@ -52,6 +54,8 @@ export class DifficultyVote extends BaseEntity {
   )
   @Field(() => Route)
   route: Promise<Route>;
+  @Column()
+  routeId: string;
 
   @Column({ nullable: true })
   @Field()

@@ -86,10 +86,9 @@ export class ActivityRoutesService {
 
     activityRoute.user = Promise.resolve(user);
 
-    const route = await queryRunner.manager.findOneOrFail(
-      Route,
-      routeIn.routeId,
-    );
+    const route = await queryRunner.manager.findOneByOrFail(Route, {
+      id: routeIn.routeId,
+    });
 
     const routeTouched = await this.getTouchesForRoutes(
       new FindRoutesTouchesInput([routeIn.routeId], routeIn.date),
@@ -152,9 +151,9 @@ export class ActivityRoutesService {
         );
       }
 
-      let difficultyVote = await queryRunner.manager.findOne(DifficultyVote, {
-        user,
-        route,
+      let difficultyVote = await queryRunner.manager.findOneBy(DifficultyVote, {
+        userId: user.id,
+        routeId: route.id,
       });
       if (!difficultyVote) {
         difficultyVote = new DifficultyVote();
@@ -175,9 +174,9 @@ export class ActivityRoutesService {
 
     // if a vote on star rating (route beauty) is passed add a new star rating vote or update existing one
     if (routeIn.votedStarRating || routeIn.votedStarRating === 0) {
-      let starRatingVote = await queryRunner.manager.findOne(StarRatingVote, {
-        user,
-        route,
+      let starRatingVote = await queryRunner.manager.findOneBy(StarRatingVote, {
+        userId: user.id,
+        routeId: route.id,
       });
       if (!starRatingVote) {
         starRatingVote = new StarRatingVote();
@@ -523,8 +522,8 @@ export class ActivityRoutesService {
     });
     const clubMember = await this.clubMembersRepository.findOne({
       where: {
-        user: user.id,
-        club: club.id,
+        userId: user.id,
+        clubId: club.id,
         status: ClubMemberStatus.ACTIVE,
       },
     });
@@ -781,13 +780,13 @@ export class ActivityRoutesService {
   }
 
   findOneById(id: string): Promise<ActivityRoute> {
-    return this.activityRoutesRepository.findOneOrFail(id);
+    return this.activityRoutesRepository.findOneByOrFail({ id });
   }
 
   async update(data: UpdateActivityRouteInput): Promise<ActivityRoute> {
-    const activityRoute = await this.activityRoutesRepository.findOneOrFail(
-      data.id,
-    );
+    const activityRoute = await this.activityRoutesRepository.findOneByOrFail({
+      id: data.id,
+    });
 
     this.activityRoutesRepository.merge(activityRoute, data);
 

@@ -14,20 +14,20 @@ import { Sector } from '../../crags/entities/sector.entity';
 import { InputWithUser } from '../../crags/utils/input-with-user.interface';
 import { User } from '../../users/entities/user.entity';
 
-function setPublishStatusParams(
+async function setPublishStatusParams(
   builder: SelectQueryBuilder<BaseEntity>,
   alias: string,
   { user }: InputWithUser,
-): void {
-  const { conditions, params } = getPublishStatusParams(alias, user);
+): Promise<void> {
+  const { conditions, params } = await getPublishStatusParams(alias, user);
   builder.andWhere(conditions, params);
 }
 
-function getPublishStatusParams(
+async function getPublishStatusParams(
   alias: string,
   user: User,
-): { conditions: string; params: ObjectLiteral } {
-  if (user != null && user.isAdmin()) {
+): Promise<{ conditions: string; params: ObjectLiteral }> {
+  if (user != null && (await user.isAdmin())) {
     return {
       conditions: `(${alias}.publishStatus IN (:...publishStatuses) OR (${alias}."userId" = :userId AND ${alias}.publishStatus = :publishStatus))`,
       params: {

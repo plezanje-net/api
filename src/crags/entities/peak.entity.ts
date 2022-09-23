@@ -72,6 +72,8 @@ export class Peak extends BaseEntity {
   )
   @Field(() => Country)
   country: Promise<Country>;
+  @Column()
+  countryId: string;
 
   @ManyToMany(() => Book)
   @JoinTable()

@@ -4,6 +4,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Sector } from '../entities/sector.entity';
 import {
   Connection,
+  In,
   MoreThanOrEqual,
   Not,
   Repository,
@@ -46,11 +47,11 @@ export class RoutesService {
   }
 
   async findByIds(ids: string[]): Promise<Route[]> {
-    return this.routesRepository.findByIds(ids);
+    return this.routesRepository.findBy({ id: In(ids) });
   }
 
   async findOneById(id: string): Promise<Route> {
-    return this.routesRepository.findOneOrFail(id);
+    return this.routesRepository.findOneByOrFail({ id });
   }
 
   async findOneBySlug(
@@ -65,7 +66,7 @@ export class RoutesService {
       .where('r.slug = :routeSlug', { routeSlug: routeSlug })
       .andWhere('c.slug = :cragSlug', { cragSlug: cragSlug });
 
-    const { conditions, params } = getPublishStatusParams('r', user);
+    const { conditions, params } = await getPublishStatusParams('r', user);
     builder.andWhere(conditions, params);
 
     if (!(user != null)) {
@@ -126,7 +127,9 @@ export class RoutesService {
 
     route.user = Promise.resolve(user);
 
-    const sector = await this.sectorsRepository.findOneOrFail(data.sectorId);
+    const sector = await this.sectorsRepository.findOneByOrFail({
+      id: data.sectorId,
+    });
 
     route.sectorId = sector.id;
     route.cragId = sector.cragId;
@@ -161,10 +164,9 @@ export class RoutesService {
   async update(data: UpdateRouteInput): Promise<Route> {
     const transaction = new Transaction(this.connection);
     await transaction.start();
-    let route = await transaction.queryRunner.manager.findOneOrFail(
-      Route,
-      data.id,
-    );
+    let route = await transaction.queryRunner.manager.findOneByOrFail(Route, {
+      id: data.id,
+    });
     try {
       // Is the request trying to update the route base difficulty?
       if (
@@ -222,10 +224,9 @@ export class RoutesService {
         }
 
         // Refetch route, because trigger should have changed the calculated difficulty
-        route = await transaction.queryRunner.manager.findOneOrFail(
-          Route,
-          data.id,
-        );
+        route = await transaction.queryRunner.manager.findOneByOrFail(Route, {
+          id: data.id,
+        });
       }
 
       transaction.queryRunner.manager.merge(Route, route, data);
@@ -276,7 +277,7 @@ export class RoutesService {
   }
 
   async delete(id: string): Promise<boolean> {
-    const route = await this.routesRepository.findOneOrFail(id);
+    const route = await this.routesRepository.findOneByOrFail({ id });
 
     const transaction = new Transaction(this.connection);
     await transaction.start();
@@ -313,10 +314,10 @@ export class RoutesService {
     difficulty: number,
     transaction: Transaction,
   ): Promise<void> {
-    const difficultyVote = await transaction.queryRunner.manager.findOneOrFail(
+    const difficultyVote = await transaction.queryRunner.manager.findOneByOrFail(
       DifficultyVote,
       {
-        route,
+        routeId: route.id,
         isBase: true,
       },
     );
@@ -325,10 +326,10 @@ export class RoutesService {
   }
 
   private async deleteBaseDifficulty(route: Route, transaction: Transaction) {
-    const difficultyVote = await transaction.queryRunner.manager.findOneOrFail(
+    const difficultyVote = await transaction.queryRunner.manager.findOneByOrFail(
       DifficultyVote,
       {
-        route,
+        routeId: route.id,
         isBase: true,
       },
     );
@@ -336,8 +337,8 @@ export class RoutesService {
   }
 
   private async hasRealDifficultyVotes(route: Route, transaction: Transaction) {
-    return (await transaction.queryRunner.manager.count(DifficultyVote, {
-      route,
+    return (await transaction.queryRunner.manager.countBy(DifficultyVote, {
+      routeId: route.id,
       isBase: false,
     }))
       ? true
@@ -345,7 +346,7 @@ export class RoutesService {
   }
 
   private async hasLogEntries(route: Route, transaction: Transaction) {
-    return (await transaction.queryRunner.manager.count(ActivityRoute, {
+    return (await transaction.queryRunner.manager.countBy(ActivityRoute, {
       routeId: route.id,
     }))
       ? true

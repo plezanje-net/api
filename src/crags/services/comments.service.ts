@@ -1,7 +1,7 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from '../../users/entities/user.entity';
-import { FindManyOptions, In, Repository, Raw } from 'typeorm';
+import { FindManyOptions, In, Repository } from 'typeorm';
 import { CreateCommentInput } from '../dtos/create-comment.input';
 import { FindCommentsInput } from '../dtos/find-comments.input';
 import { UpdateCommentInput } from '../dtos/update-comment';
@@ -21,7 +21,7 @@ export class CommentsService {
   ) {}
 
   async findOneById(id: string): Promise<Comment> {
-    return this.commentsRepository.findOneOrFail(id);
+    return this.commentsRepository.findOneByOrFail({ id });
   }
 
   async create(data: CreateCommentInput, user: User): Promise<Comment> {
@@ -35,13 +35,13 @@ export class CommentsService {
 
     if (data.cragId != null) {
       comment.crag = Promise.resolve(
-        await this.cragRepository.findOneOrFail(data.cragId),
+        await this.cragRepository.findOneByOrFail({ id: data.cragId }),
       );
     }
 
     if (data.iceFallId != null) {
       comment.iceFall = Promise.resolve(
-        await this.iceFallRepository.findOneOrFail(data.iceFallId),
+        await this.iceFallRepository.findOneByOrFail({ id: data.iceFallId }),
       );
     }
 
@@ -51,7 +51,9 @@ export class CommentsService {
   async update(data: UpdateCommentInput): Promise<Comment> {
     this.checkExposedUntilDateValidity(data?.exposedUntil);
 
-    const comment = await this.commentsRepository.findOneOrFail(data.id);
+    const comment = await this.commentsRepository.findOneByOrFail({
+      id: data.id,
+    });
 
     this.commentsRepository.merge(comment, data);
 
@@ -67,7 +69,7 @@ export class CommentsService {
   }
 
   async delete(id: string): Promise<boolean> {
-    const comment = await this.commentsRepository.findOneOrFail(id);
+    const comment = await this.commentsRepository.findOneByOrFail({ id });
 
     return this.commentsRepository.remove(comment).then(() => true);
   }
@@ -79,7 +81,7 @@ export class CommentsService {
     };
 
     if (params.routeId != null) {
-      options.where['route'] = params.routeId;
+      options.where['routeId'] = params.routeId;
     }
 
     if (params.routeIds != null) {
@@ -87,7 +89,7 @@ export class CommentsService {
     }
 
     if (params.cragId != null) {
-      options.where['crag'] = params.cragId;
+      options.where['cragId'] = params.cragId;
     }
 
     if (params.type != null) {

@@ -11,7 +11,7 @@ export class IceFallsService {
   ) {}
 
   async findOneBySlug(slug: string): Promise<IceFall> {
-    return this.iceFallsRepository.findOneOrFail({ slug: slug });
+    return this.iceFallsRepository.findOneByOrFail({ slug: slug });
   }
 
   async getIceFalls(countryId: string, areaSlug?: string): Promise<IceFall[]> {
@@ -30,6 +30,6 @@ export class IceFallsService {
   }
 
   async nrIceFallsByCountry(countryId: string): Promise<number> {
-    return this.iceFallsRepository.count({ where: { country: countryId } });
+    return this.iceFallsRepository.count({ where: { countryId: countryId } });
   }
 }

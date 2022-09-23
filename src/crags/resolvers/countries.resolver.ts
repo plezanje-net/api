@@ -122,6 +122,7 @@ export class CountriesResolver {
       countryId: country.id,
       areaId: null,
     });
+    // TODO: areaId is always set to null and this service method is only called here and the only one that uses FindAreasInput, so areaId param is redundant
   }
 
   @ResolveField('iceFalls', () => [IceFall])

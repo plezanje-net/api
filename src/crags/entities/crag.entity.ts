@@ -122,6 +122,8 @@ export class Crag extends BaseEntity {
   )
   @Field(() => Peak, { nullable: true })
   peak: Promise<Peak>;
+  @Column({ nullable: true })
+  peakId: string;
 
   @ManyToOne(
     () => Country,

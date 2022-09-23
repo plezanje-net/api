@@ -58,7 +58,7 @@ export class ActivitiesService {
 
       if (activityIn.cragId != null) {
         activity.crag = Promise.resolve(
-          await this.cragRepository.findOneOrFail(activityIn.cragId),
+          await this.cragRepository.findOneByOrFail({ id: activityIn.cragId }),
         );
       }
       await queryRunner.manager.save(activity);
@@ -113,9 +113,9 @@ export class ActivitiesService {
     try {
       // TODO: refactor as it breaks DRY heavily, make sure that date did not change, update AR dates from activity date
       // Create new activity
-      const activity = await this.activitiesRepository.findOneOrFail(
-        activityIn.id,
-      );
+      const activity = await this.activitiesRepository.findOneByOrFail({
+        id: activityIn.id,
+      });
       this.activitiesRepository.merge(activity, activityIn);
 
       activity.user = Promise.resolve(user);
@@ -148,7 +148,7 @@ export class ActivitiesService {
   }
 
   async findOneById(id: string, currentUser: User = null): Promise<Activity> {
-    return this.buildQuery({}, currentUser)
+    return (await this.buildQuery({}, currentUser))
       .andWhereInIds([id])
       .getOneOrFail();
   }
@@ -157,7 +157,7 @@ export class ActivitiesService {
     params: FindActivitiesInput = {},
     currentUser: User = null,
   ): Promise<PaginatedActivities> {
-    const query = this.buildQuery(params, currentUser);
+    const query = await this.buildQuery(params, currentUser);
 
     const countQuery = query
       .clone()
@@ -188,19 +188,17 @@ export class ActivitiesService {
   }
 
   async find(params: FindActivitiesInput = {}): Promise<Activity[]> {
-    return this.buildQuery(params).getMany();
+    return (await this.buildQuery(params)).getMany();
   }
 
   async findByIds(ids: string[], currentUser: User): Promise<Activity[]> {
-    return this.buildQuery({}, currentUser)
-      .whereInIds(ids)
-      .getMany();
+    return (await this.buildQuery({}, currentUser)).whereInIds(ids).getMany();
   }
 
-  private buildQuery(
+  private async buildQuery(
     params: FindActivitiesInput = {},
     currentUser: User = null,
-  ): SelectQueryBuilder<Activity> {
+  ): Promise<SelectQueryBuilder<Activity>> {
     const builder = this.activitiesRepository.createQueryBuilder('a');
 
     if (params.orderBy != null) {
@@ -287,18 +285,18 @@ export class ActivitiesService {
       const {
         conditions: cragPublishConditions,
         params: cragPublishParams,
-      } = getPublishStatusParams('c', currentUser);
+      } = await getPublishStatusParams('c', currentUser);
 
       const {
         conditions: routePublishConditions,
         params: routePublishParams,
-      } = getPublishStatusParams('r', currentUser);
+      } = await getPublishStatusParams('r', currentUser);
 
       // Apply crag publish rules unless activity user is the current user
-      builder.andWhere(
-        `(a."userId" = :userId OR (${cragPublishConditions}))`,
-        cragPublishParams,
-      );
+      builder.andWhere(`(a."userId" = :userId OR (${cragPublishConditions}))`, {
+        userId: currentUser.id,
+        ...cragPublishParams,
+      });
 
       // Allow/disallow based on publish type of contained activity routes
       // --> allow only activities that belong to the current user or contain at least one activity route that is public (or log)
@@ -315,18 +313,16 @@ export class ActivitiesService {
       builder.leftJoin(Route, 'r', `r.id = ar."routeId"`, routePublishParams);
       builder.andWhere(
         `(a."userId" = :userId OR (${routePublishConditions}))`,
-        routePublishParams,
+        { userId: currentUser.id, ...routePublishParams },
       );
-
       // TODO: should also allow showing club ascents
     }
 
     if (params.hasRoutesWithPublish) {
-      builder.where('ar."publish" IN (:...publish)', {
+      builder.andWhere('ar."publish" IN (:...publish)', {
         publish: params.hasRoutesWithPublish,
       });
     }
-    // console.log(builder.getQueryAndParameters());
 
     return builder;
   }

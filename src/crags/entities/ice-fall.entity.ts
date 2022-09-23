@@ -73,6 +73,8 @@ export class IceFall extends BaseEntity {
   )
   @Field(() => Country)
   country: Promise<Country>;
+  @Column()
+  countryId: string;
 
   @ManyToOne(
     () => Area,
