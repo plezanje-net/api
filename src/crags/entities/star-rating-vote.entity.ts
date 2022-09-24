@@ -25,6 +25,8 @@ export class StarRatingVote extends BaseEntity {
   @ManyToOne(() => User, { nullable: true })
   @Field(() => User, { nullable: true })
   user: Promise<User>;
+  @Column()
+  userId: string;
 
   @CreateDateColumn()
   @Field()
@@ -41,4 +43,6 @@ export class StarRatingVote extends BaseEntity {
   )
   @Field(type => Route)
   route: Promise<Route>;
+  @Column()
+  routeId: string;
 }

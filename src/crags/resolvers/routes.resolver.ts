@@ -25,7 +25,10 @@ import { DifficultyVote } from '../entities/difficulty-vote.entity';
 import { Pitch } from '../entities/pitch.entity';
 import { RouteCommentsLoader } from '../loaders/route-comments.loader';
 import DataLoader from 'dataloader';
-import { Loader } from '../../core/interceptors/data-loader.interceptor';
+import {
+  DataLoaderInterceptor,
+  Loader,
+} from '../../core/interceptors/data-loader.interceptor';
 import { RoutePitchesLoader } from '../loaders/route-pitches.loader';
 import { DifficultyVotesService } from '../services/difficulty-votes.service';
 import { Crag } from '../entities/crag.entity';
@@ -49,6 +52,7 @@ import { LatestDifficultyVotesInput } from '../dtos/latest-difficulty-votes.inpu
 import { PaginatedDifficultyVotes } from '../utils/paginated-difficulty-votes';
 
 @Resolver(() => Route)
+@UseInterceptors(DataLoaderInterceptor)
 export class RoutesResolver {
   constructor(
     private routesService: RoutesService,

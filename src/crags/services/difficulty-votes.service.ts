@@ -17,7 +17,7 @@ export class DifficultyVotesService {
 
   async findByRouteId(routeId: string): Promise<DifficultyVote[]> {
     const grades = this.difficultyVoteRepository.find({
-      where: { route: routeId },
+      where: { routeId: routeId },
       order: { difficulty: 'ASC' },
     });
 
@@ -44,13 +44,13 @@ export class DifficultyVotesService {
   async find(
     params: LatestDifficultyVotesInputServiceInput = {},
   ): Promise<DifficultyVote[]> {
-    return this.buildQuery(params).getMany();
+    return (await this.buildQuery(params)).getMany();
   }
 
   async findLatest(
     params: LatestDifficultyVotesInputServiceInput,
   ): Promise<PaginatedDifficultyVotes> {
-    const query = this.buildQuery(params);
+    const query = await this.buildQuery(params);
     query.orderBy('v.created', 'DESC');
     query.andWhere('v.userId IS NOT NULL');
 
@@ -78,15 +78,15 @@ export class DifficultyVotesService {
     });
   }
 
-  private buildQuery(
+  private async buildQuery(
     params: LatestDifficultyVotesInputServiceInput = {},
-  ): SelectQueryBuilder<DifficultyVote> {
+  ): Promise<SelectQueryBuilder<DifficultyVote>> {
     const builder = this.difficultyVoteRepository.createQueryBuilder('v');
 
     const {
       conditions: routePublishConditions,
       params: routePublishParams,
-    } = getPublishStatusParams('route', params.user);
+    } = await getPublishStatusParams('route', params.user);
 
     builder.innerJoin(
       'route',
@@ -98,7 +98,7 @@ export class DifficultyVotesService {
     const {
       conditions: cragPublishConditions,
       params: cragPublishParams,
-    } = getPublishStatusParams('crag', params.user);
+    } = await getPublishStatusParams('crag', params.user);
 
     builder.innerJoin(
       'crag',

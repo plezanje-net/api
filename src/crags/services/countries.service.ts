@@ -18,12 +18,12 @@ export class CountriesService {
     private countriesRepository: Repository<Country>,
   ) {}
 
-  findOneBySlug(slug: string): Promise<Country> {
-    return this.countriesRepository.findOneOrFail({ slug: slug });
+  async findOneBySlug(slug: string): Promise<Country> {
+    return this.countriesRepository.findOneByOrFail({ slug });
   }
 
   findOneById(id: string): Promise<Country> {
-    return this.countriesRepository.findOneOrFail(id);
+    return this.countriesRepository.findOneByOrFail({ id });
   }
 
   findByIds(ids: string[]): Promise<Country[]> {
@@ -71,7 +71,9 @@ export class CountriesService {
   }
 
   async update(data: UpdateCountryInput): Promise<Country> {
-    const country = await this.countriesRepository.findOneOrFail(data.id);
+    const country = await this.countriesRepository.findOneByOrFail({
+      id: data.id,
+    });
 
     this.countriesRepository.merge(country, data);
 
@@ -79,7 +81,7 @@ export class CountriesService {
   }
 
   async delete(id: string): Promise<boolean> {
-    const country = await this.countriesRepository.findOneOrFail(id);
+    const country = await this.countriesRepository.findOneByOrFail({ id });
 
     return this.countriesRepository.remove(country).then(() => true);
   }

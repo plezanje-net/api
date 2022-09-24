@@ -11,7 +11,7 @@ export class PeaksService {
   ) {}
 
   async nrPeaksByCountry(countryId: string): Promise<number> {
-    return this.peaksRepository.count({ where: { country: countryId } });
+    return this.peaksRepository.count({ where: { countryId: countryId } });
   }
 
   async getPeaks(countryId: string, areaSlug?: string): Promise<Peak[]> {
@@ -32,10 +32,10 @@ export class PeaksService {
   }
 
   async getPeak(slug: string): Promise<Peak> {
-    return this.peaksRepository.findOneOrFail({ slug });
+    return this.peaksRepository.findOneByOrFail({ slug });
   }
 
   async nrCragsInPeak(peakId: string): Promise<number> {
-    return this.cragsRepository.count({ where: { peak: peakId } });
+    return this.cragsRepository.count({ where: { peakId: peakId } });
   }
 }
