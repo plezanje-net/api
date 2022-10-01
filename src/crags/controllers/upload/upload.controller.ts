@@ -84,11 +84,8 @@ export class UploadController {
         default:
           throw new BadRequestException();
       }
-      const stem = this.generateUniqueStem(
-        entityType,
-        stemBase,
-        inputExtension,
-      );
+
+      const stem = await this.generateUniqueStem(entityType, stemBase);
 
       // Load the image to memmory
       const imageBuffer = await data.toBuffer();
@@ -124,16 +121,11 @@ export class UploadController {
     }
   }
 
-  private generateUniqueStem(
-    entity: string,
-    stemBase: string,
-    extension: string,
-  ) {
+  private async generateUniqueStem(entity: string, stemBase: string) {
     let counter = 0;
     let stem = stemBase;
-    while (
-      fs.existsSync(`${env.STORAGE_PATH}/images/${entity}s/${stem}${extension}`)
-    ) {
+
+    while (await this.imagesService.findOneByPath(`${entity}s/${stem}`)) {
       counter++;
       stem = `${stemBase}-${counter}`;
     }

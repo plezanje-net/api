@@ -9,6 +9,10 @@ export class ImagesService {
     @InjectRepository(Image) private imagesRepository: Repository<Image>,
   ) {}
 
+  async findOneByPath(path: string): Promise<Image> {
+    return this.imagesRepository.findOneBy({ path });
+  }
+
   getLatestImages(latest: number, showHiddenCrags: boolean) {
     const builder = this.imagesRepository.createQueryBuilder('i');
     builder
