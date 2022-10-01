@@ -23,6 +23,8 @@ export enum ImageType {
   PROFILE = 'profile',
 }
 
+export const sizes = [300, 600, 1040]; // Add to this list if other sizes needed by FE (if changed, should reprocess all images)
+
 @Entity()
 @ObjectType()
 export class Image extends BaseEntity {

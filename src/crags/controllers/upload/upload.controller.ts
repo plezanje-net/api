@@ -18,7 +18,7 @@ import { CragsService } from '../../services/crags.service';
 import { Crag } from '../../entities/crag.entity';
 import { CreateImageDto } from '../../dtos/create-image.dto';
 import { Route } from '../../entities/route.entity';
-import { ImageType } from '../../entities/image.entity';
+import { ImageType, sizes } from '../../entities/image.entity';
 import { NonGQLUserAuthGuard } from '../../../auth/guards/non-gql-user-auth.guard';
 import { User } from '../../../users/entities/user.entity';
 import { NonGqlCurrentUser } from '../../../auth/decorators/non-gql-current-user.decorator';
@@ -27,7 +27,7 @@ import { NonGqlCurrentUser } from '../../../auth/decorators/non-gql-current-user
 @UseGuards(NonGQLUserAuthGuard)
 export class UploadController {
   maxSize = { width: 6000, height: 6000 };
-  targetSizes = [300, 600, 1040]; // Add to this list if other sizes needed by FE (if changed, should reprocess all images)
+  targetSizes = sizes;
 
   constructor(
     private routesService: RoutesService,

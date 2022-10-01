@@ -63,12 +63,14 @@ const seedDatabase = async (qr: QueryRunner, app) => {
     crags: {
       publishedCrag: {
         id: 'c370e2bf-9211-4d3e-819f-61d302646bc4',
+        slug: 'kot-tecnik',
         sectors: {
           publishedSector: {
             id: '462a3c44-c4ca-49d1-bc06-7173b4f1fbd8',
             routes: {
               publishedRoute: {
                 id: 'c9b9b9e9-1b9a-4b9a-8b9a-1b9a4b9a8b9a',
+                slug: 'highlyUnprobableSlug09832rf2',
               },
             },
           },
@@ -165,7 +167,7 @@ const seedDatabase = async (qr: QueryRunner, app) => {
   // published crag
   await qr.query(
     `INSERT INTO crag (id, name, slug, "countryId", "defaultGradingSystemId", type, "publishStatus", "isHidden", "userId")
-    VALUES ('${mockData.crags.publishedCrag.id}', 'Kotečnik', 'kotecnik', '${mockData.countries.slovenia.id}', 'french', 'sport', 'published', false, '${mockData.users.basicUser1.id}')`,
+    VALUES ('${mockData.crags.publishedCrag.id}', 'Kot Tečnik', '${mockData.crags.publishedCrag.slug}', '${mockData.countries.slovenia.id}', 'french', 'sport', 'published', false, '${mockData.users.basicUser1.id}')`,
   );
   // in review crag
   await qr.query(
@@ -204,7 +206,7 @@ const seedDatabase = async (qr: QueryRunner, app) => {
   // published route in published sector in published crag
   await qr.query(
     `INSERT INTO route (id, name, length, position, "sectorId", "cragId", "routeTypeId", "isProject", "defaultGradingSystemId", difficulty, slug, "publishStatus")
-    VALUES ('${mockData.crags.publishedCrag.sectors.publishedSector.routes.publishedRoute.id}', 'Ta lepa', '11', 1, '${mockData.crags.publishedCrag.sectors.publishedSector.id}', '${mockData.crags.publishedCrag.id}', 'sport', false, 'french', '200', 'ta-lepa', 'published')`,
+    VALUES ('${mockData.crags.publishedCrag.sectors.publishedSector.routes.publishedRoute.id}', 'Highly Unprobable Name 09832rf2', '11', 1, '${mockData.crags.publishedCrag.sectors.publishedSector.id}', '${mockData.crags.publishedCrag.id}', 'sport', false, 'french', '200', '${mockData.crags.publishedCrag.sectors.publishedSector.routes.publishedRoute.slug}', 'published')`,
   );
   // draft route in draft sector in published crag
   await qr.query(
