@@ -63,12 +63,12 @@
     "reflect-metadata": "^0.1.10",
     "rimraf": "^3.0.2",
     "rxjs": "^7.5.7",
-    "sharp": "^0.30.3",
+    "sharp": "^0.31.1",
     "slugify": "^1.6.5",
     "typeorm": "0.3.9"
   },
   "devDependencies": {
-    "@nestjs/cli": "^8.1.5",
+    "@nestjs/cli": "^9.1.4",
     "@nestjs/schematics": "^8.0.5",
     "@nestjs/testing": "^8.2.3",
     "@types/bcrypt": "^3.0.1",
