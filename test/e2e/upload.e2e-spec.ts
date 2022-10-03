@@ -31,6 +31,9 @@ describe('Upload', () => {
     queryRunner = conn.createQueryRunner();
 
     mockData = await seedDatabase(queryRunner, app);
+
+    console.log(__dirname);
+    console.log(env.STORAGE_PATH);
   });
 
   it('should fail if not logged in', () => {
