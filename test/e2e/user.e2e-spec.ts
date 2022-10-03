@@ -2,15 +2,12 @@ import request from 'supertest';
 import { Test } from '@nestjs/testing';
 import { AppModule } from '../../src/app.module';
 import { QueryRunner } from 'typeorm';
-import {
-  FastifyAdapter,
-  NestFastifyApplication,
-} from '@nestjs/platform-fastify';
 import { MailService } from '../../src/notification/services/mail.service';
 import { initializeDbConn, prepareEnvironment } from './helpers';
+import { INestApplication } from '@nestjs/common';
 
 describe('User', () => {
-  let app: NestFastifyApplication;
+  let app: INestApplication;
   let queryRunner: QueryRunner;
 
   beforeAll(async () => {
@@ -25,15 +22,9 @@ describe('User', () => {
       .useValue(mailService)
       .compile();
 
-    app = moduleRef.createNestApplication<NestFastifyApplication>(
-      new FastifyAdapter(),
-    );
+    app = moduleRef.createNestApplication();
 
     await app.init();
-    await app
-      .getHttpAdapter()
-      .getInstance()
-      .ready();
 
     const conn = await initializeDbConn(app);
     queryRunner = conn.createQueryRunner();

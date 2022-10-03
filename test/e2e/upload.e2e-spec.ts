@@ -2,20 +2,16 @@ import request from 'supertest';
 import { Test } from '@nestjs/testing';
 import { AppModule } from '../../src/app.module';
 import { QueryRunner } from 'typeorm';
-import {
-  FastifyAdapter,
-  NestFastifyApplication,
-} from '@nestjs/platform-fastify';
-import fastifyMultipart from 'fastify-multipart';
 import { initializeDbConn, prepareEnvironment, seedDatabase } from './helpers';
 import { UsersModule } from '../../src/users/users.module';
 import { CragsModule } from '../../src/crags/crags.module';
 import { env } from 'process';
 import * as fs from 'fs';
 import { sizes } from '../../src/crags/entities/image.entity';
+import { INestApplication, ValidationPipe } from '@nestjs/common';
 
 describe('Upload', () => {
-  let app: NestFastifyApplication;
+  let app: INestApplication;
   let queryRunner: QueryRunner;
 
   let mockData: any;
@@ -27,17 +23,9 @@ describe('Upload', () => {
       imports: [AppModule, UsersModule, CragsModule],
     }).compile();
 
-    app = moduleRef.createNestApplication<NestFastifyApplication>(
-      new FastifyAdapter(),
-    );
-
-    app.register(fastifyMultipart, {});
-
+    app = moduleRef.createNestApplication();
+    app.useGlobalPipes(new ValidationPipe());
     await app.init();
-    await app
-      .getHttpAdapter()
-      .getInstance()
-      .ready();
 
     const conn = await initializeDbConn(app);
     queryRunner = conn.createQueryRunner();
