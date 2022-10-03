@@ -18,6 +18,7 @@ describe('Upload', () => {
 
   beforeAll(async () => {
     prepareEnvironment();
+    process.env.STORAGE_PATH = `${__dirname}/dummy-storage`;
 
     const moduleRef = await Test.createTestingModule({
       imports: [AppModule, UsersModule, CragsModule],
@@ -31,9 +32,6 @@ describe('Upload', () => {
     queryRunner = conn.createQueryRunner();
 
     mockData = await seedDatabase(queryRunner, app);
-
-    console.log(__dirname);
-    console.log(env.STORAGE_PATH);
   });
 
   it('should fail if not logged in', () => {
@@ -82,7 +80,7 @@ describe('Upload', () => {
       .expect(201);
 
     // Check that newly generated image files exist
-    const imagesPath = `${__dirname}/../../${env.STORAGE_PATH}/images`;
+    const imagesPath = `${env.STORAGE_PATH}/images`;
     const stem = mockData.crags.publishedCrag.slug;
     expect(fs.existsSync(`${imagesPath}/crags/${stem}.jpg`)).toBe(true);
     sizes.forEach(size => {
@@ -120,7 +118,7 @@ describe('Upload', () => {
       .expect(201);
 
     // Check that newly generated image files exist
-    const imagesPath = `${__dirname}/../../${env.STORAGE_PATH}/images`;
+    const imagesPath = `${env.STORAGE_PATH}/images`;
     const stem = `${mockData.crags.publishedCrag.slug}-${mockData.crags.publishedCrag.sectors.publishedSector.routes.publishedRoute.slug}`;
 
     expect(fs.existsSync(`${imagesPath}/routes/${stem}.jpg`)).toBe(true);
