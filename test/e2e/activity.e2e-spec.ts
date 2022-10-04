@@ -1,7 +1,7 @@
 import request from 'supertest';
 import { Test } from '@nestjs/testing';
 import { AppModule } from '../../src/app.module';
-import { QueryRunner } from 'typeorm';
+import { DataSource, QueryRunner } from 'typeorm';
 import { MailService } from '../../src/notification/services/mail.service';
 import { initializeDbConn, prepareEnvironment, seedDatabase } from './helpers';
 import { UsersModule } from '../../src/users/users.module';
@@ -15,6 +15,7 @@ import { INestApplication } from '@nestjs/common';
 
 describe('Activity', () => {
   let app: INestApplication;
+  let conn: DataSource;
   let queryRunner: QueryRunner;
 
   let mockData: any;
@@ -35,7 +36,7 @@ describe('Activity', () => {
 
     await app.init();
 
-    const conn = await initializeDbConn(app);
+    conn = await initializeDbConn(app);
     queryRunner = conn.createQueryRunner();
 
     mockData = await seedDatabase(queryRunner, app);
@@ -300,22 +301,24 @@ describe('Activity', () => {
       })
       .expect(200);
 
-    const numOfNonPublicActivityRoutes = response.body.data.activities.items.filter(
-      a =>
-        a.routes.filter(ar => !['log', 'public'].includes(ar.publish)).length >
-        0,
-    ).length;
+    const numOfNonPublicActivityRoutes =
+      response.body.data.activities.items.filter(
+        (a) =>
+          a.routes.filter((ar) => !['log', 'public'].includes(ar.publish))
+            .length > 0,
+      ).length;
     expect(numOfNonPublicActivityRoutes).toEqual(0);
 
-    const numOfActivitiesWithNoPublicActivityRoutes = response.body.data.activities.items.filter(
-      a => !a.routes.some(ar => ['log', 'public'].includes(ar.publish)),
-    ).length;
+    const numOfActivitiesWithNoPublicActivityRoutes =
+      response.body.data.activities.items.filter(
+        (a) => !a.routes.some((ar) => ['log', 'public'].includes(ar.publish)),
+      ).length;
     expect(numOfActivitiesWithNoPublicActivityRoutes).toEqual(0);
 
     // TODO: should I test as above (fetching publish and comparing it), or should I only test id's of ars that I know should or should not be returned???
     // the hard code way:
     const returnedActivitiesIds = response.body.data.activities.items.map(
-      a => a.id,
+      (a) => a.id,
     );
     expect(returnedActivitiesIds).toContain(
       mockData.activities.activityWithLogRoutes.id,
@@ -331,7 +334,7 @@ describe('Activity', () => {
     );
 
     const returnedActivityRoutesIds = response.body.data.activities.items
-      .map(a => a.routes.map(ar => ar.id))
+      .map((a) => a.routes.map((ar) => ar.id))
       .reduce((acc, curr) => acc.concat(curr), []);
     expect(returnedActivityRoutesIds).toContain(
       mockData.activities.activityWithPublicRoutes.activityRoutes
@@ -395,17 +398,17 @@ describe('Activity', () => {
     // check that none of the got activities are not public and from another user
     response.body.data.activities.items
       .filter(
-        a =>
-          a.routes.filter(ar => !['log', 'public'].includes(ar.publish))
+        (a) =>
+          a.routes.filter((ar) => !['log', 'public'].includes(ar.publish))
             .length > 0 || a.routes.length === 0,
       )
-      .forEach(a => {
+      .forEach((a) => {
         expect(a.user.id).toBe(mockData.users.basicUser1.id);
       });
 
     // check that all of the activities from the logged in user are got
     const returnedActivityIds = response.body.data.activities.items.map(
-      a => a.id,
+      (a) => a.id,
     );
     expect(returnedActivityIds).toContain(
       mockData.activities.activityWithPublicRoutes.id,
@@ -422,7 +425,7 @@ describe('Activity', () => {
 
     // check that all the activity routes from the logged in user are got
     const returnedActivityRoutesIds = response.body.data.activities.items
-      .map(a => a.routes.map(ar => ar.id))
+      .map((a) => a.routes.map((ar) => ar.id))
       .reduce((acc, curr) => acc.concat(curr), []);
     expect(returnedActivityRoutesIds).toContain(
       mockData.activities.activityWithPublicRoutes.activityRoutes
@@ -473,7 +476,7 @@ describe('Activity', () => {
       .expect(200);
 
     const returnedActivityIds = response.body.data.activities.items.map(
-      a => a.id,
+      (a) => a.id,
     );
     expect(returnedActivityIds).not.toContain(
       mockData.activities.activityInDraftCrag.id,
@@ -506,14 +509,14 @@ describe('Activity', () => {
       .expect(200);
 
     const returnedActivityIds = response.body.data.activities.items.map(
-      a => a.id,
+      (a) => a.id,
     );
     expect(returnedActivityIds).toContain(
       mockData.activities.activityInDraftCrag.id,
     );
 
     const returnedActivityRoutesIds = response.body.data.activities.items
-      .map(a => a.routes.map(ar => ar.id))
+      .map((a) => a.routes.map((ar) => ar.id))
       .reduce((acc, curr) => acc.concat(curr), []);
     expect(returnedActivityRoutesIds).toContain(
       mockData.activities.activityInDraftCrag.activityRoutes.activityRoute1.id,
@@ -540,7 +543,7 @@ describe('Activity', () => {
       .expect(200);
 
     const returnedActivityIds = response.body.data.activities.items.map(
-      a => a.id,
+      (a) => a.id,
     );
     expect(returnedActivityIds).not.toContain(
       mockData.activities.activityInDraftCrag.id,
@@ -566,7 +569,7 @@ describe('Activity', () => {
       .expect(200);
 
     const returnedActivityIds = response.body.data.activities.items.map(
-      a => a.id,
+      (a) => a.id,
     );
     expect(returnedActivityIds).not.toContain(
       mockData.activities.activityInInReviewCrag.id,
@@ -593,7 +596,7 @@ describe('Activity', () => {
       .expect(200);
 
     const returnedActivityIds = response.body.data.activities.items.map(
-      a => a.id,
+      (a) => a.id,
     );
     expect(returnedActivityIds).not.toContain(
       mockData.activities.activityInInReviewCrag.id,
@@ -623,14 +626,14 @@ describe('Activity', () => {
       .expect(200);
 
     const returnedActivityIds = response.body.data.activities.items.map(
-      a => a.id,
+      (a) => a.id,
     );
     expect(returnedActivityIds).toContain(
       mockData.activities.activityInInReviewCrag.id,
     );
 
     const returnedActivityRoutesIds = response.body.data.activities.items
-      .map(a => a.routes.map(ar => ar.id))
+      .map((a) => a.routes.map((ar) => ar.id))
       .reduce((acc, curr) => acc.concat(curr), []);
     expect(returnedActivityRoutesIds).toContain(
       mockData.activities.activityInInReviewCrag.activityRoutes.activityRoute1
@@ -657,7 +660,7 @@ describe('Activity', () => {
       .expect(200);
 
     const returnedActivityIds = response.body.data.activities.items.map(
-      a => a.id,
+      (a) => a.id,
     );
     expect(returnedActivityIds).not.toContain(
       mockData.activities.activityInPublishedCragDraftSector.id,
@@ -684,7 +687,7 @@ describe('Activity', () => {
       .expect(200);
 
     const returnedActivityIds = response.body.data.activities.items.map(
-      a => a.id,
+      (a) => a.id,
     );
     expect(returnedActivityIds).not.toContain(
       mockData.activities.activityInPublishedCragDraftSector.id,
@@ -714,14 +717,14 @@ describe('Activity', () => {
       .expect(200);
 
     const returnedActivityIds = response.body.data.activities.items.map(
-      a => a.id,
+      (a) => a.id,
     );
     expect(returnedActivityIds).toContain(
       mockData.activities.activityInPublishedCragDraftSector.id,
     );
 
     const returnedActivityRoutesIds = response.body.data.activities.items
-      .map(a => a.routes.map(ar => ar.id))
+      .map((a) => a.routes.map((ar) => ar.id))
       .reduce((acc, curr) => acc.concat(curr), []);
     expect(returnedActivityRoutesIds).toContain(
       mockData.activities.activityInPublishedCragDraftSector.activityRoutes
@@ -739,6 +742,7 @@ describe('Activity', () => {
   // ... and more? ...
 
   afterAll(async () => {
+    await conn.destroy();
     await app.close();
   });
 });

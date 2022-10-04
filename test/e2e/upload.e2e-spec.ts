@@ -1,7 +1,7 @@
 import request from 'supertest';
 import { Test } from '@nestjs/testing';
 import { AppModule } from '../../src/app.module';
-import { QueryRunner } from 'typeorm';
+import { DataSource, QueryRunner } from 'typeorm';
 import { initializeDbConn, prepareEnvironment, seedDatabase } from './helpers';
 import { UsersModule } from '../../src/users/users.module';
 import { CragsModule } from '../../src/crags/crags.module';
@@ -12,6 +12,7 @@ import { INestApplication, ValidationPipe } from '@nestjs/common';
 
 describe('Upload', () => {
   let app: INestApplication;
+  let conn: DataSource;
   let queryRunner: QueryRunner;
 
   let mockData: any;
@@ -28,16 +29,14 @@ describe('Upload', () => {
     app.useGlobalPipes(new ValidationPipe());
     await app.init();
 
-    const conn = await initializeDbConn(app);
+    conn = await initializeDbConn(app);
     queryRunner = conn.createQueryRunner();
 
     mockData = await seedDatabase(queryRunner, app);
   });
 
   it('should fail if not logged in', () => {
-    return request(app.getHttpServer())
-      .post('/upload/image')
-      .expect(401);
+    return request(app.getHttpServer()).post('/upload/image').expect(401);
   });
 
   it('should fail if entityId field is missing', () => {
@@ -83,7 +82,7 @@ describe('Upload', () => {
     const imagesPath = `${env.STORAGE_PATH}/images`;
     const stem = mockData.crags.publishedCrag.slug;
     expect(fs.existsSync(`${imagesPath}/crags/${stem}.jpg`)).toBe(true);
-    sizes.forEach(size => {
+    sizes.forEach((size) => {
       const imageStemPath = `${imagesPath}/${size}/crags/${stem}`;
       expect(fs.existsSync(`${imageStemPath}.jpg`)).toBe(true);
       expect(fs.existsSync(`${imageStemPath}.webp`)).toBe(true);
@@ -122,7 +121,7 @@ describe('Upload', () => {
     const stem = `${mockData.crags.publishedCrag.slug}-${mockData.crags.publishedCrag.sectors.publishedSector.routes.publishedRoute.slug}`;
 
     expect(fs.existsSync(`${imagesPath}/routes/${stem}.jpg`)).toBe(true);
-    sizes.forEach(size => {
+    sizes.forEach((size) => {
       const imageStemPath = `${imagesPath}/${size}/routes/${stem}`;
       expect(fs.existsSync(`${imageStemPath}.jpg`)).toBe(true);
       expect(fs.existsSync(`${imageStemPath}.webp`)).toBe(true);
@@ -145,6 +144,7 @@ describe('Upload', () => {
   });
 
   afterAll(async () => {
+    await conn.destroy();
     await app.close();
   });
 });

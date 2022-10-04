@@ -1,6 +1,7 @@
-import { Connection, QueryRunner } from 'typeorm';
+import { DataSource, QueryRunner } from 'typeorm';
 import * as fs from 'fs';
 import request from 'supertest';
+import { INestApplication } from '@nestjs/common';
 
 const prepareEnvironment = async () => {
   process.env.JWT_SECRET = '456755345g6345g63456g345g63456';
@@ -14,8 +15,8 @@ const prepareEnvironment = async () => {
   process.env.REDIS_PORT = '6381';
 };
 
-const initializeDbConn = async (app): Promise<Connection> => {
-  const conn = app.get(Connection);
+const initializeDbConn = async (app: INestApplication): Promise<DataSource> => {
+  const conn = app.get(DataSource);
 
   const query = fs.readFileSync('./test/e2e/sql/init.sql', 'utf8');
 
