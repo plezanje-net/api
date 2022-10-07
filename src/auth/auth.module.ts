@@ -6,7 +6,6 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { User } from '../users/entities/user.entity';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { CacheControlService } from '../core/services/cache-control.service';
 
 @Module({
   imports: [
@@ -21,13 +20,7 @@ import { CacheControlService } from '../core/services/cache-control.service';
       inject: [ConfigService],
     }),
   ],
-  providers: [AuthService, CacheControlService, JwtStrategy],
-  exports: [AuthService, CacheControlService],
+  providers: [AuthService, JwtStrategy],
+  exports: [AuthService],
 })
-export class AuthModule {
-  constructor(private readonly cacheControlService: CacheControlService) {}
-
-  onModuleDestroy = async () => {
-    this.cacheControlService.close();
-  };
-}
+export class AuthModule {}

@@ -6,6 +6,7 @@ import {
   UpdateDateColumn,
   BaseEntity,
   ManyToOne,
+  Index,
 } from 'typeorm';
 import { ObjectType, Field } from '@nestjs/graphql';
 import { Route } from '../../crags/entities/route.entity';
@@ -70,6 +71,8 @@ export enum PublishType {
  *  - delete_difficulty_vote
  */
 @Entity()
+@Index(['route', 'publish'])
+@Index(['publish', 'activity'])
 @ObjectType()
 export class ActivityRoute extends BaseEntity {
   @PrimaryGeneratedColumn('uuid')
@@ -143,4 +146,8 @@ export class ActivityRoute extends BaseEntity {
   user: Promise<User>;
   @Column()
   userId: string;
+
+  // Score is calculated from difficulty and ascentType. The idea is that os > f > rp
+  @Field({ nullable: true })
+  score: number;
 }

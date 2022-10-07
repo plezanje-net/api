@@ -34,8 +34,6 @@ import { ImagesResolver } from './resolvers/images.resolver';
 import { ImagesService } from './services/images.service';
 import { PitchesService } from './services/pitches.service';
 import { RouteCommentsLoader } from './loaders/route-comments.loader';
-import { DataLoaderInterceptor } from '../core/interceptors/data-loader.interceptor';
-import { APP_INTERCEPTOR } from '@nestjs/core';
 import { RoutePitchesLoader } from './loaders/route-pitches.loader';
 import { DifficultyVotesService } from './services/difficulty-votes.service';
 import { Grade } from './entities/grade.entity';
@@ -51,8 +49,6 @@ import { GradingSystemLoader } from './loaders/grading-system.loader';
 import { RouteTypesService } from './services/route-types.service';
 import { RouteTypeLoader } from './loaders/route-type.loader';
 import { CountryLoader } from './loaders/country.loader';
-import { RouteLoader } from './loaders/route.loader';
-import { CragLoader } from './loaders/crag.loader';
 import { RouteProperty } from './entities/route-property.entity';
 import { CragProperty } from './entities/crag-property.entity';
 import { IceFallProperty } from './entities/ice-fall-property.entity';
@@ -66,6 +62,8 @@ import { ConfigService } from '@nestjs/config';
 import { StarRatingVotesResolver } from './resolvers/star-rating-votes.resolver';
 import { StarRatingVotesService } from './services/star-rating-votes.service';
 import { StarRatingVote } from './entities/star-rating-vote.entity';
+import { SectorRoutesLoader } from './loaders/sector-routes.loader';
+import { UploadController } from './controllers/upload/upload.controller';
 
 @Module({
   imports: [
@@ -118,15 +116,10 @@ import { StarRatingVote } from './entities/star-rating-vote.entity';
     GradingSystemLoader,
     RouteTypeLoader,
     CountryLoader,
-    RouteLoader,
     RouteNrTicksLoader,
     RouteNrTriesLoader,
     RouteNrClimbersLoader,
-    CragLoader,
-    {
-      provide: APP_INTERCEPTOR,
-      useClass: DataLoaderInterceptor,
-    },
+    SectorRoutesLoader,
     DifficultyVotesService,
     GradingSystemsResolver,
     GradingSystemsService,
@@ -140,5 +133,6 @@ import { StarRatingVote } from './entities/star-rating-vote.entity';
     MailService,
     ConfigService,
   ],
+  controllers: [UploadController],
 })
 export class CragsModule {}

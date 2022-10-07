@@ -29,7 +29,10 @@ import { AllowAny } from '../../auth/decorators/allow-any.decorator';
 import { UserAuthGuard } from '../../auth/guards/user-auth.guard';
 import { GradingSystem } from '../entities/grading-system.entity';
 import { GradingSystemLoader } from '../loaders/grading-system.loader';
-import { Loader } from '../../core/interceptors/data-loader.interceptor';
+import {
+  DataLoaderInterceptor,
+  Loader,
+} from '../../core/interceptors/data-loader.interceptor';
 import DataLoader from 'dataloader';
 import { Country } from '../entities/country.entity';
 import { CountryLoader } from '../loaders/country.loader';
@@ -41,6 +44,7 @@ import { NotificationService } from '../../notification/services/notification.se
 import { ForeignKeyConstraintFilter } from '../filters/foreign-key-constraint.filter';
 
 @Resolver(() => Crag)
+@UseInterceptors(DataLoaderInterceptor)
 export class CragsResolver {
   constructor(
     private cragsService: CragsService,

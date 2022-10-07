@@ -3,7 +3,8 @@ import { Route } from '../entities/route.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Sector } from '../entities/sector.entity';
 import {
-  Connection,
+  DataSource,
+  In,
   MoreThanOrEqual,
   Not,
   Repository,
@@ -15,27 +16,27 @@ import slugify from 'slugify';
 import { DifficultyVote } from '../entities/difficulty-vote.entity';
 import { User } from '../../users/entities/user.entity';
 import { FindRoutesServiceInput } from '../dtos/find-routes-service.input';
-import { ContributablesService } from './contributables.service';
 import {
   ActivityRoute,
   tickAscentTypes,
 } from '../../activities/entities/activity-route.entity';
 import { Transaction } from '../../core/utils/transaction.class';
-import { Crag } from '../entities/crag.entity';
+import {
+  getPublishStatusParams,
+  setPublishStatusParams,
+  updateUserContributionsFlag,
+} from '../../core/utils/contributable-helpers';
+import { setBuilderCache } from '../../core/utils/entity-cache/entity-cache-helpers';
 
 @Injectable()
-export class RoutesService extends ContributablesService {
+export class RoutesService {
   constructor(
     @InjectRepository(Route)
     protected routesRepository: Repository<Route>,
     @InjectRepository(Sector)
     protected sectorsRepository: Repository<Sector>,
-    @InjectRepository(Crag)
-    protected cragsRepository: Repository<Crag>,
-    private connection: Connection,
-  ) {
-    super(cragsRepository, sectorsRepository, routesRepository);
-  }
+    private dataSource: DataSource,
+  ) {}
 
   async find(input: FindRoutesServiceInput): Promise<Route[]> {
     return this.buildQuery(input).getMany();
@@ -46,11 +47,11 @@ export class RoutesService extends ContributablesService {
   }
 
   async findByIds(ids: string[]): Promise<Route[]> {
-    return this.routesRepository.findByIds(ids);
+    return this.routesRepository.findBy({ id: In(ids) });
   }
 
   async findOneById(id: string): Promise<Route> {
-    return this.routesRepository.findOneOrFail(id);
+    return this.routesRepository.findOneByOrFail({ id });
   }
 
   async findOneBySlug(
@@ -65,7 +66,7 @@ export class RoutesService extends ContributablesService {
       .where('r.slug = :routeSlug', { routeSlug: routeSlug })
       .andWhere('c.slug = :cragSlug', { cragSlug: cragSlug });
 
-    const { conditions, params } = this.getPublishStatusParams('r', user);
+    const { conditions, params } = await getPublishStatusParams('r', user);
     builder.andWhere(conditions, params);
 
     if (!(user != null)) {
@@ -86,6 +87,8 @@ export class RoutesService extends ContributablesService {
       .where('r.id IN (:...rIds)', { rIds: keys })
       .groupBy('r.id');
 
+    setBuilderCache(builder);
+
     return builder.getRawMany();
   }
 
@@ -97,6 +100,8 @@ export class RoutesService extends ContributablesService {
       .addSelect('COUNT(ar.id)', 'nrTries')
       .where('r.id IN (:...rIds)', { rIds: keys })
       .groupBy('r.id');
+
+    setBuilderCache(builder);
 
     return builder.getRawMany();
   }
@@ -110,6 +115,8 @@ export class RoutesService extends ContributablesService {
       .where('r.id IN (:...rIds)', { rIds: keys })
       .groupBy('r.id');
 
+    setBuilderCache(builder);
+
     return builder.getRawMany();
   }
 
@@ -120,14 +127,16 @@ export class RoutesService extends ContributablesService {
 
     route.user = Promise.resolve(user);
 
-    const sector = await this.sectorsRepository.findOneOrFail(data.sectorId);
+    const sector = await this.sectorsRepository.findOneByOrFail({
+      id: data.sectorId,
+    });
 
     route.sectorId = sector.id;
     route.cragId = sector.cragId;
 
     route.slug = await this.generateRouteSlug(route.name, route.cragId);
 
-    const transaction = new Transaction(this.connection);
+    const transaction = new Transaction(this.dataSource);
     await transaction.start();
 
     try {
@@ -141,11 +150,7 @@ export class RoutesService extends ContributablesService {
           transaction,
         );
       }
-      await this.updateUserContributionsFlag(
-        route.publishStatus,
-        user,
-        transaction,
-      );
+      await updateUserContributionsFlag(route.publishStatus, user, transaction);
     } catch (e) {
       await transaction.rollback();
       throw e;
@@ -157,12 +162,11 @@ export class RoutesService extends ContributablesService {
   }
 
   async update(data: UpdateRouteInput): Promise<Route> {
-    const transaction = new Transaction(this.connection);
+    const transaction = new Transaction(this.dataSource);
     await transaction.start();
-    let route = await transaction.queryRunner.manager.findOneOrFail(
-      Route,
-      data.id,
-    );
+    let route = await transaction.queryRunner.manager.findOneByOrFail(Route, {
+      id: data.id,
+    });
     try {
       // Is the request trying to update the route base difficulty?
       if (
@@ -220,10 +224,9 @@ export class RoutesService extends ContributablesService {
         }
 
         // Refetch route, because trigger should have changed the calculated difficulty
-        route = await transaction.queryRunner.manager.findOneOrFail(
-          Route,
-          data.id,
-        );
+        route = await transaction.queryRunner.manager.findOneByOrFail(Route, {
+          id: data.id,
+        });
       }
 
       transaction.queryRunner.manager.merge(Route, route, data);
@@ -240,11 +243,7 @@ export class RoutesService extends ContributablesService {
       await transaction.save(route);
       await this.shiftFollowingRoutes(route, transaction);
       const user = await route.user;
-      await this.updateUserContributionsFlag(
-        route.publishStatus,
-        user,
-        transaction,
-      );
+      await updateUserContributionsFlag(route.publishStatus, user, transaction);
     } catch (e) {
       await transaction.rollback();
       throw e;
@@ -278,15 +277,15 @@ export class RoutesService extends ContributablesService {
   }
 
   async delete(id: string): Promise<boolean> {
-    const route = await this.routesRepository.findOneOrFail(id);
+    const route = await this.routesRepository.findOneByOrFail({ id });
 
-    const transaction = new Transaction(this.connection);
+    const transaction = new Transaction(this.dataSource);
     await transaction.start();
 
     try {
       const user = await route.user;
       await transaction.delete(route);
-      await this.updateUserContributionsFlag(null, user, transaction);
+      await updateUserContributionsFlag(null, user, transaction);
     } catch (e) {
       await transaction.rollback();
       throw e;
@@ -315,10 +314,10 @@ export class RoutesService extends ContributablesService {
     difficulty: number,
     transaction: Transaction,
   ): Promise<void> {
-    const difficultyVote = await transaction.queryRunner.manager.findOneOrFail(
+    const difficultyVote = await transaction.queryRunner.manager.findOneByOrFail(
       DifficultyVote,
       {
-        route,
+        routeId: route.id,
         isBase: true,
       },
     );
@@ -327,10 +326,10 @@ export class RoutesService extends ContributablesService {
   }
 
   private async deleteBaseDifficulty(route: Route, transaction: Transaction) {
-    const difficultyVote = await transaction.queryRunner.manager.findOneOrFail(
+    const difficultyVote = await transaction.queryRunner.manager.findOneByOrFail(
       DifficultyVote,
       {
-        route,
+        routeId: route.id,
         isBase: true,
       },
     );
@@ -338,8 +337,8 @@ export class RoutesService extends ContributablesService {
   }
 
   private async hasRealDifficultyVotes(route: Route, transaction: Transaction) {
-    return (await transaction.queryRunner.manager.count(DifficultyVote, {
-      route,
+    return (await transaction.queryRunner.manager.countBy(DifficultyVote, {
+      routeId: route.id,
       isBase: false,
     }))
       ? true
@@ -347,7 +346,7 @@ export class RoutesService extends ContributablesService {
   }
 
   private async hasLogEntries(route: Route, transaction: Transaction) {
-    return (await transaction.queryRunner.manager.count(ActivityRoute, {
+    return (await transaction.queryRunner.manager.countBy(ActivityRoute, {
       routeId: route.id,
     }))
       ? true
@@ -367,13 +366,21 @@ export class RoutesService extends ContributablesService {
       });
     }
 
+    if (params.sectorIds != null) {
+      builder.andWhere('s.sector IN (:...sectorIds)', {
+        sectorIds: params.sectorIds,
+      });
+    }
+
     if (params.id != null) {
       builder.andWhere('s.id = :id', {
         id: params.id,
       });
     }
 
-    this.setPublishStatusParams(builder, 's', params);
+    setPublishStatusParams(builder, 's', params);
+
+    setBuilderCache(builder);
 
     return builder;
   }

@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { PaginationMeta } from '../../core/utils/pagination-meta.class';
 import { Crag } from '../../crags/entities/crag.entity';
 import { User } from '../../users/entities/user.entity';
-import { Connection, Repository, SelectQueryBuilder } from 'typeorm';
+import { DataSource, Repository, SelectQueryBuilder } from 'typeorm';
 import { CreateActivityInput } from '../dtos/create-activity.input';
 import { FindActivitiesInput } from '../dtos/find-activities.input';
 import { Activity } from '../entities/activity.entity';
@@ -11,6 +11,10 @@ import { PaginatedActivities } from '../utils/paginated-activities.class';
 import { CreateActivityRouteInput } from '../dtos/create-activity-route.input';
 import { ActivityRoutesService } from './activity-routes.service';
 import { UpdateActivityInput } from '../dtos/update-activity.input';
+import { ActivityRoute } from '../entities/activity-route.entity';
+import { Route } from '../../crags/entities/route.entity';
+import { setBuilderCache } from '../../core/utils/entity-cache/entity-cache-helpers';
+import { getPublishStatusParams } from '../../core/utils/contributable-helpers';
 
 @Injectable()
 export class ActivitiesService {
@@ -19,7 +23,7 @@ export class ActivitiesService {
     private activitiesRepository: Repository<Activity>,
     @InjectRepository(Crag)
     private cragRepository: Repository<Crag>,
-    private connection: Connection,
+    private dataSource: DataSource,
     private activityRoutesService: ActivityRoutesService,
   ) {}
 
@@ -40,7 +44,7 @@ export class ActivitiesService {
       );
     }
 
-    const queryRunner = this.connection.createQueryRunner();
+    const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
 
@@ -54,7 +58,7 @@ export class ActivitiesService {
 
       if (activityIn.cragId != null) {
         activity.crag = Promise.resolve(
-          await this.cragRepository.findOneOrFail(activityIn.cragId),
+          await this.cragRepository.findOneByOrFail({ id: activityIn.cragId }),
         );
       }
       await queryRunner.manager.save(activity);
@@ -102,16 +106,16 @@ export class ActivitiesService {
       );
     }
 
-    const queryRunner = this.connection.createQueryRunner();
+    const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
 
     try {
       // TODO: refactor as it breaks DRY heavily, make sure that date did not change, update AR dates from activity date
       // Create new activity
-      const activity = await this.activitiesRepository.findOneOrFail(
-        activityIn.id,
-      );
+      const activity = await this.activitiesRepository.findOneByOrFail({
+        id: activityIn.id,
+      });
       this.activitiesRepository.merge(activity, activityIn);
 
       activity.user = Promise.resolve(user);
@@ -143,26 +147,39 @@ export class ActivitiesService {
     }
   }
 
-  async findOneById(id: string): Promise<Activity> {
-    return this.activitiesRepository.findOneOrFail(id);
+  async findOneById(id: string, currentUser: User = null): Promise<Activity> {
+    return (await this.buildQuery({}, currentUser))
+      .andWhereInIds([id])
+      .getOneOrFail();
   }
 
   async paginate(
     params: FindActivitiesInput = {},
+    currentUser: User = null,
   ): Promise<PaginatedActivities> {
-    const query = this.buildQuery(params);
+    const query = await this.buildQuery(params, currentUser);
 
-    const itemCount = await query.getCount();
+    const countQuery = query
+      .clone()
+      .select('COUNT(DISTINCT(a.id))', 'count')
+      .groupBy(null)
+      .orderBy(null);
+
+    setBuilderCache(countQuery, 'getRawOne');
+    const itemCount = await countQuery.getRawOne();
 
     const pagination = new PaginationMeta(
-      itemCount,
+      itemCount.count,
       params.pageNumber,
       params.pageSize,
     );
 
     query
-      .skip(pagination.pageSize * (pagination.pageNumber - 1))
-      .take(pagination.pageSize);
+      .groupBy('a.id')
+      .offset(pagination.pageSize * (pagination.pageNumber - 1))
+      .limit(pagination.pageSize);
+
+    setBuilderCache(query);
 
     return Promise.resolve({
       items: await query.getMany(),
@@ -171,18 +188,17 @@ export class ActivitiesService {
   }
 
   async find(params: FindActivitiesInput = {}): Promise<Activity[]> {
-    return this.buildQuery(params).getMany();
+    return (await this.buildQuery(params)).getMany();
   }
 
-  async findByIds(ids: string[]): Promise<Activity[]> {
-    return this.buildQuery()
-      .whereInIds(ids)
-      .getMany();
+  async findByIds(ids: string[], currentUser: User): Promise<Activity[]> {
+    return (await this.buildQuery({}, currentUser)).whereInIds(ids).getMany();
   }
 
-  private buildQuery(
+  private async buildQuery(
     params: FindActivitiesInput = {},
-  ): SelectQueryBuilder<Activity> {
+    currentUser: User = null,
+  ): Promise<SelectQueryBuilder<Activity>> {
     const builder = this.activitiesRepository.createQueryBuilder('a');
 
     if (params.orderBy != null) {
@@ -205,10 +221,12 @@ export class ActivitiesService {
         : 'DESC',
     );
 
+    // TODO: ??? activity has no such field as grade
     if (params.orderBy != null && params.orderBy.field == 'grade') {
       builder.andWhere('a.grade IS NOT NULL');
     }
 
+    // TODO: should we rename this param to: forUserId?
     if (params.userId != null) {
       builder.andWhere('a."userId" = :userId', {
         userId: params.userId,
@@ -231,6 +249,79 @@ export class ActivitiesService {
 
     if (params.cragId != null) {
       builder.andWhere('a."cragId" = :cragId', { cragId: params.cragId });
+    }
+
+    builder.leftJoin(Crag, 'c', 'c.id = a."cragId"');
+    // If no current user is passed in, that means we are serving a guest
+    if (!currentUser) {
+      // Right now, only crag activity might be public, so disallow all other types
+      builder.andWhere("a.type = 'crag'");
+
+      // Allow/disallow based on publish type of contained activity routes
+      //  --> Inner join activity routes to get only activities with at least one public activity route
+      builder.innerJoin(
+        ActivityRoute,
+        'ar',
+        'ar."activityId" = a.id AND (ar."publish" IN (:...publish))',
+        { publish: ['log', 'public'] },
+      );
+
+      // Allow/disallow based on publishStatus of contained activity routes
+      //  --> allow only activities with at least one published activity route
+      builder.innerJoin(
+        Route,
+        'r',
+        'r.id = ar."routeId" AND r."publishStatus" = \'published\'',
+      );
+
+      // Disallow activities in crags that are hidden
+      builder.andWhere('c."isHidden" = false');
+
+      // Allow/disallow based on publishStatus of activitiy's crag (might be redundant to the ar condition)
+      builder.andWhere("c.publishStatus = 'published'");
+    } else {
+      // User is logged in
+
+      const {
+        conditions: cragPublishConditions,
+        params: cragPublishParams,
+      } = await getPublishStatusParams('c', currentUser);
+
+      const {
+        conditions: routePublishConditions,
+        params: routePublishParams,
+      } = await getPublishStatusParams('r', currentUser);
+
+      // Apply crag publish rules unless activity user is the current user
+      builder.andWhere(`(a."userId" = :userId OR (${cragPublishConditions}))`, {
+        userId: currentUser.id,
+        ...cragPublishParams,
+      });
+
+      // Allow/disallow based on publish type of contained activity routes
+      // --> allow only activities that belong to the current user or contain at least one activity route that is public (or log)
+      // builder.leftJoin(ActivityRoute, 'ar', 'ar."activityId" = a.id');
+      builder.leftJoin(ActivityRoute, 'ar', 'ar."activityId" = a.id');
+      builder.andWhere(
+        '(a."userId" = :userId OR ar."publish" IN (\'log\', \'public\'))',
+        {
+          userId: currentUser.id,
+        },
+      );
+
+      // Apply route publish rules unless activity user is the current user
+      builder.leftJoin(Route, 'r', `r.id = ar."routeId"`, routePublishParams);
+      builder.andWhere(
+        `(a."userId" = :userId OR (${routePublishConditions}))`,
+        { userId: currentUser.id, ...routePublishParams },
+      );
+      // TODO: should also allow showing club ascents
+    }
+
+    if (params.hasRoutesWithPublish) {
+      builder.andWhere('ar."publish" IN (:...publish)', {
+        publish: params.hasRoutesWithPublish,
+      });
     }
 
     return builder;

@@ -1,12 +1,12 @@
-import { Connection, QueryRunner } from 'typeorm';
+import { DataSource, QueryRunner } from 'typeorm';
 
 export class Transaction {
-  connection: Connection;
+  dataSource: DataSource;
 
   queryRunner: QueryRunner;
 
-  constructor(connection: Connection) {
-    this.queryRunner = connection.createQueryRunner();
+  constructor(dataSource: DataSource) {
+    this.queryRunner = dataSource.createQueryRunner();
   }
 
   public async start() {

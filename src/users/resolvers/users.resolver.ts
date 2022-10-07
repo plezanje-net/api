@@ -140,7 +140,7 @@ export class UsersResolver {
 
   @ResolveField('roles', () => [String])
   async getRoles(@Parent() user: User): Promise<string[]> {
-    return (await this.usersService.findRoles(user.id)).map(
+    return (await this.usersService.findRoles(user)).map(
       (role: Role) => role.role,
     );
   }

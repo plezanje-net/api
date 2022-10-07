@@ -10,7 +10,6 @@ import {
 import { ObjectType, Field, Extensions } from '@nestjs/graphql';
 import { Role } from './role.entity';
 import { Image } from '../../crags/entities/image.entity';
-import { Club } from './club.entity';
 import { ClubMember } from './club-member.entity';
 import { checkRoleMiddleware } from '../../core/middleware/check-role.middleware';
 
@@ -40,10 +39,10 @@ export class User extends BaseEntity {
 
   @Column({ nullable: true })
   @Field({ nullable: true })
-  gender: string;
+  gender?: string;
 
   @Column({ nullable: true })
-  picture: string;
+  picture?: string;
 
   @OneToMany(
     () => Role,
@@ -51,7 +50,7 @@ export class User extends BaseEntity {
   )
   @Field(() => [Role], { middleware: [checkRoleMiddleware], nullable: true })
   @Extensions({ roles: ['admin', 'self'] })
-  roles: Role[];
+  roles: Promise<Role[]>;
 
   @Column({ nullable: true })
   password: string;
@@ -97,6 +96,8 @@ export class User extends BaseEntity {
   @Field(() => [Image])
   images: Promise<Image[]>;
 
-  isAdmin = () =>
-    this.roles ? this.roles.find(r => r.role == 'admin') : false;
+  isAdmin = async () => {
+    const roles = await this.roles;
+    return roles ? roles.some(r => r.role == 'admin') : false;
+  };
 }

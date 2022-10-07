@@ -2,7 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateCragInput } from '../dtos/create-crag.input';
 import { Crag } from '../entities/crag.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Connection, Not, Repository, SelectQueryBuilder } from 'typeorm';
+import { DataSource, In, Not, Repository, SelectQueryBuilder } from 'typeorm';
 import { UpdateCragInput } from '../dtos/update-crag.input';
 import { Country } from '../../crags/entities/country.entity';
 import { Route } from '../entities/route.entity';
@@ -10,29 +10,35 @@ import { FindCragsServiceInput } from '../dtos/find-crags-service.input';
 import { PopularCrag } from '../utils/popular-crag.class';
 import slugify from 'slugify';
 import { User } from '../../users/entities/user.entity';
-import { ContributablesService } from './contributables.service';
 import { Transaction } from '../../core/utils/transaction.class';
 import { Sector } from '../entities/sector.entity';
 import { PublishStatus } from '../entities/enums/publish-status.enum';
+import {
+  cascadePublishStatusToRoutes,
+  getPublishStatusParams,
+  setPublishStatusParams,
+  updateUserContributionsFlag,
+} from '../../core/utils/contributable-helpers';
+import { setBuilderCache } from '../../core/utils/entity-cache/entity-cache-helpers';
 
 @Injectable()
-export class CragsService extends ContributablesService {
+export class CragsService {
   constructor(
     @InjectRepository(Route)
     protected routesRepository: Repository<Route>,
-    @InjectRepository(Sector)
-    protected sectorsRepository: Repository<Sector>,
     @InjectRepository(Crag)
     protected cragsRepository: Repository<Crag>,
     @InjectRepository(Country)
     private countryRepository: Repository<Country>,
-    private connection: Connection,
-  ) {
-    super(cragsRepository, sectorsRepository, routesRepository);
-  }
+    private dataSource: DataSource,
+  ) {}
 
   async findByIds(ids: string[]): Promise<Crag[]> {
-    return this.cragsRepository.findByIds(ids);
+    return this.cragsRepository.findBy({ id: In(ids) });
+  }
+
+  async findOneById(id: string): Promise<Crag> {
+    return this.cragsRepository.findOneByOrFail({ id });
   }
 
   async findOne(params: FindCragsServiceInput = {}): Promise<Crag> {
@@ -46,7 +52,9 @@ export class CragsService extends ContributablesService {
   }
 
   async find(params: FindCragsServiceInput = {}): Promise<Crag[]> {
-    const rawAndEntities = await this.buildQuery(params).getRawAndEntities();
+    const rawAndEntities = await (
+      await this.buildQuery(params)
+    ).getRawAndEntities();
 
     const crags = rawAndEntities.entities.map((element, index) => {
       element.routeCount = rawAndEntities.raw[index].routeCount;
@@ -64,7 +72,7 @@ export class CragsService extends ContributablesService {
     crag.user = Promise.resolve(user);
 
     crag.country = Promise.resolve(
-      await this.countryRepository.findOneOrFail(data.countryId),
+      await this.countryRepository.findOneByOrFail({ id: data.countryId }),
     );
 
     crag.slug = await this.generateCragSlug(data.name);
@@ -75,7 +83,7 @@ export class CragsService extends ContributablesService {
   }
 
   async update(data: UpdateCragInput): Promise<Crag> {
-    const crag = await this.cragsRepository.findOneOrFail(data.id);
+    const crag = await this.cragsRepository.findOneByOrFail({ id: data.id });
     const previousPublishStatus = crag.publishStatus;
 
     this.cragsRepository.merge(crag, data);
@@ -96,7 +104,7 @@ export class CragsService extends ContributablesService {
     user: User,
     cascadeFromPublishStatus: PublishStatus = null,
   ) {
-    const transaction = new Transaction(this.connection);
+    const transaction = new Transaction(this.dataSource);
     await transaction.start();
 
     try {
@@ -108,11 +116,7 @@ export class CragsService extends ContributablesService {
           transaction,
         );
       }
-      await this.updateUserContributionsFlag(
-        crag.publishStatus,
-        user,
-        transaction,
-      );
+      await updateUserContributionsFlag(crag.publishStatus, user, transaction);
     } catch (e) {
       await transaction.rollback();
       throw e;
@@ -136,20 +140,20 @@ export class CragsService extends ContributablesService {
     for (const sector of sectors) {
       sector.publishStatus = crag.publishStatus;
       await transaction.save(sector);
-      await this.cascadePublishStatusToRoutes(sector, oldStatus, transaction);
+      await cascadePublishStatusToRoutes(sector, oldStatus, transaction);
     }
   }
 
   async delete(id: string): Promise<boolean> {
-    const crag = await this.cragsRepository.findOneOrFail(id);
+    const crag = await this.cragsRepository.findOneByOrFail({ id });
 
-    const transaction = new Transaction(this.connection);
+    const transaction = new Transaction(this.dataSource);
     await transaction.start();
 
     try {
       const user = await crag.user;
       await transaction.delete(crag);
-      await this.updateUserContributionsFlag(null, user, transaction);
+      await updateUserContributionsFlag(null, user, transaction);
     } catch (e) {
       await transaction.rollback();
       throw e;
@@ -160,9 +164,9 @@ export class CragsService extends ContributablesService {
     return Promise.resolve(true);
   }
 
-  private buildQuery(
+  private async buildQuery(
     params: FindCragsServiceInput = {},
-  ): SelectQueryBuilder<Crag> {
+  ): Promise<SelectQueryBuilder<Crag>> {
     const builder = this.cragsRepository.createQueryBuilder('c');
 
     builder.orderBy('c.name COLLATE "utf8_slovenian_ci"', 'ASC');
@@ -213,9 +217,9 @@ export class CragsService extends ContributablesService {
       builder.andWhere('c.isHidden = false');
     }
 
-    this.setPublishStatusParams(builder, 'c', params);
+    setPublishStatusParams(builder, 'c', params);
 
-    const { conditions, params: joinParams } = this.getPublishStatusParams(
+    const { conditions, params: joinParams } = await getPublishStatusParams(
       'route',
       params.user,
     );
@@ -230,17 +234,22 @@ export class CragsService extends ContributablesService {
       });
     }
 
+    setBuilderCache(builder);
+
     return builder;
   }
 
   async getNumberOfRoutes(crag: Crag, user: User): Promise<number> {
     const builder = this.routesRepository
       .createQueryBuilder('route')
+      .select('COUNT(DISTINCT(route.id))', 'count')
       .where('route."cragId" = :cragId', { cragId: crag.id });
 
-    this.setPublishStatusParams(builder, 'route', { user });
+    setPublishStatusParams(builder, 'route', { user });
 
-    return builder.getCount();
+    setBuilderCache(builder, 'getRawOne');
+    const itemCount = await builder.getRawOne();
+    return itemCount.count;
   }
 
   async getPopularCrags(
@@ -268,6 +277,8 @@ export class CragsService extends ContributablesService {
       builder.limit(top);
     }
 
+    setBuilderCache(builder, 'getRawAndEntities');
+
     const rawAndEntities = await builder.getRawAndEntities();
 
     const popularCrags = rawAndEntities.raw.map((element, index) => {
@@ -281,7 +292,7 @@ export class CragsService extends ContributablesService {
   }
 
   async getAcitivityByMonth(crag: Crag): Promise<number[]> {
-    const results = await this.routesRepository
+    const builder = this.routesRepository
       .createQueryBuilder('r')
       .select([
         'EXTRACT(month FROM ar.date) -1 as month',
@@ -290,8 +301,11 @@ export class CragsService extends ContributablesService {
       .innerJoin('activity_route', 'ar', 'ar.routeId = r.id')
       .where('r.cragId = :cid', { cid: crag.id })
       .groupBy('EXTRACT(month FROM ar.date)')
-      .orderBy('EXTRACT(month FROM ar.date)', 'ASC')
-      .getRawMany();
+      .orderBy('EXTRACT(month FROM ar.date)', 'ASC');
+
+    setBuilderCache(builder, 'getRawMany');
+
+    const results = await builder.getRawMany();
 
     const response = new Array(12).fill(0);
 
@@ -309,9 +323,9 @@ export class CragsService extends ContributablesService {
     let suffix = '';
 
     while (
-      (await this.cragsRepository.findOne({
+      await this.cragsRepository.findOne({
         where: { ...selfCond, slug: slug + suffix },
-      })) !== undefined
+      })
     ) {
       suffixCounter++;
       suffix = '-' + suffixCounter;

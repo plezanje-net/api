@@ -2,6 +2,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Peak } from '../entities/peak.entity';
 import { Crag } from '../entities/crag.entity';
+import { setBuilderCache } from '../../core/utils/entity-cache/entity-cache-helpers';
 
 export class PeaksService {
   constructor(
@@ -10,7 +11,7 @@ export class PeaksService {
   ) {}
 
   async nrPeaksByCountry(countryId: string): Promise<number> {
-    return this.peaksRepository.count({ where: { country: countryId } });
+    return this.peaksRepository.count({ where: { countryId: countryId } });
   }
 
   async getPeaks(countryId: string, areaSlug?: string): Promise<Peak[]> {
@@ -25,14 +26,16 @@ export class PeaksService {
 
     qb.orderBy('peak.name');
 
+    setBuilderCache(qb);
+
     return qb.getMany();
   }
 
   async getPeak(slug: string): Promise<Peak> {
-    return this.peaksRepository.findOneOrFail({ slug });
+    return this.peaksRepository.findOneByOrFail({ slug });
   }
 
   async nrCragsInPeak(peakId: string): Promise<number> {
-    return this.cragsRepository.count({ where: { peak: peakId } });
+    return this.cragsRepository.count({ where: { peakId: peakId } });
   }
 }

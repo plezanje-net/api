@@ -7,6 +7,7 @@ import {
   BaseEntity,
   ManyToOne,
   Unique,
+  Index,
 } from 'typeorm';
 import { ObjectType, Field } from '@nestjs/graphql';
 import { User } from '../../users/entities/user.entity';
@@ -18,6 +19,7 @@ import { Route } from './route.entity';
  */
 @Entity()
 @Unique(['route', 'user'])
+@Index(['created'])
 @ObjectType()
 export class DifficultyVote extends BaseEntity {
   @PrimaryGeneratedColumn('uuid')
@@ -31,6 +33,8 @@ export class DifficultyVote extends BaseEntity {
   @ManyToOne(() => User, { nullable: true })
   @Field(() => User, { nullable: true })
   user: Promise<User>;
+  @Column({ nullable: true })
+  userId: string;
 
   @CreateDateColumn()
   @Field()
@@ -50,6 +54,8 @@ export class DifficultyVote extends BaseEntity {
   )
   @Field(() => Route)
   route: Promise<Route>;
+  @Column()
+  routeId: string;
 
   @Column({ nullable: true })
   @Field()

@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Sector } from '../entities/sector.entity';
 import {
-  Connection,
+  DataSource,
   MoreThanOrEqual,
   Not,
   Repository,
@@ -10,27 +10,27 @@ import {
 } from 'typeorm';
 import { UpdateSectorInput } from '../dtos/update-sector.input';
 import { CreateSectorInput } from '../dtos/create-sector.input';
-import { Crag } from '../entities/crag.entity';
 import { Route } from '../entities/route.entity';
 import { User } from '../../users/entities/user.entity';
 import { FindSectorsServiceInput } from '../dtos/find-sectors-service.input';
-import { ContributablesService } from './contributables.service';
 import { Transaction } from '../../core/utils/transaction.class';
 import { PublishStatus } from '../entities/enums/publish-status.enum';
+import {
+  cascadePublishStatusToRoutes,
+  setPublishStatusParams,
+  updateUserContributionsFlag,
+} from '../../core/utils/contributable-helpers';
+import { setBuilderCache } from '../../core/utils/entity-cache/entity-cache-helpers';
 
 @Injectable()
-export class SectorsService extends ContributablesService {
+export class SectorsService {
   constructor(
-    @InjectRepository(Crag)
-    protected cragsRepository: Repository<Crag>,
     @InjectRepository(Sector)
     protected sectorsRepository: Repository<Sector>,
     @InjectRepository(Route)
     protected routesRepository: Repository<Route>,
-    private connection: Connection,
-  ) {
-    super(cragsRepository, sectorsRepository, routesRepository);
-  }
+    private dataSource: DataSource,
+  ) {}
 
   async find(input: FindSectorsServiceInput): Promise<Sector[]> {
     return this.buildQuery(input).getMany();
@@ -54,7 +54,9 @@ export class SectorsService extends ContributablesService {
   }
 
   async update(data: UpdateSectorInput): Promise<Sector> {
-    const sector = await this.sectorsRepository.findOneOrFail(data.id);
+    const sector = await this.sectorsRepository.findOneByOrFail({
+      id: data.id,
+    });
     const previousPublishStatus = sector.publishStatus;
 
     this.sectorsRepository.merge(sector, data);
@@ -67,15 +69,15 @@ export class SectorsService extends ContributablesService {
   }
 
   async delete(id: string): Promise<boolean> {
-    const sector = await this.sectorsRepository.findOneOrFail(id);
+    const sector = await this.sectorsRepository.findOneByOrFail({ id });
 
-    const transaction = new Transaction(this.connection);
+    const transaction = new Transaction(this.dataSource);
     await transaction.start();
 
     try {
       const user = await sector.user;
       await transaction.delete(sector);
-      await this.updateUserContributionsFlag(null, user, transaction);
+      await updateUserContributionsFlag(null, user, transaction);
     } catch (e) {
       await transaction.rollback();
       throw e;
@@ -87,7 +89,7 @@ export class SectorsService extends ContributablesService {
   }
 
   async bouldersOnly(sectorId: string): Promise<boolean> {
-    const cnt = this.routesRepository.count({
+    const cnt = this.routesRepository.countBy({
       sectorId: sectorId,
       routeTypeId: Not('boulder'),
     });
@@ -100,20 +102,20 @@ export class SectorsService extends ContributablesService {
     user: User,
     cascadeFromPublishStatus: PublishStatus = null,
   ) {
-    const transaction = new Transaction(this.connection);
+    const transaction = new Transaction(this.dataSource);
     await transaction.start();
 
     try {
       await transaction.save(sector);
       await this.shiftFollowingSectors(sector, transaction);
       if (cascadeFromPublishStatus != null) {
-        await this.cascadePublishStatusToRoutes(
+        await cascadePublishStatusToRoutes(
           sector,
           cascadeFromPublishStatus,
           transaction,
         );
       }
-      await this.updateUserContributionsFlag(
+      await updateUserContributionsFlag(
         sector.publishStatus,
         user,
         transaction,
@@ -176,7 +178,9 @@ export class SectorsService extends ContributablesService {
       });
     }
 
-    this.setPublishStatusParams(builder, 's', params);
+    setPublishStatusParams(builder, 's', params);
+
+    setBuilderCache(builder);
 
     return builder;
   }

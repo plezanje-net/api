@@ -29,8 +29,10 @@ import { IceFallsService } from '../services/ice-falls.service';
 import { IceFall } from '../entities/ice-fall.entity';
 import { CurrentUser } from '../../auth/decorators/current-user.decorator';
 import { User } from '../../users/entities/user.entity';
+import { DataLoaderInterceptor } from '../../core/interceptors/data-loader.interceptor';
 
 @Resolver(() => Country)
+@UseInterceptors(DataLoaderInterceptor)
 export class CountriesResolver {
   constructor(
     private countriesService: CountriesService,
@@ -120,6 +122,7 @@ export class CountriesResolver {
       countryId: country.id,
       areaId: null,
     });
+    // TODO: areaId is always set to null and this service method is only called here and the only one that uses FindAreasInput, so areaId param is redundant
   }
 
   @ResolveField('iceFalls', () => [IceFall])

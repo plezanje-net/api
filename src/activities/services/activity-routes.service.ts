@@ -9,7 +9,7 @@ import {
 import { Club } from '../../users/entities/club.entity';
 import { User } from '../../users/entities/user.entity';
 import {
-  Connection,
+  DataSource,
   QueryRunner,
   Repository,
   SelectQueryBuilder,
@@ -32,11 +32,12 @@ import { UpdateActivityRouteInput } from '../dtos/update-activity-route.input';
 import { RoutesTouches } from '../utils/routes-touches.class';
 import { FindRoutesTouchesInput } from '../dtos/find-routes-touches.input';
 import { SideEffect } from '../utils/side-effect.class';
+import { setBuilderCache } from '../../core/utils/entity-cache/entity-cache-helpers';
 
 @Injectable()
 export class ActivityRoutesService {
   constructor(
-    private connection: Connection,
+    private dataSource: DataSource,
     @InjectRepository(ActivityRoute)
     private activityRoutesRepository: Repository<ActivityRoute>,
     @InjectRepository(ClubMember)
@@ -49,7 +50,7 @@ export class ActivityRoutesService {
     user: User,
     routesIn: CreateActivityRouteInput[],
   ): Promise<ActivityRoute[]> {
-    const queryRunner = this.connection.createQueryRunner();
+    const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
 
@@ -85,10 +86,9 @@ export class ActivityRoutesService {
 
     activityRoute.user = Promise.resolve(user);
 
-    const route = await queryRunner.manager.findOneOrFail(
-      Route,
-      routeIn.routeId,
-    );
+    const route = await queryRunner.manager.findOneByOrFail(Route, {
+      id: routeIn.routeId,
+    });
 
     const routeTouched = await this.getTouchesForRoutes(
       new FindRoutesTouchesInput([routeIn.routeId], routeIn.date),
@@ -151,9 +151,9 @@ export class ActivityRoutesService {
         );
       }
 
-      let difficultyVote = await queryRunner.manager.findOne(DifficultyVote, {
-        user,
-        route,
+      let difficultyVote = await queryRunner.manager.findOneBy(DifficultyVote, {
+        userId: user.id,
+        routeId: route.id,
       });
       if (!difficultyVote) {
         difficultyVote = new DifficultyVote();
@@ -174,7 +174,7 @@ export class ActivityRoutesService {
 
     // if a vote on star rating (route beauty) is passed add a new star rating vote or update existing one
     if (routeIn.votedStarRating || routeIn.votedStarRating === 0) {
-      let starRatingVote = await queryRunner.manager.findOne(StarRatingVote, {
+      let starRatingVote = await queryRunner.manager.findOneBy(StarRatingVote, {
         userId: user.id,
         routeId: route.id,
       });
@@ -426,47 +426,6 @@ export class ActivityRoutesService {
     return true;
   }
 
-  // Deprecated, use getTouchesForRoutes instead
-  async routeTouched(user: User, routeId: string, queryRunner: QueryRunner) {
-    const query = queryRunner.manager
-      .createQueryBuilder()
-      .select('tried')
-      .addSelect('ticked')
-      .addSelect('trticked')
-      .from(subQuery => {
-        return subQuery
-          .select('count(*) > 0', 'tried')
-          .from('activity_route', 'ar')
-          .where('ar.routeId = :routeId', { routeId: routeId })
-          .andWhere('ar.userId = :userId', { userId: user.id });
-      }, 'tried')
-      .addFrom(subQuery => {
-        return subQuery
-          .select('count(*) > 0', 'ticked')
-          .from('activity_route', 'ar')
-          .where('ar.routeId = :routeId', { routeId: routeId })
-          .andWhere('ar.userId = :userId', { userId: user.id })
-          .andWhere('ar.ascentType IN (:...aTypes)', {
-            aTypes: [...tickAscentTypes],
-          });
-      }, 'ticked')
-      .addFrom(subQuery => {
-        return subQuery
-          .select('count(*) > 0', 'trticked')
-          .from('activity_route', 'ar')
-          .where('ar.routeId = :routeId', { routeId: routeId })
-          .andWhere('ar.userId = :userId', { userId: user.id })
-          .andWhere('ar.ascentType IN (:...aTypes2)', {
-            aTypes2: [...trTickAscentTypes],
-          });
-      }, 'trticked')
-      .getRawMany();
-
-    const result = await query;
-
-    return result[0];
-  }
-
   /**
    * For an array of route ids check which of the routes has a user already tried, ticked or ticked on toprope before (or on) a given date
    * (Pass in a queryRunner instance if you are inside a transaction)
@@ -567,8 +526,8 @@ export class ActivityRoutesService {
     });
     const clubMember = await this.clubMembersRepository.findOne({
       where: {
-        user: user.id,
-        club: club.id,
+        userId: user.id,
+        clubId: club.id,
         status: ClubMemberStatus.ACTIVE,
       },
     });
@@ -660,8 +619,9 @@ export class ActivityRoutesService {
 
   async paginate(
     params: FindActivityRoutesInput = {},
+    currentUser: User = null,
   ): Promise<PaginatedActivityRoutes> {
-    const query = this.buildQuery(params);
+    const query = this.buildQuery(params, currentUser);
 
     const itemCount = await query.getCount();
 
@@ -681,12 +641,18 @@ export class ActivityRoutesService {
     });
   }
 
-  async find(params: FindActivityRoutesInput = {}): Promise<ActivityRoute[]> {
-    return this.buildQuery(params).getMany();
+  async find(
+    params: FindActivityRoutesInput = {},
+    currentUser: User = null,
+  ): Promise<ActivityRoute[]> {
+    const query = this.buildQuery(params, currentUser);
+    setBuilderCache(query);
+    return query.getMany();
   }
 
   private buildQuery(
     params: FindActivityRoutesInput = {},
+    currentUser: User = null,
   ): SelectQueryBuilder<ActivityRoute> {
     const builder = this.activityRoutesRepository.createQueryBuilder('ar');
 
@@ -696,6 +662,12 @@ export class ActivityRoutesService {
     builder.leftJoin('pitch', 'p', 'p.id = ar."pitchId"');
     builder.addSelect('p.difficulty');
     builder.addSelect('coalesce(p.difficulty, r.difficulty)', 'difficulty');
+
+    // TODO: this is inclomplete --> we should define scoring for all possible ascent types!
+    // TODO: how to DRY this and calclulateScore bellow?
+    builder.addSelect(
+      "(r.difficulty + (ar.ascentType='onsight')::int * 100 + (ar.ascentType='flash')::int * 50) as score",
+    );
 
     if (params.orderBy != null) {
       builder.orderBy(
@@ -720,6 +692,7 @@ export class ActivityRoutesService {
       });
     }
 
+    // TODO: should we rename this to forUserId?
     if (params.userId != null) {
       builder.andWhere('ar."userId" = :userId', {
         userId: params.userId,
@@ -756,6 +729,41 @@ export class ActivityRoutesService {
       });
     }
 
+    // If no current user is passed in, that means we are serving a guest
+    if (!currentUser) {
+      // Allow showing only public ascents to guests
+      builder.andWhere('ar."publish" IN (:...publish)', {
+        publish: ['log', 'public'],
+      });
+
+      // Allow showing only published routes (no drafts or in_reviews)
+      builder.andWhere('r."publishStatus" = \'published\'');
+    } else {
+      // Allow showing users own ascents and all public ascents
+      builder.andWhere(
+        '(ar."userId" = :userId OR ar."publish" IN (:...publish))',
+        {
+          userId: currentUser.id,
+          publish: ['log', 'public'],
+        },
+      );
+      // TODO: should also allow showing club ascents
+
+      if (currentUser.isAdmin()) {
+        // Allow showing only published and in_review routes and also own drafts
+        builder.andWhere(
+          '(r."publishStatus" IN (\'published\', \'in_review\') OR (r."publishStatus" = \'draft\' AND ar."userId" = :userId))',
+          { userId: currentUser.id },
+        );
+      } else {
+        // Allow showing only published routes and also own drafts and in_reviews
+        builder.andWhere(
+          '(r."publishStatus" = \'published\' OR (r."publishStatus" IN (\'draft\', \'in_review\') AND ar."userId" = :userId))',
+          { userId: currentUser.id },
+        );
+      }
+    }
+
     return builder;
   }
 
@@ -768,17 +776,21 @@ export class ActivityRoutesService {
       return 'difficulty';
     }
 
+    if (field === 'score') {
+      return 'score';
+    }
+
     return `ar.${field}`;
   }
 
   findOneById(id: string): Promise<ActivityRoute> {
-    return this.activityRoutesRepository.findOneOrFail(id);
+    return this.activityRoutesRepository.findOneByOrFail({ id });
   }
 
   async update(data: UpdateActivityRouteInput): Promise<ActivityRoute> {
-    const activityRoute = await this.activityRoutesRepository.findOneOrFail(
-      data.id,
-    );
+    const activityRoute = await this.activityRoutesRepository.findOneByOrFail({
+      id: data.id,
+    });
 
     this.activityRoutesRepository.merge(activityRoute, data);
 
@@ -868,5 +880,15 @@ export class ActivityRoutesService {
     }
 
     await queryRunner.manager.save(route);
+  }
+
+  // TODO: this is inclomplete --> we chould define scoring for all possible ascent types!
+  async calculateScore(activityRoute: ActivityRoute): Promise<number> {
+    const route = await activityRoute.route;
+    let score = route.difficulty;
+    score += activityRoute.ascentType === 'onsight' ? 100 : 0;
+    score += activityRoute.ascentType === 'flash' ? 50 : 0;
+
+    return score;
   }
 }

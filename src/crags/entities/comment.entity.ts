@@ -79,6 +79,8 @@ export class Comment extends BaseEntity {
   )
   @Field(() => Crag, { nullable: true })
   crag: Promise<Crag>;
+  @Column({ nullable: true })
+  cragId: string;
 
   @ManyToOne(
     () => Route,

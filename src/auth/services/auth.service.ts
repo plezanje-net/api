@@ -20,19 +20,19 @@ export class AuthService {
   ) {}
 
   async login(input: LoginInput): Promise<LoginResponse> {
-    return this.validateUser(input.email, input.password).then(user => {
-      const payload = {
-        sub: user.id,
-        email: user.email,
-        lastPasswordChange: user.lastPasswordChange,
-        roles: user.roles.map((role: Role) => role.role),
-      };
+    const user = await this.validateUser(input.email, input.password);
 
-      return {
-        token: this.jwtService.sign(payload),
-        user: user,
-      };
-    });
+    const payload = {
+      sub: user.id,
+      email: user.email,
+      lastPasswordChange: user.lastPasswordChange,
+      roles: (await user.roles).map((role: Role) => role.role),
+    };
+
+    return {
+      token: this.jwtService.sign(payload),
+      user: user,
+    };
   }
 
   async validateUser(email: string, pass: string): Promise<any> {
@@ -70,7 +70,7 @@ export class AuthService {
       return null;
     }
 
-    const userRoles = user.roles.map(r => r.role);
+    const userRoles = (await user.roles).map(r => r.role);
 
     if (roles.filter(r => !userRoles.includes(r)).length > 0) {
       return null;

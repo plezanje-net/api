@@ -64,6 +64,8 @@ export class Area extends BaseEntity {
     nullable: true,
   })
   area: Promise<Area>;
+  @Column({ nullable: true })
+  areaId: string;
 
   @Column({ type: 'text', nullable: true })
   @Field({ nullable: true })
@@ -108,6 +110,8 @@ export class Area extends BaseEntity {
   )
   @Field(() => Country)
   country: Promise<Country>;
+  @Column()
+  countryId: string;
 
   @OneToMany(
     () => Image,
