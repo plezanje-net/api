@@ -96,9 +96,9 @@ export class ActivityRoutesService {
       queryRunner,
     );
     const logPossible = this.logPossible(
-      routeTouched.ticked.some(ar => ar.routeId === routeIn.routeId),
-      routeTouched.tried.some(ar => ar.routeId === routeIn.routeId),
-      routeTouched.trTicked.some(ar => ar.routeId === routeIn.routeId),
+      routeTouched.ticked.some((ar) => ar.routeId === routeIn.routeId),
+      routeTouched.tried.some((ar) => ar.routeId === routeIn.routeId),
+      routeTouched.trTicked.some((ar) => ar.routeId === routeIn.routeId),
       routeIn.ascentType,
       route.routeTypeId,
     );
@@ -812,16 +812,19 @@ export class ActivityRoutesService {
       .getRawOne();
 
     if (nrAscentsLeft.count == 0) {
-      const starRatingVote = await queryRunner.manager.findOne(StarRatingVote, {
-        userId: activityRoute.userId,
-        routeId: activityRoute.routeId,
-      });
+      const starRatingVote = await queryRunner.manager.findOneBy(
+        StarRatingVote,
+        {
+          userId: activityRoute.userId,
+          routeId: activityRoute.routeId,
+        },
+      );
 
       // If the user even has cast a star ratig vote for this route
       if (starRatingVote) {
         await queryRunner.manager.remove(StarRatingVote, starRatingVote);
 
-        const route = await queryRunner.manager.findOne(Route, {
+        const route = await queryRunner.manager.findOneBy(Route, {
           id: activityRoute.routeId,
         });
         await this.recalculateStarRating(route, queryRunner);
