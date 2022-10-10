@@ -59,6 +59,9 @@ import { RouteNrClimbersLoader } from './loaders/route-nr-climbers.loader';
 import { NotificationService } from '../notification/services/notification.service';
 import { MailService } from '../notification/services/mail.service';
 import { ConfigService } from '@nestjs/config';
+import { StarRatingVotesResolver } from './resolvers/star-rating-votes.resolver';
+import { StarRatingVotesService } from './services/star-rating-votes.service';
+import { StarRatingVote } from './entities/star-rating-vote.entity';
 import { SectorRoutesLoader } from './loaders/sector-routes.loader';
 import { UploadController } from './controllers/upload/upload.controller';
 
@@ -83,6 +86,7 @@ import { UploadController } from './controllers/upload/upload.controller';
       RouteProperty,
       CragProperty,
       IceFallProperty,
+      StarRatingVote,
     ]),
     AuditModule,
   ],
@@ -100,6 +104,8 @@ import { UploadController } from './controllers/upload/upload.controller';
     CommentsService,
     CommentsResolver,
     SearchResolver,
+    StarRatingVotesResolver,
+    StarRatingVotesService,
     SearchService,
     GradesService,
     ImagesResolver,

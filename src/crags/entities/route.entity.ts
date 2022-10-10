@@ -67,7 +67,7 @@ export class Route extends BaseEntity {
   @Column()
   defaultGradingSystemId: string;
 
-  @Column({ type: 'float', nullable: true })
+  @Column({ type: 'int', nullable: true })
   @Field({ nullable: true })
   starRating: number;
 

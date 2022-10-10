@@ -6,12 +6,14 @@ import {
   UpdateDateColumn,
   BaseEntity,
   ManyToOne,
+  Unique,
 } from 'typeorm';
 import { ObjectType, Field } from '@nestjs/graphql';
 import { User } from '../../users/entities/user.entity';
 import { Route } from './route.entity';
 
 @Entity()
+@Unique(['route', 'user'])
 @ObjectType()
 export class StarRatingVote extends BaseEntity {
   @PrimaryGeneratedColumn('uuid')
@@ -22,8 +24,8 @@ export class StarRatingVote extends BaseEntity {
   @Field()
   stars: number;
 
-  @ManyToOne(() => User, { nullable: true })
-  @Field(() => User, { nullable: true })
+  @ManyToOne(() => User)
+  @Field(() => User)
   user: Promise<User>;
   @Column()
   userId: string;

@@ -282,15 +282,11 @@ export class ActivitiesService {
     } else {
       // User is logged in
 
-      const {
-        conditions: cragPublishConditions,
-        params: cragPublishParams,
-      } = await getPublishStatusParams('c', currentUser);
+      const { conditions: cragPublishConditions, params: cragPublishParams } =
+        await getPublishStatusParams('c', currentUser);
 
-      const {
-        conditions: routePublishConditions,
-        params: routePublishParams,
-      } = await getPublishStatusParams('r', currentUser);
+      const { conditions: routePublishConditions, params: routePublishParams } =
+        await getPublishStatusParams('r', currentUser);
 
       // Apply crag publish rules unless activity user is the current user
       builder.andWhere(`(a."userId" = :userId OR (${cragPublishConditions}))`, {
@@ -328,6 +324,24 @@ export class ActivitiesService {
   }
 
   async delete(activity: Activity): Promise<boolean> {
-    return this.activitiesRepository.remove(activity).then(() => true);
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    try {
+      const activityRoutes = await activity.routes;
+      for (const activityRoute of activityRoutes) {
+        await this.activityRoutesService.delete(activityRoute, queryRunner);
+      }
+
+      await queryRunner.manager.remove(Activity, activity);
+      await queryRunner.commitTransaction();
+      return true;
+    } catch (exception) {
+      await queryRunner.rollbackTransaction();
+      throw exception;
+    } finally {
+      await queryRunner.release();
+    }
   }
 }

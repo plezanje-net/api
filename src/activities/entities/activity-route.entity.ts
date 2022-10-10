@@ -68,7 +68,7 @@ export enum PublishType {
 /**
  * Has Triggers:
  *  - convert_first_repeat_to_redpoint
- *  - delete_difficulty_and_beauty_vote
+ *  - delete_difficulty_vote
  */
 @Entity()
 @Index(['route', 'publish'])
@@ -92,7 +92,7 @@ export class ActivityRoute extends BaseEntity {
   @ManyToOne(
     () => Activity,
     activity => activity.routes,
-    { nullable: true, onDelete: 'CASCADE' },
+    { nullable: true },
   )
   @Field(() => Activity, { nullable: true })
   activity: Promise<Activity>;
