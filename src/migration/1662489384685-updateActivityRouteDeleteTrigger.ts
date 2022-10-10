@@ -1,7 +1,8 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class updateActivityRouteDeleteTrigger1660915798964
-  implements MigrationInterface {
+export class updateActivityRouteDeleteTrigger1662489384685
+  implements MigrationInterface
+{
   public async up(queryRunner: QueryRunner): Promise<void> {
     // Modify trigger function
     // Drop the old one, create new one, then also drop and recreate the trigger

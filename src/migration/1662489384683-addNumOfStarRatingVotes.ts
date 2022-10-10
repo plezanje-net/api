@@ -1,8 +1,9 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class addNumOfStarRatingVotes1660905842035
-  implements MigrationInterface {
-  name = 'addNumOfStarRatingVotes1660905842035';
+export class addNumOfStarRatingVotes1662489384682
+  implements MigrationInterface
+{
+  name = 'addNumOfStarRatingVotes1662489384682';
 
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(
@@ -10,7 +11,8 @@ export class addNumOfStarRatingVotes1660905842035
     );
 
     // set counts for all routes with existing starRating votes
-    const counts = await queryRunner.query(`SELECT s."routeId", count(s.stars) FROM star_rating_vote s
+    const counts =
+      await queryRunner.query(`SELECT s."routeId", count(s.stars) FROM star_rating_vote s
     GROUP BY (s."routeId")`);
 
     for (const count of counts) {

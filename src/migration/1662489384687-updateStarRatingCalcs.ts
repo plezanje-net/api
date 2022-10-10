@@ -1,7 +1,7 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class updateStarRatingCalcs1661100824217 implements MigrationInterface {
-  name = 'updateStarRatingCalcs1661100824217';
+export class updateStarRatingCalcs1662489384687 implements MigrationInterface {
+  name = 'updateStarRatingCalcs1662489384687';
 
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(
@@ -13,7 +13,8 @@ export class updateStarRatingCalcs1661100824217 implements MigrationInterface {
     await queryRunner.query(`ALTER TABLE "route" DROP COLUMN "starRating"`);
     await queryRunner.query(`ALTER TABLE "route" ADD "starRating" integer`);
 
-    const starRatingVotesByRoutesCounts = await queryRunner.query(`SELECT s."routeId", count(s.stars) FROM star_rating_vote s
+    const starRatingVotesByRoutesCounts =
+      await queryRunner.query(`SELECT s."routeId", count(s.stars) FROM star_rating_vote s
     GROUP BY (s."routeId")`);
 
     for (const count of starRatingVotesByRoutesCounts) {
@@ -38,7 +39,8 @@ export class updateStarRatingCalcs1661100824217 implements MigrationInterface {
     );
 
     // set counts and average stars for all routes with existing starRating votes
-    const countsAndAverages = await queryRunner.query(`SELECT s."routeId", count(s.stars), avg(s.stars) FROM star_rating_vote s
+    const countsAndAverages =
+      await queryRunner.query(`SELECT s."routeId", count(s.stars), avg(s.stars) FROM star_rating_vote s
     GROUP BY (s."routeId")`);
 
     for (const countAndAverage of countsAndAverages) {

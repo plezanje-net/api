@@ -1,7 +1,8 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class dropStarRatingVoteTrigger1660907261279
-  implements MigrationInterface {
+export class dropStarRatingVoteTrigger1662489384684
+  implements MigrationInterface
+{
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(
       `DROP TRIGGER IF EXISTS route_star_rating_vote ON star_rating_vote;`,
