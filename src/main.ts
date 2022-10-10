@@ -12,7 +12,7 @@ if (env.SSL_CERT != null) {
     cert: fs.readFileSync(env.SSL_CERT),
   };
 
-  serverOptions = { https: httpsOptions };
+  serverOptions = { ...serverOptions, httpsOptions };
 }
 
 async function bootstrap() {
