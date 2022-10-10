@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { GraphQLModule } from '@nestjs/graphql';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 
 import { AuditModule } from './audit/audit.module';
 import { CragsModule } from './crags/crags.module';
@@ -101,9 +102,10 @@ import EntityCacheSubscriber from './core/utils/entity-cache/entity-cache.subscr
       }),
       inject: [ConfigService],
     }),
-    GraphQLModule.forRootAsync({
+    GraphQLModule.forRootAsync<ApolloDriverConfig>({
       imports: [ConfigModule, AuthModule],
       inject: [ConfigService, AuthService],
+      driver: ApolloDriver,
       useFactory: async () => ({
         debug: true,
         playground: true,
