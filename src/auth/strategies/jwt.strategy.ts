@@ -3,7 +3,7 @@ import { PassportStrategy } from '@nestjs/passport';
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { AuthService } from '../services/auth.service';
-import { AuthenticationError } from 'apollo-server-fastify';
+import { AuthenticationError } from 'apollo-server-express';
 import { User } from '../../users/entities/user.entity';
 
 export interface JwtPayload {

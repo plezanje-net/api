@@ -1,16 +1,14 @@
 import request from 'supertest';
 import { Test } from '@nestjs/testing';
 import { AppModule } from '../../src/app.module';
-import { QueryRunner } from 'typeorm';
-import {
-  FastifyAdapter,
-  NestFastifyApplication,
-} from '@nestjs/platform-fastify';
+import { DataSource, QueryRunner } from 'typeorm';
 import { MailService } from '../../src/notification/services/mail.service';
 import { initializeDbConn, prepareEnvironment } from './helpers';
+import { INestApplication } from '@nestjs/common';
 
 describe('User', () => {
-  let app: NestFastifyApplication;
+  let app: INestApplication;
+  let conn: DataSource;
   let queryRunner: QueryRunner;
 
   beforeAll(async () => {
@@ -25,17 +23,11 @@ describe('User', () => {
       .useValue(mailService)
       .compile();
 
-    app = moduleRef.createNestApplication<NestFastifyApplication>(
-      new FastifyAdapter(),
-    );
+    app = moduleRef.createNestApplication();
 
     await app.init();
-    await app
-      .getHttpAdapter()
-      .getInstance()
-      .ready();
 
-    const conn = await initializeDbConn(app);
+    conn = await initializeDbConn(app);
     queryRunner = conn.createQueryRunner();
   });
 
@@ -63,7 +55,7 @@ describe('User', () => {
         `,
       })
       .expect(200)
-      .then(res => {
+      .then((res) => {
         expect(res.body.data).toBe(null);
       });
   });
@@ -81,7 +73,7 @@ describe('User', () => {
         `,
       })
       .expect(200)
-      .then(res => {
+      .then((res) => {
         expect(res.body.data).toBe(null);
       });
   });
@@ -97,7 +89,7 @@ describe('User', () => {
         `,
       })
       .expect(200)
-      .then(res => {
+      .then((res) => {
         expect(res.body.data.register).toBe(true);
       });
 
@@ -119,7 +111,7 @@ describe('User', () => {
         `,
       })
       .expect(200)
-      .then(res => {
+      .then((res) => {
         expect(res.body.data).toBe(null);
         expect(res.body.errors.length).toBeGreaterThan(0);
       });
@@ -136,7 +128,7 @@ describe('User', () => {
         `,
       })
       .expect(200)
-      .then(res => {
+      .then((res) => {
         expect(res.body.data).toBe(null);
         expect(res.body.errors.length).toBeGreaterThan(0);
       });
@@ -153,7 +145,7 @@ describe('User', () => {
         `,
       })
       .expect(200)
-      .then(res => {
+      .then((res) => {
         expect(res.body.data.confirm).toBe(true);
       });
   });
@@ -171,7 +163,7 @@ describe('User', () => {
         `,
       })
       .expect(200)
-      .then(res => {
+      .then((res) => {
         expect(res.body.data.login.token).toBeDefined();
         mockData.authorizationToken = res.body.data.login.token;
       });
@@ -193,7 +185,7 @@ describe('User', () => {
         `,
       })
       .expect(200)
-      .then(res => {
+      .then((res) => {
         expect(res.body.data.profile.id).toBe(mockData.userId);
         expect(res.body.data.profile.firstname).toBe(mockData.firstname);
         expect(res.body.data.profile.lastname).toBe(mockData.lastname);
@@ -211,7 +203,7 @@ describe('User', () => {
         `,
       })
       .expect(200)
-      .then(res => {
+      .then((res) => {
         expect(res.body.data).toBe(null);
       });
   });
@@ -227,7 +219,7 @@ describe('User', () => {
         `,
       })
       .expect(200)
-      .then(async res => {
+      .then(async (res) => {
         expect(res.body.data.recover).toBe(true);
         const user = await queryRunner.query(
           `SELECT * FROM public.user WHERE email = '${mockData.email}'`,
@@ -248,7 +240,7 @@ describe('User', () => {
         `,
       })
       .expect(200)
-      .then(res => {
+      .then((res) => {
         expect(res.body.data.setPassword).toBe(true);
       });
   });
@@ -269,7 +261,7 @@ describe('User', () => {
         `,
       })
       .expect(200)
-      .then(res => {
+      .then((res) => {
         expect(res.body.data).toBe(null);
       });
   });
@@ -287,18 +279,14 @@ describe('User', () => {
         `,
       })
       .expect(200)
-      .then(res => {
+      .then((res) => {
         expect(res.body.data.login.token).toBeDefined();
         mockData.authorizationToken = res.body.data.login.token;
       });
   });
 
   afterAll(async () => {
-    // not very nice, but it does the trick because db connection is still running somehow
-    // setTimeout(async () => {
-    //   await app.close();
-    // }, 100);
-
+    await conn.destroy();
     await app.close();
   });
 });
