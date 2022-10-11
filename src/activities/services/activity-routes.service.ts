@@ -33,6 +33,7 @@ import { RoutesTouches } from '../utils/routes-touches.class';
 import { FindRoutesTouchesInput } from '../dtos/find-routes-touches.input';
 import { SideEffect } from '../utils/side-effect.class';
 import { setBuilderCache } from '../../core/utils/entity-cache/entity-cache-helpers';
+import { CreateActivityRoutePitchInput } from '../dtos/create-activity-route-pitch.input';
 
 @Injectable()
 export class ActivityRoutesService {
@@ -197,7 +198,26 @@ export class ActivityRoutesService {
       activityRoute.activity = Promise.resolve(activity);
     }
 
+    for (const pitch of routeIn.pitches) {
+      await this.savePitch(queryRunner, activityRoute, pitch);
+    }
+
     return queryRunner.manager.save(activityRoute);
+  }
+
+  private async savePitch(
+    queryRunner: QueryRunner,
+    activityRoute: ActivityRoute,
+    pitch: CreateActivityRoutePitchInput,
+  ) {
+    const activityRoutePitch = new ActivityRoute();
+    queryRunner.manager.merge(ActivityRoute, activityRoutePitch, activityRoute);
+
+    activityRoutePitch.pitchId = pitch.pitchId;
+    activityRoutePitch.ascentType = pitch.ascentType;
+    activityRoutePitch.publish = pitch.publish;
+
+    return queryRunner.manager.save(activityRoutePitch);
   }
 
   private isTick(ascentType: AscentType) {
