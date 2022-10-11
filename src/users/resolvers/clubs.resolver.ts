@@ -18,7 +18,7 @@ import { UseGuards } from '@nestjs/common';
 import { Roles } from '../../auth/decorators/roles.decorator';
 import { UserAuthGuard } from '../../auth/guards/user-auth.guard';
 
-@Resolver(of => Club)
+@Resolver((of) => Club)
 export class ClubsResolver {
   constructor(
     private clubsService: ClubsService,
@@ -26,25 +26,25 @@ export class ClubsResolver {
   ) {}
 
   @UseGuards(UserAuthGuard)
-  @Query(returns => [Club], { name: 'myClubs' })
+  @Query((returns) => [Club], { name: 'myClubs' })
   async myClubs(@CurrentUser() user: User) {
     return this.clubsService.findAll(user.id);
   }
 
   @Roles('admin')
-  @Query(returns => [Club], { name: 'clubs' })
+  @Query((returns) => [Club], { name: 'clubs' })
   async findAll(@Args('userId', { nullable: true }) userId?: string) {
     return this.clubsService.findAll(userId);
   }
 
   @UseGuards(UserAuthGuard)
-  @Query(returns => Club, { name: 'club' })
+  @Query((returns) => Club, { name: 'club' })
   async findOne(@CurrentUser() user: User, @Args('id') id: string) {
     return this.clubsService.findOne(user, id);
   }
 
   @UseGuards(UserAuthGuard)
-  @Query(returns => Club, { name: 'clubBySlug' })
+  @Query((returns) => Club, { name: 'clubBySlug' })
   async findClubBySlug(
     @CurrentUser() user: User,
     @Args('slug') slug: string,
@@ -52,18 +52,18 @@ export class ClubsResolver {
     return this.clubsService.findOneBySlug(user, slug);
   }
 
-  @ResolveField('members', returns => [ClubMember])
+  @ResolveField('members', (returns) => [ClubMember])
   async getClubMembers(@Parent() club: Club) {
     return this.clubMembersService.findByClub(club.id);
   }
 
-  @ResolveField('nrMembers', returns => Number)
+  @ResolveField('nrMembers', (returns) => Number)
   async getNumberOfClubMembers(@Parent() club: Club) {
     return this.clubMembersService.nrMembersByClub(club.id);
   }
 
   @UseGuards(UserAuthGuard)
-  @Mutation(returns => Club)
+  @Mutation((returns) => Club)
   async createClub(
     @CurrentUser() user: User,
     @Args('createClubInput') createClubInput: CreateClubInput,
@@ -72,7 +72,7 @@ export class ClubsResolver {
   }
 
   @UseGuards(UserAuthGuard)
-  @Mutation(returns => Club)
+  @Mutation((returns) => Club)
   async updateClub(
     @CurrentUser() user: User,
     @Args('updateClubInput') updateClubInput: UpdateClubInput,
@@ -81,7 +81,7 @@ export class ClubsResolver {
   }
 
   @UseGuards(UserAuthGuard)
-  @Mutation(returns => Boolean)
+  @Mutation((returns) => Boolean)
   async deleteClub(
     @CurrentUser() user: User,
     @Args('id') id: string,

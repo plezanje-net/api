@@ -93,9 +93,9 @@ export class ClubsService {
     let suffixCounter = 0;
     let suffix = '';
     while (
-      (await this.clubsRepository.findOne({
+      await this.clubsRepository.findOne({
         where: { ...selfCond, slug: slug + suffix },
-      })) !== undefined
+      })
     ) {
       suffixCounter++;
       suffix = '-' + suffixCounter;
@@ -118,15 +118,14 @@ export class ClubsService {
     clubId: string,
     userId: string,
   ): Promise<boolean> {
-    const currentUserAsAdminClubMember = await this.clubMembersRepository.findOne(
-      {
+    const currentUserAsAdminClubMember =
+      await this.clubMembersRepository.findOne({
         where: {
           clubId: clubId,
           userId: userId,
           admin: true,
         },
-      },
-    );
+      });
     if (currentUserAsAdminClubMember) {
       return true;
     }
