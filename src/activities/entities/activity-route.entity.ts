@@ -105,8 +105,8 @@ export class ActivityRoute extends BaseEntity {
   @ManyToOne(() => Pitch, { nullable: true })
   @Field((type) => Pitch, { nullable: true })
   pitch: Promise<Route>;
-  @Column()
-  @Field()
+  @Column({ nullable: true })
+  @Field({ nullable: true })
   pitchId: string;
 
   @Column({

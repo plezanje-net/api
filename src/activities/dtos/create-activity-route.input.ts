@@ -37,6 +37,7 @@ export class CreateActivityRouteInput {
   @IsOptional()
   votedStarRating: number;
 
-  @Field(() => [CreateActivityRoutePitchInput])
+  @Field(() => [CreateActivityRoutePitchInput], { nullable: true })
+  @IsOptional()
   pitches: CreateActivityRoutePitchInput[];
 }

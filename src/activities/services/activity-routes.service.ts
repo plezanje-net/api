@@ -198,7 +198,7 @@ export class ActivityRoutesService {
       activityRoute.activity = Promise.resolve(activity);
     }
 
-    for (const pitch of routeIn.pitches) {
+    for (const pitch of routeIn.pitches ?? []) {
       await this.savePitch(queryRunner, activityRoute, pitch);
     }
 
