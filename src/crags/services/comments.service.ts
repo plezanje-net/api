@@ -8,6 +8,8 @@ import { UpdateCommentInput } from '../dtos/update-comment';
 import { Comment } from '../entities/comment.entity';
 import { Crag } from '../entities/crag.entity';
 import { IceFall } from '../entities/ice-fall.entity';
+import { PaginationMeta } from '../../core/utils/pagination-meta.class';
+import { PaginatedComments } from '../utils/paginated-comments';
 
 @Injectable()
 export class CommentsService {
@@ -74,7 +76,7 @@ export class CommentsService {
     return this.commentsRepository.remove(comment).then(() => true);
   }
 
-  find(params: FindCommentsInput = {}): Promise<Comment[]> {
+  async find(params: FindCommentsInput = {}): Promise<PaginatedComments> {
     const options: FindManyOptions = {
       order: {},
       where: {},
@@ -96,13 +98,27 @@ export class CommentsService {
       options.where['type'] = params.type;
     }
 
-    if (params.limit != null) {
-      options.take = params.limit;
-    }
-
     options.order = { created: 'DESC' };
 
-    return this.commentsRepository.find(options);
+    let count: number;
+    if (params.pageSize != null && params.pageNumber != null) {
+      count = await this.commentsRepository.count(options);
+      options.take = params.pageSize;
+      options.skip = params.pageSize * (params.pageNumber - 1);
+    }
+
+    const comments = await this.commentsRepository.find(options);
+
+    const pagination = new PaginationMeta(
+      count || comments.length,
+      params.pageNumber,
+      params.pageSize,
+    );
+
+    return {
+      items: comments,
+      meta: pagination,
+    };
   }
 
   /**

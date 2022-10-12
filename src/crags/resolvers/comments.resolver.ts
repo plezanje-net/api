@@ -5,7 +5,6 @@ import {
   Args,
   ResolveField,
   Parent,
-  Int,
 } from '@nestjs/graphql';
 import { CommentsService } from '../services/comments.service';
 import { Comment } from '../entities/comment.entity';
@@ -26,6 +25,8 @@ import {
   Loader,
 } from '../../core/interceptors/data-loader.interceptor';
 import DataLoader from 'dataloader';
+import { FindCommentsInput } from '../dtos/find-comments.input';
+import { PaginatedComments } from '../utils/paginated-comments';
 
 @Resolver(() => Comment)
 @UseInterceptors(DataLoaderInterceptor)
@@ -86,16 +87,17 @@ export class CommentsResolver {
 
   @AllowAny()
   @UseGuards(UserAuthGuard)
-  @Query(returns => [Comment], { name: 'exposedWarnings' })
+  @Query((returns) => [Comment], { name: 'exposedWarnings' })
   getExposedWarnings(@CurrentUser() user: User) {
     return this.commentsService.getExposedWarnings(user != null);
   }
 
   @AllowAny()
-  @Query(returns => [Comment], { name: 'latestComments' })
-  getLatestComments(@Args('limit', { type: () => Int }) limit: number) {
-    return this.commentsService.find({
-      limit,
-    });
+  @Query((returns) => PaginatedComments, { name: 'latestComments' })
+  getLatestComments(
+    @Args('input', { type: () => FindCommentsInput })
+    input: FindCommentsInput,
+  ) {
+    return this.commentsService.find(input);
   }
 }

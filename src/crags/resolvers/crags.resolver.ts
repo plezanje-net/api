@@ -186,9 +186,11 @@ export class CragsResolver {
 
   @ResolveField('comments', () => [Comment])
   async getComments(@Parent() crag: Crag): Promise<Comment[]> {
-    return this.commentsService.find({
+    const comments = await this.commentsService.find({
       cragId: crag.id,
     });
+
+    return comments.items;
   }
 
   @ResolveField('properties', () => [CragProperty])

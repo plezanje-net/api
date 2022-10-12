@@ -11,7 +11,7 @@ export class FindCommentsInput {
   @IsOptional()
   routeId?: string;
 
-  @Field({ nullable: true })
+  @Field(type => [String], { nullable: true })
   @IsOptional()
   routeIds?: string[];
 
@@ -21,5 +21,9 @@ export class FindCommentsInput {
 
   @Field({ nullable: true })
   @IsOptional()
-  limit?: number;
+  pageNumber?: number;
+
+  @Field({ nullable: true })
+  @IsOptional()
+  pageSize?: number;
 }

@@ -16,7 +16,7 @@ export class RouteCommentsLoader implements NestDataLoader<string, Comment[]> {
 
       const routeComments: { [key: string]: Comment[] } = {};
 
-      comments.forEach(comment => {
+      comments.items.forEach(comment => {
         if (!routeComments[comment.routeId]) {
           routeComments[comment.routeId] = [comment];
         } else {
