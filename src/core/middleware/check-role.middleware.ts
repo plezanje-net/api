@@ -7,8 +7,9 @@ export const checkRoleMiddleware: FieldMiddleware = async (
 ) => {
   const { info, source } = ctx;
   const { user } = ctx.context.req;
-  const roles: string[] = info.parentType.getFields()[info.fieldName].extensions
-    .roles;
+  const roles: string[] = <string[]>(
+    info.parentType.getFields()[info.fieldName].extensions.roles
+  );
 
   if (user == undefined) {
     return null;

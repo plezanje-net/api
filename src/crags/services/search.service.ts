@@ -160,7 +160,12 @@ export class SearchService {
   }
 
   tokenizeQueryToBuilder(
-    builder: SelectQueryBuilder<Crag | Route | Sector | Comment | User>,
+    builder:
+      | SelectQueryBuilder<Crag>
+      | SelectQueryBuilder<Route>
+      | SelectQueryBuilder<Sector>
+      | SelectQueryBuilder<Comment>
+      | SelectQueryBuilder<User>,
     searchString: string,
     alias: string,
     searchFieldNames: string[] = ['name'],

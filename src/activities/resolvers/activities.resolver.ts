@@ -32,8 +32,15 @@ import { SideEffect } from '../utils/side-effect.class';
 import { UpdateActivityInput } from '../dtos/update-activity.input';
 import { AllowAny } from '../../auth/decorators/allow-any.decorator';
 import { FindActivityRoutesInput } from '../dtos/find-activity-routes.input';
+import {
+  DataLoaderInterceptor,
+  Loader,
+} from '../../core/interceptors/data-loader.interceptor';
+import { UserLoader } from '../../users/loaders/user.loader';
+import DataLoader from 'dataloader';
 
 @Resolver(() => Activity)
+@UseInterceptors(DataLoaderInterceptor)
 export class ActivitiesResolver {
   constructor(
     private activitiesService: ActivitiesService,
@@ -147,15 +154,18 @@ export class ActivitiesResolver {
   @Query(() => [SideEffect])
   @UseGuards(UserAuthGuard)
   async dryRunUpdateActivity(
-    @CurrentUser() user: User,
+    @CurrentUser() currentUser: User,
     @Args('input', { type: () => UpdateActivityInput })
     activityIn: UpdateActivityInput,
     @Args('routes', { type: () => [CreateActivityRouteInput] })
     routesIn: CreateActivityRouteInput[],
   ): Promise<SideEffect[]> {
-    const activity = await this.activitiesService.findOneById(activityIn.id);
+    const activity = await this.activitiesService.findOneById(
+      activityIn.id,
+      currentUser,
+    );
 
-    if (activity.userId != user.id) {
+    if (activity.userId != currentUser.id) {
       throw new ForbiddenException();
     }
 
@@ -163,7 +173,7 @@ export class ActivitiesResolver {
       const sideEffects = [];
       await this.activitiesService.updateActivityWithRoutes(
         activityIn,
-        user,
+        currentUser,
         routesIn,
         true,
         sideEffects,
@@ -177,22 +187,25 @@ export class ActivitiesResolver {
   @Mutation(() => Activity)
   @UseGuards(UserAuthGuard)
   async updateActivity(
-    @CurrentUser() user: User,
+    @CurrentUser() currentUser: User,
     @Args('input', { type: () => UpdateActivityInput })
     activityIn: UpdateActivityInput,
     @Args('routes', { type: () => [CreateActivityRouteInput] })
     routesIn: CreateActivityRouteInput[],
   ): Promise<Activity> {
-    const activity = await this.activitiesService.findOneById(activityIn.id);
+    const activity = await this.activitiesService.findOneById(
+      activityIn.id,
+      currentUser,
+    );
 
-    if (activity.userId != user.id) {
+    if (activity.userId != currentUser.id) {
       throw new ForbiddenException();
     }
 
     try {
       return this.activitiesService.updateActivityWithRoutes(
         activityIn,
-        user,
+        currentUser,
         routesIn,
       );
     } catch (exception) {
@@ -234,5 +247,14 @@ export class ActivitiesResolver {
       input.orderBy = { field: 'position', direction: 'ASC' };
     }
     return this.activityRoutesService.find(input, currentUser);
+  }
+
+  @ResolveField('user', () => User)
+  async getUser(
+    @Parent() activity: Activity,
+    @Loader(UserLoader)
+    loader: DataLoader<Activity['userId'], User>,
+  ): Promise<User> {
+    return loader.load(activity.userId);
   }
 }

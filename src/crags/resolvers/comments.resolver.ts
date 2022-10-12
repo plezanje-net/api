@@ -10,17 +10,25 @@ import {
 import { CommentsService } from '../services/comments.service';
 import { Comment } from '../entities/comment.entity';
 import { CreateCommentInput } from '../dtos/create-comment.input';
-import { UnauthorizedException, UseGuards } from '@nestjs/common';
+import {
+  UnauthorizedException,
+  UseGuards,
+  UseInterceptors,
+} from '@nestjs/common';
 import { User } from '../../users/entities/user.entity';
 import { CurrentUser } from '../../auth/decorators/current-user.decorator';
 import { UpdateCommentInput } from '../dtos/update-comment';
 import { UserAuthGuard } from '../../auth/guards/user-auth.guard';
 import { AllowAny } from '../../auth/decorators/allow-any.decorator';
 import { UserLoader } from '../../users/loaders/user.loader';
-import { Loader } from '../../core/interceptors/data-loader.interceptor';
+import {
+  DataLoaderInterceptor,
+  Loader,
+} from '../../core/interceptors/data-loader.interceptor';
 import DataLoader from 'dataloader';
 
 @Resolver(() => Comment)
+@UseInterceptors(DataLoaderInterceptor)
 export class CommentsResolver {
   constructor(private commentsService: CommentsService) {}
 

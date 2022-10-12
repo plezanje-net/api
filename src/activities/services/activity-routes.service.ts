@@ -9,7 +9,7 @@ import {
 import { Club } from '../../users/entities/club.entity';
 import { User } from '../../users/entities/user.entity';
 import {
-  Connection,
+  DataSource,
   QueryRunner,
   Repository,
   SelectQueryBuilder,
@@ -32,11 +32,12 @@ import { UpdateActivityRouteInput } from '../dtos/update-activity-route.input';
 import { RoutesTouches } from '../utils/routes-touches.class';
 import { FindRoutesTouchesInput } from '../dtos/find-routes-touches.input';
 import { SideEffect } from '../utils/side-effect.class';
+import { setBuilderCache } from '../../core/utils/entity-cache/entity-cache-helpers';
 
 @Injectable()
 export class ActivityRoutesService {
   constructor(
-    private connection: Connection,
+    private dataSource: DataSource,
     @InjectRepository(ActivityRoute)
     private activityRoutesRepository: Repository<ActivityRoute>,
     @InjectRepository(ClubMember)
@@ -49,7 +50,7 @@ export class ActivityRoutesService {
     user: User,
     routesIn: CreateActivityRouteInput[],
   ): Promise<ActivityRoute[]> {
-    const queryRunner = this.connection.createQueryRunner();
+    const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
 
@@ -85,10 +86,9 @@ export class ActivityRoutesService {
 
     activityRoute.user = Promise.resolve(user);
 
-    const route = await queryRunner.manager.findOneOrFail(
-      Route,
-      routeIn.routeId,
-    );
+    const route = await queryRunner.manager.findOneByOrFail(Route, {
+      id: routeIn.routeId,
+    });
 
     const routeTouched = await this.getTouchesForRoutes(
       new FindRoutesTouchesInput([routeIn.routeId], routeIn.date),
@@ -96,9 +96,9 @@ export class ActivityRoutesService {
       queryRunner,
     );
     const logPossible = this.logPossible(
-      routeTouched.ticked.some(ar => ar.routeId === routeIn.routeId),
-      routeTouched.tried.some(ar => ar.routeId === routeIn.routeId),
-      routeTouched.trTicked.some(ar => ar.routeId === routeIn.routeId),
+      routeTouched.ticked.some((ar) => ar.routeId === routeIn.routeId),
+      routeTouched.tried.some((ar) => ar.routeId === routeIn.routeId),
+      routeTouched.trTicked.some((ar) => ar.routeId === routeIn.routeId),
       routeIn.ascentType,
       route.routeTypeId,
     );
@@ -151,9 +151,9 @@ export class ActivityRoutesService {
         );
       }
 
-      let difficultyVote = await queryRunner.manager.findOne(DifficultyVote, {
-        user,
-        route,
+      let difficultyVote = await queryRunner.manager.findOneBy(DifficultyVote, {
+        userId: user.id,
+        routeId: route.id,
       });
       if (!difficultyVote) {
         difficultyVote = new DifficultyVote();
@@ -174,10 +174,11 @@ export class ActivityRoutesService {
 
     // if a vote on star rating (route beauty) is passed add a new star rating vote or update existing one
     if (routeIn.votedStarRating || routeIn.votedStarRating === 0) {
-      let starRatingVote = await queryRunner.manager.findOne(StarRatingVote, {
-        user,
-        route,
+      let starRatingVote = await queryRunner.manager.findOneBy(StarRatingVote, {
+        userId: user.id,
+        routeId: route.id,
       });
+
       if (!starRatingVote) {
         starRatingVote = new StarRatingVote();
         starRatingVote.route = Promise.resolve(route);
@@ -186,6 +187,9 @@ export class ActivityRoutesService {
       starRatingVote.stars = routeIn.votedStarRating;
 
       await queryRunner.manager.save(starRatingVote);
+
+      // Recalculate the average star rating for the route and count the number of star ratings for the route and save it to the route table
+      await this.recalculateStarRating(route, queryRunner);
     }
 
     // Deprecated: unnecessary if statement -> activity should not be null anymore ?? // TODO: make final decision on this!
@@ -522,8 +526,8 @@ export class ActivityRoutesService {
     });
     const clubMember = await this.clubMembersRepository.findOne({
       where: {
-        user: user.id,
-        club: club.id,
+        userId: user.id,
+        clubId: club.id,
         status: ClubMemberStatus.ACTIVE,
       },
     });
@@ -641,7 +645,9 @@ export class ActivityRoutesService {
     params: FindActivityRoutesInput = {},
     currentUser: User = null,
   ): Promise<ActivityRoute[]> {
-    return this.buildQuery(params, currentUser).getMany();
+    const query = this.buildQuery(params, currentUser);
+    setBuilderCache(query);
+    return query.getMany();
   }
 
   private buildQuery(
@@ -778,21 +784,105 @@ export class ActivityRoutesService {
   }
 
   findOneById(id: string): Promise<ActivityRoute> {
-    return this.activityRoutesRepository.findOneOrFail(id);
+    return this.activityRoutesRepository.findOneByOrFail({ id });
   }
 
   async update(data: UpdateActivityRouteInput): Promise<ActivityRoute> {
-    const activityRoute = await this.activityRoutesRepository.findOneOrFail(
-      data.id,
-    );
+    const activityRoute = await this.activityRoutesRepository.findOneByOrFail({
+      id: data.id,
+    });
 
     this.activityRoutesRepository.merge(activityRoute, data);
 
     return this.activityRoutesRepository.save(activityRoute);
   }
 
-  async delete(activityRoute: ActivityRoute): Promise<boolean> {
-    return this.activityRoutesRepository.remove(activityRoute).then(() => true);
+  async delete(
+    activityRoute: ActivityRoute,
+    queryRunner: QueryRunner,
+  ): Promise<boolean> {
+    await queryRunner.manager.remove(ActivityRoute, activityRoute);
+
+    // // If this was the last ascent of this route for this user, we should also delete the possible starRating vote and recalculate starRating for the route
+    const nrAscentsLeft = await queryRunner.manager
+      .createQueryBuilder(ActivityRoute, 'ar')
+      .select('count(*)')
+      .where('ar."routeId" = :routeId', { routeId: activityRoute.routeId })
+      .andWhere('ar."userId" = :userId', { userId: activityRoute.userId })
+      .getRawOne();
+
+    if (nrAscentsLeft.count == 0) {
+      const starRatingVote = await queryRunner.manager.findOneBy(
+        StarRatingVote,
+        {
+          userId: activityRoute.userId,
+          routeId: activityRoute.routeId,
+        },
+      );
+
+      // If the user even has cast a star ratig vote for this route
+      if (starRatingVote) {
+        await queryRunner.manager.remove(StarRatingVote, starRatingVote);
+
+        const route = await queryRunner.manager.findOneBy(Route, {
+          id: activityRoute.routeId,
+        });
+        await this.recalculateStarRating(route, queryRunner);
+      }
+    }
+    return true;
+  }
+
+  /**
+   * Recalculate the star rating for a route based on conditions explained below
+   */
+  private async recalculateStarRating(route: Route, queryRunner: QueryRunner) {
+    const minNumOfVotes = 5;
+    const majorityThreshold = 0.5;
+
+    /*
+     * There are 3 conditions for a route to actually get a star rating:
+     * 1. The route need to have some minimum total number of votes (3)
+     * 2. One of the star options (0, 1 or 2) needs to have more then some predefined majority within all the votes (50%)
+     * 3. The rounded average of the stars given needs to be the same as the majority star option. (this prevents from averaging out the star rating and instead shows any stars only when there is an actual consensus on the star rating)
+     */
+
+    const starRatingVoteCounts = await queryRunner.manager
+      .createQueryBuilder(StarRatingVote, 'srv')
+      .select(['count(srv.stars) as count', 'srv.stars as stars'])
+      .where('srv."routeId" = :routeId', { routeId: route.id })
+      .groupBy('stars')
+      .getRawMany();
+
+    let nrAllVotes = 0; // the number of all star rating votes for the route
+    let starsSum = 0; // sum of values of all stars (used to calculate the average)
+    let mostVotedStar = null; // kind of star that received the most votes. 0, 1 or 2
+    let nrVotesForMostVotedStar = 0; // how many votes do we have for the most voted star
+
+    for (const voteCount of starRatingVoteCounts) {
+      nrAllVotes += +voteCount['count'];
+      starsSum += +voteCount['stars'] * +voteCount['count'];
+
+      if (
+        mostVotedStar == null ||
+        +voteCount['count'] > nrVotesForMostVotedStar
+      ) {
+        nrVotesForMostVotedStar = +voteCount['count'];
+        mostVotedStar = +voteCount['stars'];
+      }
+    }
+
+    if (
+      nrAllVotes < minNumOfVotes ||
+      nrVotesForMostVotedStar / nrAllVotes < majorityThreshold ||
+      Math.round(starsSum / nrAllVotes) != mostVotedStar
+    ) {
+      route.starRating = null;
+    } else {
+      route.starRating = mostVotedStar;
+    }
+
+    await queryRunner.manager.save(route);
   }
 
   // TODO: this is inclomplete --> we chould define scoring for all possible ascent types!

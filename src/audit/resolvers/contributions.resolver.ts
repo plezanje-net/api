@@ -1,4 +1,4 @@
-import { UseGuards } from '@nestjs/common';
+import { UseGuards, UseInterceptors } from '@nestjs/common';
 import { Args, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql';
 import { CurrentUser } from '../../auth/decorators/current-user.decorator';
 import { UserAuthGuard } from '../../auth/guards/user-auth.guard';
@@ -13,8 +13,10 @@ import { UsersService } from '../../users/services/users.service';
 import { FindContributionsInput } from '../dtos/find-contributions.input';
 import { Contribution } from '../utils/contribution.class';
 import { ContributionsService } from '../services/contributions.service';
+import { DataLoaderInterceptor } from '../../core/interceptors/data-loader.interceptor';
 
 @Resolver(() => Contribution)
+@UseInterceptors(DataLoaderInterceptor)
 export class ContributionsResolver {
   constructor(
     private contributionsService: ContributionsService,

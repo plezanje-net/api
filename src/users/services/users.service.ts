@@ -27,7 +27,7 @@ export class UsersService {
   }
 
   findOneById(id: string): Promise<User> {
-    return this.usersRepository.findOne(id);
+    return this.usersRepository.findOneBy({ id });
   }
 
   findByIds(ids: string[]): Promise<User[]> {
@@ -42,12 +42,9 @@ export class UsersService {
     });
   }
 
-  findRoles(user: string): Promise<Role[]> {
-    return this.rolesRepository.find({
-      where: {
-        user,
-      },
-    });
+  // TODO: need this service function at all??
+  async findRoles(user: User): Promise<Role[]> {
+    return user.roles;
   }
 
   async register(data: RegisterInput): Promise<User> {
@@ -68,7 +65,7 @@ export class UsersService {
   }
 
   async confirm(data: ConfirmInput): Promise<boolean> {
-    const user = await this.usersRepository.findOneOrFail(data.id);
+    const user = await this.usersRepository.findOneByOrFail({ id: data.id });
 
     if (user.confirmationToken != data.token) {
       throw new NotAcceptableException();
@@ -81,7 +78,7 @@ export class UsersService {
   }
 
   async recover(email: string): Promise<User> {
-    const user = await this.usersRepository.findOneOrFail({
+    const user = await this.usersRepository.findOneByOrFail({
       email: email.toLowerCase(),
     });
 
@@ -95,7 +92,7 @@ export class UsersService {
     token: string,
     password: string,
   ): Promise<boolean> {
-    const user = await this.usersRepository.findOneOrFail(id);
+    const user = await this.usersRepository.findOneByOrFail({ id });
 
     if (user.passwordToken != token) {
       throw new NotAcceptableException();
@@ -109,7 +106,7 @@ export class UsersService {
   }
 
   async delete(id: string): Promise<boolean> {
-    const user = await this.usersRepository.findOneOrFail(id);
+    const user = await this.usersRepository.findOneByOrFail({ id });
 
     return this.usersRepository.remove(user).then(() => true);
   }

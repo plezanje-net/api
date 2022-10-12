@@ -1,9 +1,10 @@
 import * as dotenv from 'dotenv';
 import { env } from 'process';
+import { DataSource } from 'typeorm';
 
-dotenv.config({ path: __dirname + '/.env' });
+dotenv.config({ path: __dirname + '/../.env' });
 
-export default {
+export default new DataSource({
   type: 'postgres',
   host: env.DB_HOST,
   port: 5432,
@@ -16,9 +17,4 @@ export default {
   entities: ['src/**/entities/*.ts'],
   migrations: ['src/migration/**/*.ts'],
   subscribers: ['src/subscriber/**/*.ts'],
-  cli: {
-    entitiesDir: 'src/entity',
-    migrationsDir: 'src/migration',
-    subscribersDir: 'src/subscriber',
-  },
-};
+});

@@ -32,11 +32,11 @@ export class ClubsService {
   }
 
   async findOne(user: User, id: string): Promise<Club> {
-    const club = await this.clubsRepository.findOneOrFail(id);
+    const club = await this.clubsRepository.findOneByOrFail({ id: id });
 
     // only club member can see club data
     const clubMember = await this.clubMembersRepository.findOne({
-      where: { user: user.id, club: id },
+      where: { userId: user.id, clubId: id },
     });
     if (!clubMember) throw new HttpException('Forbidden', HttpStatus.FORBIDDEN);
     return club;
@@ -47,7 +47,11 @@ export class ClubsService {
 
     // only club member can see club data
     const clubMember = await this.clubMembersRepository.findOne({
-      where: { user: user.id, club: club.id, status: ClubMemberStatus.ACTIVE },
+      where: {
+        userId: user.id,
+        clubId: club.id,
+        status: ClubMemberStatus.ACTIVE,
+      },
     });
     if (!clubMember) throw new HttpException('Forbidden', HttpStatus.FORBIDDEN);
     return club;
@@ -71,7 +75,7 @@ export class ClubsService {
   }
 
   async update(currentUser: User, data: UpdateClubInput): Promise<Club> {
-    const club = await this.clubsRepository.findOneOrFail(data.id);
+    const club = await this.clubsRepository.findOneByOrFail({ id: data.id });
 
     // only if the logged in user is admin of this club can she update the club
     if (!(await this.isMemberAdmin(data.id, currentUser.id)))
@@ -89,9 +93,9 @@ export class ClubsService {
     let suffixCounter = 0;
     let suffix = '';
     while (
-      (await this.clubsRepository.findOne({
+      await this.clubsRepository.findOne({
         where: { ...selfCond, slug: slug + suffix },
-      })) !== undefined
+      })
     ) {
       suffixCounter++;
       suffix = '-' + suffixCounter;
@@ -105,23 +109,23 @@ export class ClubsService {
     if (!(await this.isMemberAdmin(id, currentUser.id)))
       throw new HttpException('Forbidden', HttpStatus.FORBIDDEN);
 
-    const club = await this.clubsRepository.findOneOrFail(id); // when a club is deleted all entries reffering to the club in pivot are also deleted
+    const club = await this.clubsRepository.findOneByOrFail({ id }); // when a club is deleted all entries reffering to the club in pivot are also deleted
     return this.clubsRepository.remove(club).then(() => true);
   }
 
+  // TODO: DRY - same function in club-members service
   private async isMemberAdmin(
     clubId: string,
     userId: string,
   ): Promise<boolean> {
-    const currentUserAsAdminClubMember = await this.clubMembersRepository.findOne(
-      {
+    const currentUserAsAdminClubMember =
+      await this.clubMembersRepository.findOne({
         where: {
-          club: clubId,
-          user: userId,
+          clubId: clubId,
+          userId: userId,
           admin: true,
         },
-      },
-    );
+      });
     if (currentUserAsAdminClubMember) {
       return true;
     }

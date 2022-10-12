@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, SelectQueryBuilder } from 'typeorm';
 import { getPublishStatusParams } from '../../core/utils/contributable-helpers';
 import { PaginationMeta } from '../../core/utils/pagination-meta.class';
+import { setBuilderCache } from '../../core/utils/entity-cache/entity-cache-helpers';
 import { LatestDifficultyVotesInputServiceInput } from '../dtos/latest-difficulty-votes-service.input';
 import { DifficultyVote } from '../entities/difficulty-vote.entity';
 import { PaginatedDifficultyVotes } from '../utils/paginated-difficulty-votes';
@@ -16,7 +17,7 @@ export class DifficultyVotesService {
 
   async findByRouteId(routeId: string): Promise<DifficultyVote[]> {
     const grades = this.difficultyVoteRepository.find({
-      where: { route: routeId },
+      where: { routeId: routeId },
       order: { difficulty: 'ASC' },
     });
 
@@ -43,43 +44,49 @@ export class DifficultyVotesService {
   async find(
     params: LatestDifficultyVotesInputServiceInput = {},
   ): Promise<DifficultyVote[]> {
-    return this.buildQuery(params).getMany();
+    return (await this.buildQuery(params)).getMany();
   }
 
   async findLatest(
     params: LatestDifficultyVotesInputServiceInput,
   ): Promise<PaginatedDifficultyVotes> {
-    const query = this.buildQuery(params);
+    const query = await this.buildQuery(params);
     query.orderBy('v.created', 'DESC');
     query.andWhere('v.userId IS NOT NULL');
 
-    const itemCount = await query.getCount();
+    const countQuery = query
+      .clone()
+      .select('COUNT(*)', 'count')
+      .orderBy(null);
+    setBuilderCache(countQuery, 'getRawOne');
+    const itemCount = await countQuery.getRawOne();
 
     const pagination = new PaginationMeta(
-      itemCount,
+      itemCount.count,
       params.pageNumber,
       params.pageSize,
     );
 
     query
-      .skip(pagination.pageSize * (pagination.pageNumber - 1))
-      .take(pagination.pageSize);
+      .offset(pagination.pageSize * (pagination.pageNumber - 1))
+      .limit(pagination.pageSize);
 
+    setBuilderCache(query);
     return Promise.resolve({
       items: await query.getMany(),
       meta: pagination,
     });
   }
 
-  private buildQuery(
+  private async buildQuery(
     params: LatestDifficultyVotesInputServiceInput = {},
-  ): SelectQueryBuilder<DifficultyVote> {
+  ): Promise<SelectQueryBuilder<DifficultyVote>> {
     const builder = this.difficultyVoteRepository.createQueryBuilder('v');
 
     const {
       conditions: routePublishConditions,
       params: routePublishParams,
-    } = getPublishStatusParams('route', params.user);
+    } = await getPublishStatusParams('route', params.user);
 
     builder.innerJoin(
       'route',
@@ -91,7 +98,7 @@ export class DifficultyVotesService {
     const {
       conditions: cragPublishConditions,
       params: cragPublishParams,
-    } = getPublishStatusParams('crag', params.user);
+    } = await getPublishStatusParams('crag', params.user);
 
     builder.innerJoin(
       'crag',

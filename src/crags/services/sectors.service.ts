@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Sector } from '../entities/sector.entity';
 import {
-  Connection,
+  DataSource,
   MoreThanOrEqual,
   Not,
   Repository,
@@ -10,7 +10,6 @@ import {
 } from 'typeorm';
 import { UpdateSectorInput } from '../dtos/update-sector.input';
 import { CreateSectorInput } from '../dtos/create-sector.input';
-import { Crag } from '../entities/crag.entity';
 import { Route } from '../entities/route.entity';
 import { User } from '../../users/entities/user.entity';
 import { FindSectorsServiceInput } from '../dtos/find-sectors-service.input';
@@ -21,6 +20,7 @@ import {
   setPublishStatusParams,
   updateUserContributionsFlag,
 } from '../../core/utils/contributable-helpers';
+import { setBuilderCache } from '../../core/utils/entity-cache/entity-cache-helpers';
 
 @Injectable()
 export class SectorsService {
@@ -29,7 +29,7 @@ export class SectorsService {
     protected sectorsRepository: Repository<Sector>,
     @InjectRepository(Route)
     protected routesRepository: Repository<Route>,
-    private connection: Connection,
+    private dataSource: DataSource,
   ) {}
 
   async find(input: FindSectorsServiceInput): Promise<Sector[]> {
@@ -54,7 +54,9 @@ export class SectorsService {
   }
 
   async update(data: UpdateSectorInput): Promise<Sector> {
-    const sector = await this.sectorsRepository.findOneOrFail(data.id);
+    const sector = await this.sectorsRepository.findOneByOrFail({
+      id: data.id,
+    });
     const previousPublishStatus = sector.publishStatus;
 
     this.sectorsRepository.merge(sector, data);
@@ -67,9 +69,9 @@ export class SectorsService {
   }
 
   async delete(id: string): Promise<boolean> {
-    const sector = await this.sectorsRepository.findOneOrFail(id);
+    const sector = await this.sectorsRepository.findOneByOrFail({ id });
 
-    const transaction = new Transaction(this.connection);
+    const transaction = new Transaction(this.dataSource);
     await transaction.start();
 
     try {
@@ -87,7 +89,7 @@ export class SectorsService {
   }
 
   async bouldersOnly(sectorId: string): Promise<boolean> {
-    const cnt = this.routesRepository.count({
+    const cnt = this.routesRepository.countBy({
       sectorId: sectorId,
       routeTypeId: Not('boulder'),
     });
@@ -100,7 +102,7 @@ export class SectorsService {
     user: User,
     cascadeFromPublishStatus: PublishStatus = null,
   ) {
-    const transaction = new Transaction(this.connection);
+    const transaction = new Transaction(this.dataSource);
     await transaction.start();
 
     try {
@@ -177,6 +179,8 @@ export class SectorsService {
     }
 
     setPublishStatusParams(builder, 's', params);
+
+    setBuilderCache(builder);
 
     return builder;
   }

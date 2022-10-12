@@ -3,20 +3,20 @@ import {
   InsertEvent,
   UpdateEvent,
   RemoveEvent,
-  Connection,
+  DataSource,
 } from 'typeorm';
 import { Injectable } from '@nestjs/common';
 import { AuditService } from '../services/audit.service';
-import { InjectConnection } from '@nestjs/typeorm';
+import { InjectDataSource } from '@nestjs/typeorm';
 import { AuditInput } from '../interfaces/audit-input.interface';
 
 @Injectable()
 export class AuditSubscriber implements EntitySubscriberInterface {
   constructor(
-    @InjectConnection() readonly connection: Connection,
+    @InjectDataSource() readonly dataSource: DataSource,
     private auditService: AuditService,
   ) {
-    connection.subscribers.push(this);
+    dataSource.subscribers.push(this);
   }
 
   public entities: string[] = ['Country', 'Crag', 'User'];

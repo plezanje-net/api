@@ -50,7 +50,7 @@ export class User extends BaseEntity {
   )
   @Field(() => [Role], { middleware: [checkRoleMiddleware], nullable: true })
   @Extensions({ roles: ['admin', 'self'] })
-  roles: Role[];
+  roles: Promise<Role[]>;
 
   @Column({ nullable: true })
   password: string;
@@ -96,6 +96,8 @@ export class User extends BaseEntity {
   @Field(() => [Image])
   images: Promise<Image[]>;
 
-  isAdmin = () =>
-    this.roles ? this.roles.find(r => r.role == 'admin') : false;
+  isAdmin = async () => {
+    const roles = await this.roles;
+    return roles ? roles.some(r => r.role == 'admin') : false;
+  };
 }

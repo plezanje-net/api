@@ -10,6 +10,7 @@ import {
   Unique,
   JoinTable,
   ManyToMany,
+  Index,
 } from 'typeorm';
 import { ObjectType, Field } from '@nestjs/graphql';
 import { Sector } from './sector.entity';
@@ -35,6 +36,7 @@ import { PublishStatus } from './enums/publish-status.enum';
  */
 @Entity()
 @Unique(['slug', 'crag'])
+@Index(['publishStatus'])
 @ObjectType()
 export class Route extends BaseEntity {
   @PrimaryGeneratedColumn('uuid')
@@ -65,7 +67,7 @@ export class Route extends BaseEntity {
   @Column()
   defaultGradingSystemId: string;
 
-  @Column({ type: 'float', nullable: true })
+  @Column({ type: 'int', nullable: true })
   @Field({ nullable: true })
   starRating: number;
 

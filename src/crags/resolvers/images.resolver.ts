@@ -1,13 +1,15 @@
-import { UseGuards } from '@nestjs/common';
+import { UseGuards, UseInterceptors } from '@nestjs/common';
 import { Args, Int, Resolver, Query } from '@nestjs/graphql';
 import { AllowAny } from '../../auth/decorators/allow-any.decorator';
 import { CurrentUser } from '../../auth/decorators/current-user.decorator';
 import { UserAuthGuard } from '../../auth/guards/user-auth.guard';
+import { DataLoaderInterceptor } from '../../core/interceptors/data-loader.interceptor';
 import { User } from '../../users/entities/user.entity';
 import { Image } from '../entities/image.entity';
 import { ImagesService } from '../services/images.service';
 
 @Resolver(of => Image)
+@UseInterceptors(DataLoaderInterceptor)
 export class ImagesResolver {
   constructor(private imagesService: ImagesService) {}
 

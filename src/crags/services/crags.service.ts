@@ -2,7 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateCragInput } from '../dtos/create-crag.input';
 import { Crag } from '../entities/crag.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Connection, Not, Repository, SelectQueryBuilder } from 'typeorm';
+import { DataSource, In, Not, Repository, SelectQueryBuilder } from 'typeorm';
 import { UpdateCragInput } from '../dtos/update-crag.input';
 import { Country } from '../../crags/entities/country.entity';
 import { Route } from '../entities/route.entity';
@@ -19,6 +19,7 @@ import {
   setPublishStatusParams,
   updateUserContributionsFlag,
 } from '../../core/utils/contributable-helpers';
+import { setBuilderCache } from '../../core/utils/entity-cache/entity-cache-helpers';
 
 @Injectable()
 export class CragsService {
@@ -29,11 +30,15 @@ export class CragsService {
     protected cragsRepository: Repository<Crag>,
     @InjectRepository(Country)
     private countryRepository: Repository<Country>,
-    private connection: Connection,
+    private dataSource: DataSource,
   ) {}
 
   async findByIds(ids: string[]): Promise<Crag[]> {
-    return this.cragsRepository.findByIds(ids);
+    return this.cragsRepository.findBy({ id: In(ids) });
+  }
+
+  async findOneById(id: string): Promise<Crag> {
+    return this.cragsRepository.findOneByOrFail({ id });
   }
 
   async findOne(params: FindCragsServiceInput = {}): Promise<Crag> {
@@ -47,7 +52,9 @@ export class CragsService {
   }
 
   async find(params: FindCragsServiceInput = {}): Promise<Crag[]> {
-    const rawAndEntities = await this.buildQuery(params).getRawAndEntities();
+    const rawAndEntities = await (
+      await this.buildQuery(params)
+    ).getRawAndEntities();
 
     const crags = rawAndEntities.entities.map((element, index) => {
       element.routeCount = rawAndEntities.raw[index].routeCount;
@@ -65,7 +72,7 @@ export class CragsService {
     crag.user = Promise.resolve(user);
 
     crag.country = Promise.resolve(
-      await this.countryRepository.findOneOrFail(data.countryId),
+      await this.countryRepository.findOneByOrFail({ id: data.countryId }),
     );
 
     crag.slug = await this.generateCragSlug(data.name);
@@ -76,7 +83,7 @@ export class CragsService {
   }
 
   async update(data: UpdateCragInput): Promise<Crag> {
-    const crag = await this.cragsRepository.findOneOrFail(data.id);
+    const crag = await this.cragsRepository.findOneByOrFail({ id: data.id });
     const previousPublishStatus = crag.publishStatus;
 
     this.cragsRepository.merge(crag, data);
@@ -97,7 +104,7 @@ export class CragsService {
     user: User,
     cascadeFromPublishStatus: PublishStatus = null,
   ) {
-    const transaction = new Transaction(this.connection);
+    const transaction = new Transaction(this.dataSource);
     await transaction.start();
 
     try {
@@ -138,9 +145,9 @@ export class CragsService {
   }
 
   async delete(id: string): Promise<boolean> {
-    const crag = await this.cragsRepository.findOneOrFail(id);
+    const crag = await this.cragsRepository.findOneByOrFail({ id });
 
-    const transaction = new Transaction(this.connection);
+    const transaction = new Transaction(this.dataSource);
     await transaction.start();
 
     try {
@@ -157,9 +164,9 @@ export class CragsService {
     return Promise.resolve(true);
   }
 
-  private buildQuery(
+  private async buildQuery(
     params: FindCragsServiceInput = {},
-  ): SelectQueryBuilder<Crag> {
+  ): Promise<SelectQueryBuilder<Crag>> {
     const builder = this.cragsRepository.createQueryBuilder('c');
 
     builder.orderBy('c.name COLLATE "utf8_slovenian_ci"', 'ASC');
@@ -212,7 +219,7 @@ export class CragsService {
 
     setPublishStatusParams(builder, 'c', params);
 
-    const { conditions, params: joinParams } = getPublishStatusParams(
+    const { conditions, params: joinParams } = await getPublishStatusParams(
       'route',
       params.user,
     );
@@ -227,17 +234,22 @@ export class CragsService {
       });
     }
 
+    setBuilderCache(builder);
+
     return builder;
   }
 
   async getNumberOfRoutes(crag: Crag, user: User): Promise<number> {
     const builder = this.routesRepository
       .createQueryBuilder('route')
+      .select('COUNT(DISTINCT(route.id))', 'count')
       .where('route."cragId" = :cragId', { cragId: crag.id });
 
     setPublishStatusParams(builder, 'route', { user });
 
-    return builder.getCount();
+    setBuilderCache(builder, 'getRawOne');
+    const itemCount = await builder.getRawOne();
+    return itemCount.count;
   }
 
   async getPopularCrags(
@@ -265,6 +277,8 @@ export class CragsService {
       builder.limit(top);
     }
 
+    setBuilderCache(builder, 'getRawAndEntities');
+
     const rawAndEntities = await builder.getRawAndEntities();
 
     const popularCrags = rawAndEntities.raw.map((element, index) => {
@@ -278,7 +292,7 @@ export class CragsService {
   }
 
   async getAcitivityByMonth(crag: Crag): Promise<number[]> {
-    const results = await this.routesRepository
+    const builder = this.routesRepository
       .createQueryBuilder('r')
       .select([
         'EXTRACT(month FROM ar.date) -1 as month',
@@ -287,8 +301,11 @@ export class CragsService {
       .innerJoin('activity_route', 'ar', 'ar.routeId = r.id')
       .where('r.cragId = :cid', { cid: crag.id })
       .groupBy('EXTRACT(month FROM ar.date)')
-      .orderBy('EXTRACT(month FROM ar.date)', 'ASC')
-      .getRawMany();
+      .orderBy('EXTRACT(month FROM ar.date)', 'ASC');
+
+    setBuilderCache(builder, 'getRawMany');
+
+    const results = await builder.getRawMany();
 
     const response = new Array(12).fill(0);
 
@@ -306,9 +323,9 @@ export class CragsService {
     let suffix = '';
 
     while (
-      (await this.cragsRepository.findOne({
+      await this.cragsRepository.findOne({
         where: { ...selfCond, slug: slug + suffix },
-      })) !== undefined
+      })
     ) {
       suffixCounter++;
       suffix = '-' + suffixCounter;

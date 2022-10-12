@@ -1,30 +1,24 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
-import {
-  FastifyAdapter,
-  NestFastifyApplication,
-} from '@nestjs/platform-fastify';
 import * as fs from 'fs';
+import { env } from 'process';
 
 let serverOptions: any = { cors: true };
 
-if (process.env.SSL_CERT != null) {
+if (env.SSL_CERT != null) {
   const httpsOptions = {
-    key: fs.readFileSync(process.env.SSL_CERT_KEY),
-    cert: fs.readFileSync(process.env.SSL_CERT),
+    key: fs.readFileSync(env.SSL_CERT_KEY),
+    cert: fs.readFileSync(env.SSL_CERT),
   };
 
-  serverOptions = { https: httpsOptions };
+  serverOptions = { ...serverOptions, httpsOptions };
 }
 
 async function bootstrap() {
-  const app = await NestFactory.create<NestFastifyApplication>(
-    AppModule,
-    new FastifyAdapter(serverOptions),
-  );
+  const app = await NestFactory.create(AppModule, serverOptions);
   app.useGlobalPipes(new ValidationPipe());
-  const PORT = Number(process.env.PORT) || 3000;
+  const PORT = Number(env.PORT) || 3000;
   await app.listen(PORT);
 }
 bootstrap();

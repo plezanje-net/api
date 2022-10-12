@@ -19,7 +19,10 @@ import { AuditInterceptor } from '../../audit/interceptors/audit.interceptor';
 import { AllowAny } from '../../auth/decorators/allow-any.decorator';
 import { CurrentUser } from '../../auth/decorators/current-user.decorator';
 import { UserAuthGuard } from '../../auth/guards/user-auth.guard';
-import { Loader } from '../../core/interceptors/data-loader.interceptor';
+import {
+  DataLoaderInterceptor,
+  Loader,
+} from '../../core/interceptors/data-loader.interceptor';
 import { Route } from '../../crags/entities/route.entity';
 import { NotFoundFilter } from '../../crags/filters/not-found.filter';
 import { RouteLoader } from '../../crags/loaders/route.loader';
@@ -34,16 +37,17 @@ import { PaginatedActivityRoutes } from '../utils/paginated-activity-routes.clas
 import { GraphQLResolveInfo } from 'graphql';
 import { CacheScope } from 'apollo-server-types';
 import { CreateActivityRouteInput } from '../dtos/create-activity-route.input';
-import { ActivitiesService } from '../services/activities.service';
 import { UpdateActivityRouteInput } from '../dtos/update-activity-route.input';
 import { FindRoutesTouchesInput } from '../dtos/find-routes-touches.input';
 import { RoutesTouches } from '../utils/routes-touches.class';
+import { Connection } from 'typeorm';
 
 @Resolver(() => ActivityRoute)
+@UseInterceptors(DataLoaderInterceptor)
 export class ActivityRoutesResolver {
   constructor(
     private activityRoutesService: ActivityRoutesService,
-    private activitiesService: ActivitiesService,
+    private connection: Connection,
   ) {}
 
   @Query(() => ActivityRoute)
@@ -85,7 +89,7 @@ export class ActivityRoutesResolver {
    * For an array of route ids check which routes has a user already tried, ticked or ticked on toprope before (or on) a given date
    */
   @UseGuards(UserAuthGuard)
-  @Query(returns => RoutesTouches)
+  @Query((returns) => RoutesTouches)
   async routesTouches(
     @CurrentUser() user: User,
     @Args('input') input: FindRoutesTouchesInput,
@@ -154,7 +158,7 @@ export class ActivityRoutesResolver {
     return this.activityRoutesService.update(input);
   }
 
-  @Mutation(() => Boolean)
+  @Mutation((returns) => Boolean)
   @UseInterceptors(AuditInterceptor)
   @UseGuards(UserAuthGuard)
   async deleteActivityRoute(
@@ -167,11 +171,24 @@ export class ActivityRoutesResolver {
       throw new ForbiddenException();
     }
 
-    return this.activityRoutesService.delete(activityRoute);
+    const queryRunner = this.connection.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    try {
+      await this.activityRoutesService.delete(activityRoute, queryRunner);
+      await queryRunner.commitTransaction();
+      return true;
+    } catch (exception) {
+      await queryRunner.rollbackTransaction();
+      throw exception;
+    } finally {
+      await queryRunner.release();
+    }
   }
 
   @UseGuards(UserAuthGuard)
-  @Query(returns => PaginatedActivityRoutes)
+  @Query((returns) => PaginatedActivityRoutes)
   activityRoutesByClubSlug(
     @CurrentUser() user: User,
     @Args('clubSlug') clubSlug: string,
@@ -184,7 +201,7 @@ export class ActivityRoutesResolver {
 
   @AllowAny()
   @UseGuards(UserAuthGuard)
-  @Query(returns => [ActivityRoute])
+  @Query((returns) => [ActivityRoute])
   latestTicks(
     @CurrentUser() user: User,
     @Args('latestN', { type: () => Int, nullable: true }) latestN: number,

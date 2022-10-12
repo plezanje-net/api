@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { GraphQLModule } from '@nestjs/graphql';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 
 import { AuditModule } from './audit/audit.module';
 import { CragsModule } from './crags/crags.module';
@@ -33,16 +34,13 @@ import { RouteType } from './crags/entities/route-type.entity';
 import { GradingSystem } from './crags/entities/grading-system.entity';
 import { Grade } from './crags/entities/grade.entity';
 import { RouteEvent } from './crags/entities/route-event.entity';
-import responseCachePlugin from 'apollo-server-plugin-response-cache';
-import { ApolloServerPluginCacheControl } from 'apollo-server-core';
 import { AuthService } from './auth/services/auth.service';
 import { AuthModule } from './auth/auth.module';
-import { CacheControlService } from './core/services/cache-control.service';
-import Redis from 'ioredis';
 import { IceFallProperty } from './crags/entities/ice-fall-property.entity';
 import { CragProperty } from './crags/entities/crag-property.entity';
 import { RouteProperty } from './crags/entities/route-property.entity';
 import { PropertyType } from './crags/entities/property-type.entity';
+import EntityCacheSubscriber from './core/utils/entity-cache/entity-cache.subscriber';
 
 @Module({
   imports: [
@@ -56,8 +54,18 @@ import { PropertyType } from './crags/entities/property-type.entity';
         password: configService.get('DB_PASSWORD'),
         database: configService.get('DB_NAME'),
         port: configService.get('DB_PORT'),
+        cache:
+          configService.get('ENTITY_CACHE') == 'enabled'
+            ? {
+                type: 'ioredis',
+                options: {
+                  host: configService.get('REDIS_HOST'),
+                  port: configService.get('REDIS_PORT'),
+                },
+                duration: 1000 * 60 * 60 * 24,
+              }
+            : null,
         synchronize: false,
-        // logging: true,
         entities: [
           Activity,
           ActivityRoute,
@@ -88,66 +96,20 @@ import { PropertyType } from './crags/entities/property-type.entity';
           IceFallProperty,
           PropertyType,
         ],
+        subscribers: [EntityCacheSubscriber],
         // logging: ['query', 'error'],
+        // maxQueryExecutionTime: 60,
       }),
       inject: [ConfigService],
     }),
-    GraphQLModule.forRootAsync({
+    GraphQLModule.forRootAsync<ApolloDriverConfig>({
       imports: [ConfigModule, AuthModule],
-      inject: [ConfigService, AuthService, CacheControlService],
-      useFactory: async (
-        configService: ConfigService,
-        authService: AuthService,
-        cacheControlService: CacheControlService,
-      ) => ({
+      inject: [ConfigService, AuthService],
+      driver: ApolloDriver,
+      useFactory: async () => ({
         debug: true,
         playground: true,
         autoSchemaFile: true,
-        plugins: [
-          responseCachePlugin({
-            cache: cacheControlService.init({
-              client: new Redis({
-                host: configService.get('REDIS_HOST'),
-                port: configService.get('REDIS_PORT'),
-              }),
-            }),
-            shouldWriteToCache: () => configService.get('CACHE') === 'enabled',
-            shouldReadFromCache: () => configService.get('CACHE') === 'enabled',
-            sessionId: requestContext =>
-              requestContext.request.http.headers.get('Authorization'),
-            extraCacheKeyData: async requestContext => {
-              if (requestContext.request.http.headers.get('Authorization')) {
-                const jwt = authService.decodeJwt(
-                  requestContext.request.http.headers
-                    .get('Authorization')
-                    .split(' ')[1],
-                );
-
-                const user = await authService.validateJwtPayload(jwt);
-                if (user) {
-                  return { roles: user.roles.map(role => role.role) };
-                }
-              }
-            },
-          }),
-          ApolloServerPluginCacheControl({
-            defaultMaxAge: configService.get('REDIS_TTL'),
-          }),
-          {
-            async requestDidStart() {
-              return {
-                async willSendResponse(m) {
-                  if (
-                    m.operation.operation == 'mutation' &&
-                    m.operationName != 'Login'
-                  ) {
-                    cacheControlService.flush();
-                  }
-                },
-              };
-            },
-          },
-        ],
       }),
     }),
     AuditModule,
