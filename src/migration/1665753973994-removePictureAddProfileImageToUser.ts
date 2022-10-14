@@ -44,6 +44,26 @@ export class removePictureAddProfileImageToUser1665753973994
 
   public async down(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(
+      `CREATE TYPE "public"."image_type_enum" AS ENUM('photo', 'sketch', 'map', 'profile')`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "image" ADD "type" "public"."image_type_enum" NOT NULL DEFAULT 'photo'`,
+    );
+
+    // Link all images with 'old' type of profile to users of the same image
+    const usersWithProfileImages = await queryRunner.query(
+      `SELECT * FROM "user" u WHERE u."profileImageId" IS NOT NULL`,
+    );
+    for (const user of usersWithProfileImages) {
+      await queryRunner.query(
+        `UPDATE "image" SET "type" = 'profile' WHERE id = '${user.profileImageId}'`,
+      );
+    }
+    console.error(
+      `Data in column 'type' of table 'image' is only partly reconstructed.`,
+    );
+
+    await queryRunner.query(
       `ALTER TABLE "user" DROP CONSTRAINT "FK_5c0981de5dc2a2222a1f0574859"`,
     );
     await queryRunner.query(
@@ -55,17 +75,6 @@ export class removePictureAddProfileImageToUser1665753973994
     );
     await queryRunner.query(
       `ALTER TABLE "user" RENAME COLUMN "profileImageId" TO "picture"`,
-    );
-
-    await queryRunner.query(
-      `CREATE TYPE "public"."image_type_enum" AS ENUM('photo', 'sketch', 'map', 'profile')`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "image" ADD "type" "public"."image_type_enum" NOT NULL DEFAULT 'photo'`,
-    );
-
-    console.error(
-      `Data in column 'type' of table 'image' is not reconstructable.`,
     );
 
     await queryRunner.query(`ALTER TABLE "image" DROP COLUMN "author"`);
