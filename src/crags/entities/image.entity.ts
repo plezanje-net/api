@@ -16,13 +16,6 @@ import { Peak } from './peak.entity';
 import { IceFall } from './ice-fall.entity';
 import { User } from '../../users/entities/user.entity';
 
-export enum ImageType {
-  PHOTO = 'photo',
-  SKETCH = 'sketch',
-  MAP = 'map',
-  PROFILE = 'profile',
-}
-
 export enum ImageParentEntityType {
   CRAG = 'crag',
   ROUTE = 'route',
@@ -36,13 +29,6 @@ export class Image extends BaseEntity {
   @PrimaryGeneratedColumn('uuid')
   @Field()
   id: string;
-
-  @Column({
-    type: 'enum',
-    enum: ImageType,
-    default: ImageType.PHOTO,
-  })
-  type: ImageType;
 
   @Column({ nullable: true })
   @Field({ nullable: true })
@@ -61,11 +47,11 @@ export class Image extends BaseEntity {
   extension: string;
 
   @Column({ type: 'float' })
-  @Field(type => Float)
+  @Field((type) => Float)
   aspectRatio: number;
 
   @Column({ type: 'integer' })
-  @Field(type => Int)
+  @Field((type) => Int)
   maxIntrinsicWidth: number;
 
   @CreateDateColumn()
@@ -74,61 +60,49 @@ export class Image extends BaseEntity {
   @UpdateDateColumn()
   updated: Date;
 
-  @ManyToOne(
-    () => User,
-    user => user.images,
-  )
+  // The user that contributed the image
+  @ManyToOne(() => User, (user) => user.images)
   @Field(() => User, { nullable: true })
   user: Promise<User>;
+
+  // The actual author of the photo/image
+  @Column({ nullable: true })
+  @Field({ nullable: true })
+  author: string;
 
   @Column({ nullable: true })
   legacy: string;
 
-  @ManyToOne(
-    () => Area,
-    area => area.images,
-    { nullable: true },
-  )
+  @ManyToOne(() => Area, (area) => area.images, { nullable: true })
   @Field(() => Area, { nullable: true })
   area: Promise<Area>;
 
-  @ManyToOne(
-    () => Crag,
-    crag => crag.images,
-    { nullable: true, onDelete: 'CASCADE' },
-  )
+  @ManyToOne(() => Crag, (crag) => crag.images, {
+    nullable: true,
+    onDelete: 'CASCADE',
+  })
   @Field(() => Crag, { nullable: true })
   crag: Promise<Crag>;
 
-  @ManyToOne(
-    () => Route,
-    route => route.images,
-    { nullable: true, onDelete: 'CASCADE' },
-  )
+  @ManyToOne(() => Route, (route) => route.images, {
+    nullable: true,
+    onDelete: 'CASCADE',
+  })
   @Field(() => Route, { nullable: true })
   route: Promise<Route>;
 
-  @ManyToOne(
-    () => IceFall,
-    iceFall => iceFall.images,
-    { nullable: true },
-  )
+  @ManyToOne(() => IceFall, (iceFall) => iceFall.images, { nullable: true })
   @Field(() => IceFall, { nullable: true })
   iceFall: Promise<IceFall>;
 
-  @ManyToOne(
-    () => Comment,
-    comment => comment.images,
-    { nullable: true, onDelete: 'CASCADE' },
-  )
+  @ManyToOne(() => Comment, (comment) => comment.images, {
+    nullable: true,
+    onDelete: 'CASCADE',
+  })
   @Field(() => Comment, { nullable: true })
   comment: Promise<Comment>;
 
-  @ManyToOne(
-    () => Peak,
-    peak => peak.images,
-    { nullable: true },
-  )
+  @ManyToOne(() => Peak, (peak) => peak.images, { nullable: true })
   @Field(() => Peak, { nullable: true })
   peak: Promise<Peak>;
 }

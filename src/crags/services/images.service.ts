@@ -93,7 +93,6 @@ export class ImagesService {
       extension: inputExtension,
       aspectRatio,
       maxIntrinsicWidth,
-      type,
       title,
       description,
     });

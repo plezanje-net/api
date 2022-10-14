@@ -6,6 +6,8 @@ import {
   UpdateDateColumn,
   BaseEntity,
   OneToMany,
+  OneToOne,
+  JoinColumn,
 } from 'typeorm';
 import { ObjectType, Field, Extensions } from '@nestjs/graphql';
 import { Role } from './role.entity';
@@ -41,13 +43,7 @@ export class User extends BaseEntity {
   @Field({ nullable: true })
   gender?: string;
 
-  @Column({ nullable: true })
-  picture?: string;
-
-  @OneToMany(
-    () => Role,
-    role => role.user,
-  )
+  @OneToMany(() => Role, (role) => role.user)
   @Field(() => [Role], { middleware: [checkRoleMiddleware], nullable: true })
   @Extensions({ roles: ['admin', 'self'] })
   roles: Promise<Role[]>;
@@ -83,21 +79,22 @@ export class User extends BaseEntity {
   @Column({ nullable: true })
   legacy: string;
 
-  @OneToMany(
-    type => ClubMember,
-    clubMember => clubMember.user,
-  )
+  @OneToMany((type) => ClubMember, (clubMember) => clubMember.user)
   clubs: ClubMember[];
 
-  @OneToMany(
-    () => Image,
-    image => image.user,
-  )
+  // All of thr images that the user contributed
+  @OneToMany(() => Image, (image) => image.user)
   @Field(() => [Image])
   images: Promise<Image[]>;
 
+  // Profile image for the user
+  @OneToOne((type) => Image, { nullable: true })
+  @JoinColumn()
+  @Field((type) => Image, { nullable: true })
+  profileImage: Promise<Image[]>;
+
   isAdmin = async () => {
     const roles = await this.roles;
-    return roles ? roles.some(r => r.role == 'admin') : false;
+    return roles ? roles.some((r) => r.role == 'admin') : false;
   };
 }
