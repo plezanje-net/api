@@ -40,7 +40,6 @@ export class ImagesService {
       )
 
       .andWhere("r.publishStatus = 'published'") // only show ticks for published routes
-      .andWhere('i.type = :type', { type: 'photo' }) // Comment this out if you want to show all types of images
       .orderBy('i.created', 'DESC')
       .limit(latest);
 
@@ -56,7 +55,7 @@ export class ImagesService {
     imageFile: Express.Multer.File,
     currentUser: User,
   ) {
-    const { entityType, entityId, type, title, description } = uploadImageDto;
+    const { entityType, entityId, author, title, description } = uploadImageDto;
     const inputExtension = path.extname(imageFile.originalname);
 
     let crag: Crag;
@@ -93,6 +92,7 @@ export class ImagesService {
       extension: inputExtension,
       aspectRatio,
       maxIntrinsicWidth,
+      author,
       title,
       description,
     });
