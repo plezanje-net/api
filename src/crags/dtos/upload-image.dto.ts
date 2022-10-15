@@ -1,4 +1,4 @@
-import { IsEnum, IsNotEmpty, IsOptional } from 'class-validator';
+import { IsEnum, IsNotEmpty } from 'class-validator';
 import { ImageParentEntityType } from '../entities/image.entity';
 
 export class UploadImageDto {
