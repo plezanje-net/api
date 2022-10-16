@@ -31,7 +31,7 @@ export class UploadController {
       throw new BadRequestException();
     }
 
-    return this.imagesService.createImage(
+    return await this.imagesService.createImage(
       uploadImageDto,
       imageFile,
       currentUser,

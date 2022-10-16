@@ -46,7 +46,7 @@ describe('Upload', () => {
       .set('Content-Type', 'multipart/form-data')
       .field('entityType', 'crag')
       .field('title', 'An image of a crag')
-      .field('type', 'photo')
+      .field('author', 'Slavko Majonnezic')
       .field('description', 'This is this crag')
       .attach('image', `${__dirname}/testImage.jpg`)
       .expect(400); // bad request
@@ -59,7 +59,20 @@ describe('Upload', () => {
       .set('Content-Type', 'multipart/form-data')
       .field('entityId', mockData.crags.publishedCrag.id)
       .field('title', 'An image of a crag')
-      .field('type', 'photo')
+      .field('author', 'Slavko Majonezic')
+      .field('description', 'This is this crag')
+      .attach('image', `${__dirname}/testImage.jpg`)
+      .expect(400); // bad request
+  });
+
+  it('should fail if author field is missing', () => {
+    return request(app.getHttpServer())
+      .post('/upload/image')
+      .set('Authorization', `Bearer ${mockData.users.basicUser1.authToken}`)
+      .set('Content-Type', 'multipart/form-data')
+      .field('entityType', 'crag')
+      .field('entityId', mockData.crags.publishedCrag.id)
+      .field('title', 'An image of a crag')
       .field('description', 'This is this crag')
       .attach('image', `${__dirname}/testImage.jpg`)
       .expect(400); // bad request
@@ -73,7 +86,7 @@ describe('Upload', () => {
       .field('entityId', mockData.crags.publishedCrag.id)
       .field('entityType', 'crag')
       .field('title', 'An image of a crag')
-      .field('type', 'photo')
+      .field('author', 'Slavko Majonezic')
       .field('description', 'This is this crag')
       .attach('image', `${__dirname}/testImage.jpg`)
       .expect(201);
@@ -90,13 +103,14 @@ describe('Upload', () => {
     });
 
     // Check that image was added to db
-    const imageId = response.text;
+    const { id: imageId } = JSON.parse(response.text);
     expect(imageId).toBeDefined();
     const [image] = await queryRunner.query(
       `SELECT * FROM image WHERE id = '${imageId}'`,
     );
     expect(image.cragId).toEqual(mockData.crags.publishedCrag.id);
     expect(image.path).toEqual(`crags/${mockData.crags.publishedCrag.slug}`);
+    expect(image.author).toEqual(`Slavko Majonezic`);
   });
 
   it('should succeed uploading a route image', async () => {
@@ -111,7 +125,7 @@ describe('Upload', () => {
       )
       .field('entityType', 'route')
       .field('title', 'An image of a route')
-      .field('type', 'sketch')
+      .field('author', 'Slavko Majonezic')
       .field('description', 'This is this route')
       .attach('image', `${__dirname}/testImage.jpg`)
       .expect(201);
@@ -129,7 +143,7 @@ describe('Upload', () => {
     });
 
     // Check that image was added to db
-    const imageId = response.text;
+    const { id: imageId } = JSON.parse(response.text);
     expect(imageId).toBeDefined();
     const [image] = await queryRunner.query(
       `SELECT * FROM image WHERE id = '${imageId}'`,
@@ -141,6 +155,7 @@ describe('Upload', () => {
     expect(image.path).toEqual(
       `routes/${mockData.crags.publishedCrag.slug}-${mockData.crags.publishedCrag.sectors.publishedSector.routes.publishedRoute.slug}`,
     );
+    expect(image.author).toEqual(`Slavko Majonezic`);
   });
 
   afterAll(async () => {

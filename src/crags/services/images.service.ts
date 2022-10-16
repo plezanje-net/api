@@ -40,7 +40,6 @@ export class ImagesService {
       )
 
       .andWhere("r.publishStatus = 'published'") // only show ticks for published routes
-      .andWhere('i.type = :type', { type: 'photo' }) // Comment this out if you want to show all types of images
       .orderBy('i.created', 'DESC')
       .limit(latest);
 
@@ -56,7 +55,7 @@ export class ImagesService {
     imageFile: Express.Multer.File,
     currentUser: User,
   ) {
-    const { entityType, entityId, type, title, description } = uploadImageDto;
+    const { entityType, entityId, author, title, description } = uploadImageDto;
     const inputExtension = path.extname(imageFile.originalname);
 
     let crag: Crag;
@@ -93,7 +92,7 @@ export class ImagesService {
       extension: inputExtension,
       aspectRatio,
       maxIntrinsicWidth,
-      type,
+      author,
       title,
       description,
     });
@@ -105,7 +104,7 @@ export class ImagesService {
 
     await this.imagesRepository.save(image);
 
-    return image.id;
+    return image;
   }
 
   private async generateUniqueStem(entity: string, stemBase: string) {
@@ -138,35 +137,39 @@ export class ImagesService {
       .toFile(`${env.STORAGE_PATH}/images/${entity}s/${stem}${extension}`);
 
     // Generate all of the predefined sizes and save them as webp, avif and jpeg
-    this.targetSizes.forEach(async size => {
-      // Resize image (only if big enough)
-      const resizedImage = shImage.clone().resize({
-        width: size,
-        height: this.maxSize.height,
-        fit: 'inside',
-        withoutEnlargement: true,
-      });
+    await Promise.all(
+      this.targetSizes.flatMap((size) => {
+        // Resize image (only if big enough)
+        const resizedImage = shImage.clone().resize({
+          width: size,
+          height: this.maxSize.height,
+          fit: 'inside',
+          withoutEnlargement: true,
+        });
 
-      // Convert to different formats, suitable for FE
-      const webpImage = resizedImage.clone().toFormat('webp');
-      const avifImage = resizedImage.clone().toFormat('avif');
-      const jpegImage = resizedImage.clone().toFormat('jpeg', {
-        quality: 80,
-        chromaSubsampling: '4:4:4',
-        mozjpeg: true,
-      });
+        // Convert to different formats, suitable for FE
+        const webpImage = resizedImage.clone().toFormat('webp');
+        const avifImage = resizedImage.clone().toFormat('avif');
+        const jpegImage = resizedImage.clone().toFormat('jpeg', {
+          quality: 80,
+          chromaSubsampling: '4:4:4',
+          mozjpeg: true,
+        });
 
-      // Save image of current size in all formats to disk
-      jpegImage.toFile(
-        `${env.STORAGE_PATH}/images/${size}/${entity}s/${stem}.jpg`,
-      );
-      webpImage.toFile(
-        `${env.STORAGE_PATH}/images/${size}/${entity}s/${stem}.webp`,
-      );
-      avifImage.toFile(
-        `${env.STORAGE_PATH}/images/${size}/${entity}s/${stem}.avif`,
-      );
-    });
+        // Save image of current size in all formats to disk
+        return [
+          jpegImage.toFile(
+            `${env.STORAGE_PATH}/images/${size}/${entity}s/${stem}.jpg`,
+          ),
+          webpImage.toFile(
+            `${env.STORAGE_PATH}/images/${size}/${entity}s/${stem}.webp`,
+          ),
+          avifImage.toFile(
+            `${env.STORAGE_PATH}/images/${size}/${entity}s/${stem}.avif`,
+          ),
+        ];
+      }),
+    );
 
     // Aspect ratio can be determined from original image metadata, because it will not change. From that also actual max intrinsic width can be determined
     const { width, height } = await shImage.metadata();
