@@ -127,7 +127,8 @@ export class ImagesService {
     // Load image from buffer
     const shImage = await sharp(imageBuffer);
 
-    await shImage
+    const { width, height } = await shImage
+      .rotate() // dummy rotate, to 'flatten' the rotation metadata and switched width/height
       .resize({
         width: this.maxSize.width,
         height: this.maxSize.height,
@@ -135,6 +136,17 @@ export class ImagesService {
         withoutEnlargement: true,
       })
       .toFile(`${env.STORAGE_PATH}/images/${entity}s/${stem}${extension}`);
+
+    // Determine aspect ratio after initial image resize. From that calculate also what the max width of the generated image variations will be
+    const aspectRatio = width / height;
+    const maxIntrinsicWidth = Math.round(
+      Math.min(
+        width,
+        this.maxSize.width,
+        this.maxSize.height * aspectRatio,
+        Math.max(...this.targetSizes),
+      ),
+    );
 
     // Generate all of the predefined sizes and save them as webp, avif and jpeg
     await Promise.all(
@@ -169,18 +181,6 @@ export class ImagesService {
           ),
         ];
       }),
-    );
-
-    // Aspect ratio can be determined from original image metadata, because it will not change. From that also actual max intrinsic width can be determined
-    const { width, height } = await shImage.metadata();
-    const aspectRatio = width / height;
-    const maxIntrinsicWidth = Math.round(
-      Math.min(
-        width,
-        this.maxSize.width,
-        this.maxSize.height * aspectRatio,
-        Math.max(...this.targetSizes),
-      ),
     );
 
     return { maxIntrinsicWidth, aspectRatio };
