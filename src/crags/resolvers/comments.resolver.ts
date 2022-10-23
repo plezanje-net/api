@@ -93,11 +93,13 @@ export class CommentsResolver {
   }
 
   @AllowAny()
+  @UseGuards(UserAuthGuard)
   @Query((returns) => PaginatedComments, { name: 'latestComments' })
   getLatestComments(
     @Args('input', { type: () => FindCommentsInput })
     input: FindCommentsInput,
+    @CurrentUser() user: User,
   ) {
-    return this.commentsService.find(input);
+    return this.commentsService.find(input, Boolean(user));
   }
 }
