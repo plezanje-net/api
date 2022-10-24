@@ -1,6 +1,7 @@
 import { InputType, Field, Int, Float } from '@nestjs/graphql';
 import { IsOptional } from 'class-validator';
 import { AscentType, PublishType } from '../entities/activity-route.entity';
+import { CreateActivityRoutePitchInput } from './create-activity-route-pitch.input';
 
 @InputType()
 export class CreateActivityRouteInput {
@@ -28,11 +29,15 @@ export class CreateActivityRouteInput {
   @IsOptional()
   position: number;
 
-  @Field(type => Float, { nullable: true })
+  @Field((type) => Float, { nullable: true })
   @IsOptional()
   votedDifficulty: number;
 
-  @Field(type => Int, { nullable: true })
+  @Field((type) => Int, { nullable: true })
   @IsOptional()
   votedStarRating: number;
+
+  @Field(() => [CreateActivityRoutePitchInput], { nullable: true })
+  @IsOptional()
+  pitches: CreateActivityRoutePitchInput[];
 }
