@@ -226,8 +226,11 @@ export class CragsResolver {
   @Mutation(() => Boolean)
   @UseGuards(UserAuthGuard)
   async deleteImage(@CurrentUser() user: User, @Args('id') id: string) {
-    // TODO is this the right place for this mutation?
-    // TODO add author and admin check to prevent abuse
-    return this.imagesService.deleteImage(id, user);
+    const image = await this.imagesService.findOneById(id);
+    if ((await image.user).id !== user.id) {
+      return false;
+    }
+
+    return this.imagesService.deleteImage(id);
   }
 }

@@ -26,6 +26,10 @@ export class ImagesService {
     return this.imagesRepository.findOneBy({ path });
   }
 
+  async findOneById(id: string): Promise<Image> {
+    return this.imagesRepository.findOneBy({ id });
+  }
+
   getLatestImages(latest: number, showHiddenCrags: boolean) {
     const builder = this.imagesRepository.createQueryBuilder('i');
     builder
@@ -106,20 +110,13 @@ export class ImagesService {
     return image;
   }
 
-  async deleteImage(id: string, user: User): Promise<Boolean> {
+  async deleteImage(id: string): Promise<Boolean> {
     try {
       const image = await this.imagesRepository.findOneOrFail({
         where: {
           id,
         },
       });
-
-      const imageUser = await image.user;
-
-      if (imageUser.id !== user.id) {
-        // TODO log to Sentry when we have it on the API
-        return false;
-      }
 
       this.targetSizes.forEach((size) => {
         fs.rm(
