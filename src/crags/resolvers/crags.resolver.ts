@@ -42,6 +42,7 @@ import { CurrentUser } from '../../auth/decorators/current-user.decorator';
 import { User } from '../../users/entities/user.entity';
 import { NotificationService } from '../../notification/services/notification.service';
 import { ForeignKeyConstraintFilter } from '../filters/foreign-key-constraint.filter';
+import { ImagesService } from '../services/images.service';
 
 @Resolver(() => Crag)
 @UseInterceptors(DataLoaderInterceptor)
@@ -52,6 +53,7 @@ export class CragsResolver {
     private commentsService: CommentsService,
     private entityPropertiesService: EntityPropertiesService,
     private notificationService: NotificationService,
+    private imagesService: ImagesService,
   ) {}
 
   /* QUERIES */
@@ -219,5 +221,13 @@ export class CragsResolver {
     @Args('top', { type: () => Int, nullable: true }) top?: number,
   ) {
     return this.cragsService.getPopularCrags(dateFrom, top, user != null);
+  }
+
+  @Mutation(() => Boolean)
+  @UseGuards(UserAuthGuard)
+  async deleteImage(@CurrentUser() user: User, @Args('id') id: string) {
+    // TODO is this the right place for this mutation?
+    // TODO add author and admin check to prevent abuse
+    return this.imagesService.deleteImage(id, user);
   }
 }

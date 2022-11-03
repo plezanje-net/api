@@ -10,6 +10,7 @@ import { RoutesService } from './routes.service';
 import sharp from 'sharp';
 import path from 'path';
 import { env } from 'process';
+import * as fs from 'fs';
 
 export class ImagesService {
   maxSize = { width: 6000, height: 6000 };
@@ -57,7 +58,6 @@ export class ImagesService {
   ) {
     const { entityType, entityId, author, title, description } = uploadImageDto;
     const inputExtension = path.extname(imageFile.originalname);
-
     let crag: Crag;
     let stemBase: string;
     let parentEntity: Route | Crag;
@@ -75,7 +75,6 @@ export class ImagesService {
         break;
       // Add other cases when/if adding support for other entity types
     }
-
     const stem = await this.generateUniqueStem(entityType, stemBase);
 
     // Resize image, generate other image sizes, save to disk and retreive some image data needed for FE
@@ -105,6 +104,49 @@ export class ImagesService {
     await this.imagesRepository.save(image);
 
     return image;
+  }
+
+  async deleteImage(id: string, user: User): Promise<Boolean> {
+    try {
+      const image = await this.imagesRepository.findOneOrFail({
+        where: {
+          id,
+        },
+      });
+
+      const imageUser = await image.user;
+
+      if (imageUser.id !== user.id) {
+        // TODO log to Sentry when we have it on the API
+        return false;
+      }
+
+      this.targetSizes.forEach((size) => {
+        fs.rm(
+          `${env.STORAGE_PATH}/images/${image.path}.jpg`,
+          this.handleImageRemove,
+        );
+        fs.rm(
+          `${env.STORAGE_PATH}/images/${size}/${image.path}.webp`,
+          this.handleImageRemove,
+        );
+        fs.rm(
+          `${env.STORAGE_PATH}/images/${size}/${image.path}.avif`,
+          this.handleImageRemove,
+        );
+        fs.rm(
+          `${env.STORAGE_PATH}/images/${size}/${image.path}.jpg`,
+          this.handleImageRemove,
+        );
+      });
+
+      await this.imagesRepository.remove(image);
+
+      return true;
+    } catch (error) {
+      // TODO log to Sentry when we have it on the API
+      return false;
+    }
   }
 
   private async generateUniqueStem(entity: string, stemBase: string) {
@@ -184,5 +226,9 @@ export class ImagesService {
     );
 
     return { maxIntrinsicWidth, aspectRatio };
+  }
+
+  private handleImageRemove() {
+    // TODO log to Sentry when we have it on the API
   }
 }
