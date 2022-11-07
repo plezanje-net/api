@@ -20,7 +20,7 @@ jobs:
         run: |
           npm install
           npm run build
-          sudo supervisorctl stop apistage
+          sudo supervisorctl stop api-stage
           rm -rf /var/www/plezanjenet/stage/api/*
           cp -r ./ /var/www/plezanjenet/stage/api/
           cp /var/www/plezanjenet/stage/.env /var/www/plezanjenet/stage/api/.env
@@ -29,4 +29,4 @@ jobs:
           cd /var/www/plezanjenet/stage/api && npm run migration:run
       - name: Start server
         run: |
-          sudo supervisorctl start apistage
+          sudo supervisorctl start api-stage
