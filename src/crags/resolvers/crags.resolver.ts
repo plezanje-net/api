@@ -228,7 +228,7 @@ export class CragsResolver {
   async deleteImage(@CurrentUser() user: User, @Args('id') id: string) {
     const image = await this.imagesService.findOneById(id);
     if ((await image.user).id !== user.id) {
-      return false;
+      throw new ForbiddenException();
     }
 
     return this.imagesService.deleteImage(id);
