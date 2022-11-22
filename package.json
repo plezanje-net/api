@@ -47,6 +47,7 @@
     "dataloader": "^2.1.0",
     "dotenv": "^16.0.3",
     "fs": "0.0.1-security",
+    "graphql": "^16.6.0",
     "handlebars": "^4.7.7",
     "hbs": "^4.2.0",
     "ioredis": "^5.2.3",
