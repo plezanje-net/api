@@ -10,6 +10,7 @@ import { RoutesService } from './routes.service';
 import sharp from 'sharp';
 import path from 'path';
 import { env } from 'process';
+import * as fs from 'fs';
 
 export class ImagesService {
   maxSize = { width: 6000, height: 6000 };
@@ -23,6 +24,10 @@ export class ImagesService {
 
   async findOneByPath(path: string): Promise<Image> {
     return this.imagesRepository.findOneBy({ path });
+  }
+
+  async findOneById(id: string): Promise<Image> {
+    return this.imagesRepository.findOneBy({ id });
   }
 
   getLatestImages(latest: number, showHiddenCrags: boolean) {
@@ -40,7 +45,6 @@ export class ImagesService {
       )
 
       .andWhere("r.publishStatus = 'published'") // only show ticks for published routes
-      .andWhere('i.type = :type', { type: 'photo' }) // Comment this out if you want to show all types of images
       .orderBy('i.created', 'DESC')
       .limit(latest);
 
@@ -56,9 +60,8 @@ export class ImagesService {
     imageFile: Express.Multer.File,
     currentUser: User,
   ) {
-    const { entityType, entityId, type, title, description } = uploadImageDto;
+    const { entityType, entityId, author, title, description } = uploadImageDto;
     const inputExtension = path.extname(imageFile.originalname);
-
     let crag: Crag;
     let stemBase: string;
     let parentEntity: Route | Crag;
@@ -76,7 +79,6 @@ export class ImagesService {
         break;
       // Add other cases when/if adding support for other entity types
     }
-
     const stem = await this.generateUniqueStem(entityType, stemBase);
 
     // Resize image, generate other image sizes, save to disk and retreive some image data needed for FE
@@ -93,7 +95,7 @@ export class ImagesService {
       extension: inputExtension,
       aspectRatio,
       maxIntrinsicWidth,
-      type,
+      author,
       title,
       description,
     });
@@ -105,7 +107,43 @@ export class ImagesService {
 
     await this.imagesRepository.save(image);
 
-    return image.id;
+    return image;
+  }
+
+  async deleteImage(id: string): Promise<Boolean> {
+    try {
+      const image = await this.imagesRepository.findOneOrFail({
+        where: {
+          id,
+        },
+      });
+
+      this.targetSizes.forEach((size) => {
+        fs.rm(
+          `${env.STORAGE_PATH}/images/${image.path}.jpg`,
+          this.handleImageRemove,
+        );
+        fs.rm(
+          `${env.STORAGE_PATH}/images/${size}/${image.path}.webp`,
+          this.handleImageRemove,
+        );
+        fs.rm(
+          `${env.STORAGE_PATH}/images/${size}/${image.path}.avif`,
+          this.handleImageRemove,
+        );
+        fs.rm(
+          `${env.STORAGE_PATH}/images/${size}/${image.path}.jpg`,
+          this.handleImageRemove,
+        );
+      });
+
+      await this.imagesRepository.remove(image);
+
+      return true;
+    } catch (error) {
+      // TODO log to Sentry when we have it on the API
+      return false;
+    }
   }
 
   private async generateUniqueStem(entity: string, stemBase: string) {
@@ -128,7 +166,8 @@ export class ImagesService {
     // Load image from buffer
     const shImage = await sharp(imageBuffer);
 
-    await shImage
+    const { width, height } = await shImage
+      .rotate() // dummy rotate, to 'flatten' the rotation metadata and switched width/height
       .resize({
         width: this.maxSize.width,
         height: this.maxSize.height,
@@ -137,39 +176,7 @@ export class ImagesService {
       })
       .toFile(`${env.STORAGE_PATH}/images/${entity}s/${stem}${extension}`);
 
-    // Generate all of the predefined sizes and save them as webp, avif and jpeg
-    this.targetSizes.forEach(async size => {
-      // Resize image (only if big enough)
-      const resizedImage = shImage.clone().resize({
-        width: size,
-        height: this.maxSize.height,
-        fit: 'inside',
-        withoutEnlargement: true,
-      });
-
-      // Convert to different formats, suitable for FE
-      const webpImage = resizedImage.clone().toFormat('webp');
-      const avifImage = resizedImage.clone().toFormat('avif');
-      const jpegImage = resizedImage.clone().toFormat('jpeg', {
-        quality: 80,
-        chromaSubsampling: '4:4:4',
-        mozjpeg: true,
-      });
-
-      // Save image of current size in all formats to disk
-      jpegImage.toFile(
-        `${env.STORAGE_PATH}/images/${size}/${entity}s/${stem}.jpg`,
-      );
-      webpImage.toFile(
-        `${env.STORAGE_PATH}/images/${size}/${entity}s/${stem}.webp`,
-      );
-      avifImage.toFile(
-        `${env.STORAGE_PATH}/images/${size}/${entity}s/${stem}.avif`,
-      );
-    });
-
-    // Aspect ratio can be determined from original image metadata, because it will not change. From that also actual max intrinsic width can be determined
-    const { width, height } = await shImage.metadata();
+    // Determine aspect ratio after initial image resize. From that calculate also what the max width of the generated image variations will be
     const aspectRatio = width / height;
     const maxIntrinsicWidth = Math.round(
       Math.min(
@@ -180,6 +187,45 @@ export class ImagesService {
       ),
     );
 
+    // Generate all of the predefined sizes and save them as webp, avif and jpeg
+    await Promise.all(
+      this.targetSizes.flatMap((size) => {
+        // Resize image (only if big enough)
+        const resizedImage = shImage.clone().resize({
+          width: size,
+          height: this.maxSize.height,
+          fit: 'inside',
+          withoutEnlargement: true,
+        });
+
+        // Convert to different formats, suitable for FE
+        const webpImage = resizedImage.clone().toFormat('webp');
+        const avifImage = resizedImage.clone().toFormat('avif');
+        const jpegImage = resizedImage.clone().toFormat('jpeg', {
+          quality: 80,
+          chromaSubsampling: '4:4:4',
+          mozjpeg: true,
+        });
+
+        // Save image of current size in all formats to disk
+        return [
+          jpegImage.toFile(
+            `${env.STORAGE_PATH}/images/${size}/${entity}s/${stem}.jpg`,
+          ),
+          webpImage.toFile(
+            `${env.STORAGE_PATH}/images/${size}/${entity}s/${stem}.webp`,
+          ),
+          avifImage.toFile(
+            `${env.STORAGE_PATH}/images/${size}/${entity}s/${stem}.avif`,
+          ),
+        ];
+      }),
+    );
+
     return { maxIntrinsicWidth, aspectRatio };
+  }
+
+  private handleImageRemove() {
+    // TODO log to Sentry when we have it on the API
   }
 }
