@@ -112,17 +112,18 @@ export class CommentsService {
 
     options.order = { created: 'DESC' };
 
-    let count: number;
+    let comments = await this.commentsRepository.find(options);
+    const count = comments.length;
+
     if (params.pageSize != null && params.pageNumber != null) {
-      count = await this.commentsRepository.count(options);
-      options.take = params.pageSize;
-      options.skip = params.pageSize * (params.pageNumber - 1);
+      comments = comments.slice(
+        params.pageSize * (params.pageNumber - 1),
+        params.pageSize * params.pageNumber,
+      );
     }
 
-    const comments = await this.commentsRepository.find(options);
-
     const pagination = new PaginationMeta(
-      count || comments.length,
+      count,
       params.pageNumber,
       params.pageSize,
     );
