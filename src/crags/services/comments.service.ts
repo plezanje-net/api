@@ -76,7 +76,10 @@ export class CommentsService {
     return this.commentsRepository.remove(comment).then(() => true);
   }
 
-  async find(params: FindCommentsInput = {}, showHiddenCrags = true): Promise<PaginatedComments> {
+  async find(
+    params: FindCommentsInput = {},
+    currentUser: User,
+  ): Promise<PaginatedComments> {
     const options: FindManyOptions = {
       order: {},
       where: {},
@@ -98,7 +101,7 @@ export class CommentsService {
       options.where['type'] = params.type;
     }
 
-    if (!showHiddenCrags) {
+    if (!currentUser) {
       options.relations = {
         crag: true,
       };

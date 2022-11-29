@@ -98,8 +98,8 @@ export class CommentsResolver {
   getLatestComments(
     @Args('input', { type: () => FindCommentsInput })
     input: FindCommentsInput,
-    @CurrentUser() user: User,
+    @CurrentUser() currentUser: User,
   ) {
-    return this.commentsService.find(input, Boolean(user));
+    return this.commentsService.find(input, currentUser);
   }
 }
