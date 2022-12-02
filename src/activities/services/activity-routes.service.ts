@@ -882,7 +882,9 @@ export class ActivityRoutesService {
       route.starRating = mostVotedStar;
     }
 
-    await queryRunner.manager.save(route);
+    await queryRunner.manager.update(Route, route.id, {
+      starRating: route.starRating,
+    });
   }
 
   // TODO: this is inclomplete --> we chould define scoring for all possible ascent types!
