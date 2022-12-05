@@ -134,10 +134,11 @@ export class CommentsService {
         'crag',
         'cr',
         "COALESCE(co.cragId, r.cragId) = cr.id AND cr.publishStatus = 'published'",
-      );
+      )
+      .where("cr.publishStatus = 'published'");
 
     if (!currentUser) {
-      queryBuilder.where('cr.isHidden = false');
+      queryBuilder.andWhere('cr.isHidden = false');
     }
 
     queryBuilder.orderBy('co.updated', 'DESC');
