@@ -10,6 +10,7 @@ import { Crag } from '../entities/crag.entity';
 import { IceFall } from '../entities/ice-fall.entity';
 import { PaginationMeta } from '../../core/utils/pagination-meta.class';
 import { PaginatedComments } from '../utils/paginated-comments';
+import { LatestCommentsInput } from '../dtos/latest-comments.input';
 
 @Injectable()
 export class CommentsService {
@@ -79,7 +80,7 @@ export class CommentsService {
   async find(
     params: FindCommentsInput = {},
     currentUser: User,
-  ): Promise<PaginatedComments> {
+  ): Promise<Comment[]> {
     const options: FindManyOptions = {
       order: {},
       where: {},
@@ -113,23 +114,49 @@ export class CommentsService {
     options.order = { created: 'DESC' };
 
     let comments = await this.commentsRepository.find(options);
-    const count = comments.length;
 
-    if (params.pageSize != null && params.pageNumber != null) {
-      comments = comments.slice(
-        params.pageSize * (params.pageNumber - 1),
-        params.pageSize * params.pageNumber,
+    return comments;
+  }
+
+  async getLatestComments(
+    latestCommentsInput: LatestCommentsInput,
+    currentUser: User,
+  ): Promise<PaginatedComments> {
+    const queryBuilder = this.commentsRepository.createQueryBuilder('co');
+
+    queryBuilder
+      .leftJoin(
+        'route',
+        'r',
+        "co.routeId = r.id AND r.publishStatus = 'published'",
+      )
+      .leftJoin(
+        'crag',
+        'cr',
+        "COALESCE(co.cragId, r.cragId) = cr.id AND cr.publishStatus = 'published'",
       );
+
+    if (!currentUser) {
+      queryBuilder.where('cr.isHidden = false');
     }
 
+    queryBuilder.orderBy('co.updated', 'DESC');
+
+    const allComments = await queryBuilder.getMany();
+
+    const latestComments = allComments.slice(
+      latestCommentsInput.pageSize * (latestCommentsInput.pageNumber - 1),
+      latestCommentsInput.pageSize * latestCommentsInput.pageNumber,
+    );
+
     const pagination = new PaginationMeta(
-      count,
-      params.pageNumber,
-      params.pageSize,
+      allComments.length,
+      latestCommentsInput.pageNumber,
+      latestCommentsInput.pageSize,
     );
 
     return {
-      items: comments,
+      items: latestComments,
       meta: pagination,
     };
   }

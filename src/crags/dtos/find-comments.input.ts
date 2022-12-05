@@ -11,19 +11,11 @@ export class FindCommentsInput {
   @IsOptional()
   routeId?: string;
 
-  @Field(type => [String], { nullable: true })
+  @Field((type) => [String], { nullable: true })
   @IsOptional()
   routeIds?: string[];
 
   @Field({ nullable: true })
   @IsOptional()
   type?: string;
-
-  @Field({ nullable: true })
-  @IsOptional()
-  pageNumber?: number;
-
-  @Field({ nullable: true })
-  @IsOptional()
-  pageSize?: number;
 }

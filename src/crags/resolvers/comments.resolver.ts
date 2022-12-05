@@ -25,8 +25,8 @@ import {
   Loader,
 } from '../../core/interceptors/data-loader.interceptor';
 import DataLoader from 'dataloader';
-import { FindCommentsInput } from '../dtos/find-comments.input';
 import { PaginatedComments } from '../utils/paginated-comments';
+import { LatestCommentsInput } from '../dtos/latest-comments.input';
 
 @Resolver(() => Comment)
 @UseInterceptors(DataLoaderInterceptor)
@@ -96,10 +96,10 @@ export class CommentsResolver {
   @UseGuards(UserAuthGuard)
   @Query((returns) => PaginatedComments, { name: 'latestComments' })
   getLatestComments(
-    @Args('input', { type: () => FindCommentsInput })
-    input: FindCommentsInput,
+    @Args('input', { type: () => LatestCommentsInput })
+    input: LatestCommentsInput,
     @CurrentUser() currentUser: User,
   ) {
-    return this.commentsService.find(input, currentUser);
+    return this.commentsService.getLatestComments(input, currentUser);
   }
 }

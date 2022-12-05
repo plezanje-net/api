@@ -199,7 +199,7 @@ export class CragsResolver {
       currentUser,
     );
 
-    return comments.items;
+    return comments;
   }
 
   @ResolveField('properties', () => [CragProperty])
