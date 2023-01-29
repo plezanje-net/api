@@ -24,6 +24,7 @@ import { setBuilderCache } from '../../core/utils/entity-cache/entity-cache-help
 import { Crag } from '../entities/crag.entity';
 import { Activity } from '../../activities/entities/activity.entity';
 import { ActivityRoute } from '../../activities/entities/activity-route.entity';
+import generateSlug from '../utils/generate-slug';
 
 @Injectable()
 export class SectorsService {
@@ -204,6 +205,21 @@ export class SectorsService {
       // delete previous activity if empty
       const routes = await sector.routes;
       for (let route of routes) {
+        route.crag = null;
+        route.cragId = targetCrag.id;
+
+        route.slug = await generateSlug(route.name, async (name) => {
+          return (
+            (await transaction.queryRunner.manager.count(Route, {
+              where: {
+                slug: name,
+                cragId: targetCrag.id,
+              },
+            })) > 0
+          );
+        });
+
+        await transaction.save(route);
         const activityRoutes = await transaction.queryRunner.manager.find(
           ActivityRoute,
           {

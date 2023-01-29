@@ -71,7 +71,7 @@ const seedDatabase = async (qr: QueryRunner, app) => {
             routes: {
               publishedRoute: {
                 id: 'c9b9b9e9-1b9a-4b9a-8b9a-1b9a4b9a8b9a',
-                slug: 'highlyUnprobableSlug09832rf2',
+                slug: 'highly-unprobable-name-09832rf2',
               },
             },
           },
@@ -120,7 +120,7 @@ const seedDatabase = async (qr: QueryRunner, app) => {
             routes: {
               firstRoute: {
                 id: 'fc30922b-fcc6-4461-9776-fe7692f55471',
-                slug: 'route-slug-fc30922b',
+                slug: 'highly-unprobable-name-09832rf2',
               },
               secondRoute: {
                 id: '8a63ddcc-9b9a-4124-847b-f63801ca7769',
@@ -271,7 +271,7 @@ const seedDatabase = async (qr: QueryRunner, app) => {
   await qr.query(
     `INSERT INTO route (id, name, length, position, "sectorId", "cragId", "routeTypeId", "isProject", "defaultGradingSystemId", difficulty, slug, "publishStatus")
     VALUES 
-      ('${mockData.crags.cragWithMultipleSectors.sectors.firstSector.routes.firstRoute.id}', 'Route Slug fc30922b', '11', 1, '${mockData.crags.cragWithMultipleSectors.sectors.firstSector.id}', '${mockData.crags.cragWithMultipleSectors.id}', 'sport', false, 'french', '200', '${mockData.crags.cragWithMultipleSectors.sectors.firstSector.routes.firstRoute.slug}', 'published'),
+      ('${mockData.crags.cragWithMultipleSectors.sectors.firstSector.routes.firstRoute.id}', 'Highly Unprobable Name 09832rf2', '11', 1, '${mockData.crags.cragWithMultipleSectors.sectors.firstSector.id}', '${mockData.crags.cragWithMultipleSectors.id}', 'sport', false, 'french', '200', '${mockData.crags.cragWithMultipleSectors.sectors.firstSector.routes.firstRoute.slug}', 'published'),
       ('${mockData.crags.cragWithMultipleSectors.sectors.firstSector.routes.secondRoute.id}', 'Route Slug 8a63ddcc', '11', 2, '${mockData.crags.cragWithMultipleSectors.sectors.firstSector.id}', '${mockData.crags.cragWithMultipleSectors.id}', 'sport', false, 'french', '200', '${mockData.crags.cragWithMultipleSectors.sectors.firstSector.routes.secondRoute.slug}', 'published'),
       ('${mockData.crags.cragWithMultipleSectors.sectors.secondSector.routes.firstRoute.id}', 'Route Slug 37dafa58', '11', 1, '${mockData.crags.cragWithMultipleSectors.sectors.secondSector.id}', '${mockData.crags.cragWithMultipleSectors.id}', 'sport', false, 'french', '200', '${mockData.crags.cragWithMultipleSectors.sectors.secondSector.routes.firstRoute.slug}', 'published'),
       ('${mockData.crags.cragWithMultipleSectors.sectors.secondSector.routes.secondRoute.id}', 'Route Slug 87ca8c06', '11', 2, '${mockData.crags.cragWithMultipleSectors.sectors.secondSector.id}', '${mockData.crags.cragWithMultipleSectors.id}', 'sport', false, 'french', '200', '${mockData.crags.cragWithMultipleSectors.sectors.secondSector.routes.secondRoute.slug}', 'published')

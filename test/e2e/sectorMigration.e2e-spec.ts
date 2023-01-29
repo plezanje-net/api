@@ -117,6 +117,13 @@ describe('SectorMigration', () => {
     expect(activity.length).toBe(0);
   });
 
+  it('should update route slug if collision detected in the new crag', async () => {
+    const duplicateSlugsInCrag = await queryRunner.query(
+      `SELECT slug FROM route WHERE "cragId" = '${mockData.crags.publishedCrag.id}' GROUP BY slug HAVING COUNT(id) > 1`,
+    );
+    expect(duplicateSlugsInCrag.length).toBe(0);
+  });
+
   afterAll(async () => {
     await conn.destroy();
     await app.close();
