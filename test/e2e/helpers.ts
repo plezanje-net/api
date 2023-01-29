@@ -85,7 +85,6 @@ const seedDatabase = async (qr: QueryRunner, app) => {
           },
         },
       },
-
       inReviewCrag: {
         id: 'a700997e-78f3-4f5b-9faf-2f8d0f0ab8e8',
         sectors: {
@@ -99,7 +98,6 @@ const seedDatabase = async (qr: QueryRunner, app) => {
           },
         },
       },
-
       draftCrag: {
         id: '2447ac1c-ba42-4f72-9fea-8489b91df5aa',
         sectors: {
@@ -108,6 +106,38 @@ const seedDatabase = async (qr: QueryRunner, app) => {
             routes: {
               draftRoute: {
                 id: 'c7119b96-cfbc-48de-81f0-25830cce1310',
+              },
+            },
+          },
+        },
+      },
+      cragWithMultipleSectors: {
+        id: '5cc7f53e-525a-4ef9-9792-8400ccdc0ae2',
+        slug: 'cre-tata',
+        sectors: {
+          firstSector: {
+            id: '2c76bd33-89c2-4a7c-80e1-c9ad9d1b8ca8',
+            routes: {
+              firstRoute: {
+                id: 'fc30922b-fcc6-4461-9776-fe7692f55471',
+                slug: 'route-slug-fc30922b',
+              },
+              secondRoute: {
+                id: '8a63ddcc-9b9a-4124-847b-f63801ca7769',
+                slug: 'route-slug-8a63ddcc',
+              },
+            },
+          },
+          secondSector: {
+            id: '43aa6c1a-7d39-46f6-ac9c-b7304351211c',
+            routes: {
+              firstRoute: {
+                id: '37dafa58-352c-4d41-9077-9dd71f5154e2',
+                slug: 'route-slug-37dafa58',
+              },
+              secondRoute: {
+                id: '87ca8c06-3a92-434a-a666-94be5842a27e',
+                slug: 'route-slug-87ca8c06',
               },
             },
           },
@@ -180,6 +210,11 @@ const seedDatabase = async (qr: QueryRunner, app) => {
     `INSERT INTO crag (id, name, slug, "countryId", "defaultGradingSystemId", type, "publishStatus", "isHidden", "userId")
     VALUES ('${mockData.crags.draftCrag.id}', 'Nova grapa', 'nova-grapa', '${mockData.countries.slovenia.id}', 'french', 'sport', 'draft', false, '${mockData.users.basicUser1.id}')`,
   );
+  // crag with multiple sectors
+  await qr.query(
+    `INSERT INTO crag (id, name, slug, "countryId", "defaultGradingSystemId", type, "publishStatus", "isHidden", "userId")
+    VALUES ('${mockData.crags.cragWithMultipleSectors.id}', 'Cre tata', '${mockData.crags.cragWithMultipleSectors.slug}', '${mockData.countries.slovenia.id}', 'french', 'sport', 'published', false, '${mockData.users.basicUser1.id}')`,
+  );
 
   // Add some sectors
   // published sector in published crag
@@ -202,6 +237,14 @@ const seedDatabase = async (qr: QueryRunner, app) => {
     `INSERT INTO sector (id, name, label, position, "cragId", "publishStatus")
     VALUES ('${mockData.crags.inReviewCrag.sectors.inReviewSector.id}', 'Pregledni sektor', 'B', 1, '${mockData.crags.inReviewCrag.id}', 'in_review')`,
   );
+  // sectors in multiple sector crag
+  await qr.query(
+    `INSERT INTO sector (id, name, label, position, "cragId", "publishStatus")
+    VALUES 
+      ('${mockData.crags.cragWithMultipleSectors.sectors.firstSector.id}', 'Ostajajoci sektor', 'A', 1, '${mockData.crags.cragWithMultipleSectors.id}', 'published'),
+      ('${mockData.crags.cragWithMultipleSectors.sectors.secondSector.id}', 'Odhajajoci sektor', 'B', 2, '${mockData.crags.cragWithMultipleSectors.id}', 'published')
+    `,
+  );
 
   // Add some routes
   // published route in published sector in published crag
@@ -223,6 +266,16 @@ const seedDatabase = async (qr: QueryRunner, app) => {
   await qr.query(
     `INSERT INTO route (id, name, length, position, "sectorId", "cragId", "routeTypeId", "isProject", "defaultGradingSystemId", difficulty, slug, "publishStatus")
     VALUES ('${mockData.crags.inReviewCrag.sectors.inReviewSector.routes.inReviewRoute.id}', 'Ta v pregledu', '14', 1, '${mockData.crags.inReviewCrag.sectors.inReviewSector.id}', '${mockData.crags.inReviewCrag.id}', 'sport', false, 'french', '200', 'ta-v-pregledu', 'in_review')`,
+  );
+  // routes in multipe sector crag
+  await qr.query(
+    `INSERT INTO route (id, name, length, position, "sectorId", "cragId", "routeTypeId", "isProject", "defaultGradingSystemId", difficulty, slug, "publishStatus")
+    VALUES 
+      ('${mockData.crags.cragWithMultipleSectors.sectors.firstSector.routes.firstRoute.id}', 'Route Slug fc30922b', '11', 1, '${mockData.crags.cragWithMultipleSectors.sectors.firstSector.id}', '${mockData.crags.cragWithMultipleSectors.id}', 'sport', false, 'french', '200', '${mockData.crags.cragWithMultipleSectors.sectors.firstSector.routes.firstRoute.slug}', 'published'),
+      ('${mockData.crags.cragWithMultipleSectors.sectors.firstSector.routes.secondRoute.id}', 'Route Slug 8a63ddcc', '11', 2, '${mockData.crags.cragWithMultipleSectors.sectors.firstSector.id}', '${mockData.crags.cragWithMultipleSectors.id}', 'sport', false, 'french', '200', '${mockData.crags.cragWithMultipleSectors.sectors.firstSector.routes.secondRoute.slug}', 'published'),
+      ('${mockData.crags.cragWithMultipleSectors.sectors.secondSector.routes.firstRoute.id}', 'Route Slug 37dafa58', '11', 1, '${mockData.crags.cragWithMultipleSectors.sectors.secondSector.id}', '${mockData.crags.cragWithMultipleSectors.id}', 'sport', false, 'french', '200', '${mockData.crags.cragWithMultipleSectors.sectors.secondSector.routes.firstRoute.slug}', 'published'),
+      ('${mockData.crags.cragWithMultipleSectors.sectors.secondSector.routes.secondRoute.id}', 'Route Slug 87ca8c06', '11', 2, '${mockData.crags.cragWithMultipleSectors.sectors.secondSector.id}', '${mockData.crags.cragWithMultipleSectors.id}', 'sport', false, 'french', '200', '${mockData.crags.cragWithMultipleSectors.sectors.secondSector.routes.secondRoute.slug}', 'published')
+    `,
   );
 
   return mockData;

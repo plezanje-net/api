@@ -64,10 +64,14 @@ import { StarRatingVotesService } from './services/star-rating-votes.service';
 import { StarRatingVote } from './entities/star-rating-vote.entity';
 import { SectorRoutesLoader } from './loaders/sector-routes.loader';
 import { UploadController } from './controllers/upload/upload.controller';
+import { Activity } from '../activities/entities/activity.entity';
+import { ActivityRoute } from '../activities/entities/activity-route.entity';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([
+      Activity,
+      ActivityRoute,
       Area,
       Crag,
       Country,

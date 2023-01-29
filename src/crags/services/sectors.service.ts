@@ -21,6 +21,9 @@ import {
   updateUserContributionsFlag,
 } from '../../core/utils/contributable-helpers';
 import { setBuilderCache } from '../../core/utils/entity-cache/entity-cache-helpers';
+import { Crag } from '../entities/crag.entity';
+import { Activity } from '../../activities/entities/activity.entity';
+import { ActivityRoute } from '../../activities/entities/activity-route.entity';
 
 @Injectable()
 export class SectorsService {
@@ -29,6 +32,8 @@ export class SectorsService {
     protected sectorsRepository: Repository<Sector>,
     @InjectRepository(Route)
     protected routesRepository: Repository<Route>,
+    @InjectRepository(Activity)
+    protected activityRepository: Repository<Activity>,
     private dataSource: DataSource,
   ) {}
 
@@ -94,7 +99,7 @@ export class SectorsService {
       routeTypeId: Not('boulder'),
     });
 
-    return cnt.then(cnt => !cnt);
+    return cnt.then((cnt) => !cnt);
   }
 
   private async save(
@@ -183,5 +188,76 @@ export class SectorsService {
     setBuilderCache(builder);
 
     return builder;
+  }
+
+  async moveToCrag(sector: Sector, targetCrag: Crag): Promise<boolean> {
+    const transaction = new Transaction(this.dataSource);
+    await transaction.start();
+    try {
+      sector.cragId = targetCrag.id;
+      await transaction.save(sector);
+
+      // for each route in sector
+      // for each ascent of the route
+      // create new activity if it does not exist for target crag / date
+      // link ascent to the new crag
+      // delete previous activity if empty
+      const routes = await sector.routes;
+      for (let route of routes) {
+        const activityRoutes = await transaction.queryRunner.manager.find(
+          ActivityRoute,
+          {
+            where: {
+              routeId: route.id,
+            },
+          },
+        );
+        for (let activityRoute of activityRoutes) {
+          const sourceActivity = await activityRoute.activity;
+          // check if activity for target exists
+          let activity = await transaction.queryRunner.manager.findOne(
+            Activity,
+            {
+              where: {
+                cragId: targetCrag.id,
+                date: sourceActivity.date,
+                userId: sourceActivity.userId,
+              },
+            },
+          );
+          if (!activity) {
+            activity = new Activity();
+            this.activityRepository.merge(activity, {
+              type: sourceActivity.type,
+              name: targetCrag.name,
+              cragId: targetCrag.id,
+              date: sourceActivity.date,
+              notes: sourceActivity.notes,
+              partners: sourceActivity.partners,
+              created: sourceActivity.created,
+              updated: sourceActivity.updated,
+              legacy: sourceActivity.legacy,
+              userId: sourceActivity.userId,
+            });
+            await transaction.save(activity);
+          }
+          activityRoute.activity = null; // without resetting first it does not get updated. TypeORM bug?
+          activityRoute.activityId = activity.id;
+          await transaction.save(activityRoute);
+
+          const remainingRoutes = await transaction.queryRunner.query(
+            `SELECT * FROM activity_route WHERE "activityId" = '${sourceActivity.id}'`,
+          );
+          if (remainingRoutes.length == 0) {
+            await transaction.delete(sourceActivity);
+          }
+        }
+      }
+    } catch (e) {
+      await transaction.rollback();
+      throw e;
+    }
+    transaction.commit();
+    return true;
   }
 }

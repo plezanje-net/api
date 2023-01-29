@@ -20,10 +20,14 @@ import { Country } from '../crags/entities/country.entity';
 import { Area } from '../crags/entities/area.entity';
 import { GradingSystem } from '../crags/entities/grading-system.entity';
 import { DifficultyVote } from '../crags/entities/difficulty-vote.entity';
+import { Activity } from '../activities/entities/activity.entity';
+import { ActivityRoute } from '../activities/entities/activity-route.entity';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([
+      Activity,
+      ActivityRoute,
       Audit,
       Route,
       Sector,
