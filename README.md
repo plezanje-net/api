@@ -22,7 +22,7 @@ $ docker-compose up -d
 # Use the precreated database dump from the server
 $ mkdir db
 $ curl https://plezanje.net/storage/db.sql --output ./db/db.sql
-$ docker exec -it api-postgres-1 bash -c  "psql -U plezanjenet -f /etc/db/db.sql"
+$ docker exec -it api_postgres_1 bash -c  "psql -U plezanjenet -f /etc/db/db.sql"
 ```
 
 Copy the `.env.example` file to `.env` and set configuration parameters.
