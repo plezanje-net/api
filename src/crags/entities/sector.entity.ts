@@ -11,15 +11,9 @@ import {
 import { ObjectType, Field } from '@nestjs/graphql';
 import { Crag } from '../../crags/entities/crag.entity';
 import { Route } from '../../crags/entities/route.entity';
-
-export enum SectorStatus {
-  PUBLIC = 'public',
-  HIDDEN = 'hidden',
-  ADMIN = 'admin',
-  ARCHIVE = 'archive',
-  PROPOSAL = 'proposal',
-  USER = 'user',
-}
+import { User } from '../../users/entities/user.entity';
+import { EntityStatus } from './enums/entity-status.enum';
+import { PublishStatus } from './enums/publish-status.enum';
 
 @Entity()
 @ObjectType()
@@ -42,13 +36,22 @@ export class Sector extends BaseEntity {
 
   @Column({
     type: 'enum',
-    enum: SectorStatus,
-    default: SectorStatus.PUBLIC,
+    enum: EntityStatus,
+    default: EntityStatus.PUBLIC,
   })
   @Field()
-  status: SectorStatus;
+  status: EntityStatus;
+
+  @Column({
+    type: 'enum',
+    enum: PublishStatus,
+    default: PublishStatus.PUBLISHED,
+  })
+  @Field()
+  publishStatus: PublishStatus;
 
   @CreateDateColumn()
+  @Field()
   created: Date;
 
   @UpdateDateColumn()
@@ -63,7 +66,7 @@ export class Sector extends BaseEntity {
   @ManyToOne(
     () => Crag,
     crag => crag.sectors,
-    { nullable: false },
+    { nullable: false, onDelete: 'CASCADE' },
   )
   @Field(() => Crag)
   crag: Promise<Crag>;
@@ -77,4 +80,10 @@ export class Sector extends BaseEntity {
   )
   @Field(() => [Route])
   routes: Promise<Route[]>;
+
+  @ManyToOne(() => User)
+  @Field(() => User, { nullable: true })
+  user: Promise<User>;
+  @Column({ name: 'userId', nullable: true })
+  userId: string;
 }

@@ -6,7 +6,7 @@ export class OrderByInput {
   @Field()
   field: string;
 
-  @Field(() => String)
+  @Field(() => String, { nullable: true })
   @IsOptional()
   direction?: 'ASC' | 'DESC';
 }

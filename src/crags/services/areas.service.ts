@@ -17,11 +17,11 @@ export class AreasService {
   ) {}
 
   findOneById(id: string): Promise<Area> {
-    return this.areasRepository.findOneOrFail(id);
+    return this.areasRepository.findOneByOrFail({ id });
   }
 
   findOneBySlug(slug: string): Promise<Area> {
-    return this.areasRepository.findOneOrFail({ slug: slug });
+    return this.areasRepository.findOneByOrFail({ slug });
   }
 
   find(params: FindAreasInput = {}): Promise<Area[]> {
@@ -42,13 +42,13 @@ export class AreasService {
     }
 
     if (params.countryId != null) {
-      options.where['country'] = params.countryId;
+      options.where['countryId'] = params.countryId;
     }
 
     if (params.areaId !== undefined) {
-      options.where['area'] = params.areaId != null ? params.areaId : IsNull();
+      options.where['areaId'] =
+        params.areaId != null ? params.areaId : IsNull();
     }
-
     return this.areasRepository.find(options);
   }
 
@@ -58,26 +58,26 @@ export class AreasService {
     this.areasRepository.merge(area, data);
 
     area.country = Promise.resolve(
-      await this.countryRepository.findOneOrFail(data.countryId),
+      await this.countryRepository.findOneByOrFail({ id: data.countryId }),
     );
 
     return this.areasRepository.save(area);
   }
 
   async update(data: UpdateAreaInput): Promise<Area> {
-    const area = await this.areasRepository.findOneOrFail(data.id);
+    const area = await this.areasRepository.findOneByOrFail({ id: data.id });
 
     this.areasRepository.merge(area, data);
 
     area.country = Promise.resolve(
-      await this.countryRepository.findOneOrFail(data.countryId),
+      await this.countryRepository.findOneByOrFail({ id: data.countryId }),
     );
 
     return this.areasRepository.save(area);
   }
 
   async delete(id: string): Promise<boolean> {
-    const area = await this.areasRepository.findOneOrFail(id);
+    const area = await this.areasRepository.findOneByOrFail({ id });
 
     return this.areasRepository.remove(area).then(() => true);
   }

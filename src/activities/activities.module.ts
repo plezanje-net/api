@@ -16,6 +16,12 @@ import { Club } from '../users/entities/club.entity';
 import { DifficultyVote } from '../crags/entities/difficulty-vote.entity';
 import { ActivityLoader } from './loaders/activity.loader';
 import { StarRatingVote } from '../crags/entities/star-rating-vote.entity';
+import { RouteLoader } from '../crags/loaders/route.loader';
+import { CragLoader } from '../crags/loaders/crag.loader';
+import { RoutesService } from '../crags/services/routes.service';
+import { CragsService } from '../crags/services/crags.service';
+import { Sector } from '../crags/entities/sector.entity';
+import { Country } from '../crags/entities/country.entity';
 
 @Module({
   imports: [
@@ -29,6 +35,8 @@ import { StarRatingVote } from '../crags/entities/star-rating-vote.entity';
       Club,
       DifficultyVote,
       StarRatingVote,
+      Sector,
+      Country,
     ]),
     AuditModule,
     UsersModule,
@@ -39,6 +47,10 @@ import { StarRatingVote } from '../crags/entities/star-rating-vote.entity';
     ActivityRoutesResolver,
     ActivityRoutesService,
     ActivityLoader,
+    RoutesService,
+    CragsService,
+    RouteLoader,
+    CragLoader,
   ],
 })
 export class ActivitiesModule {}

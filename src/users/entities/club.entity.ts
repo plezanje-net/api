@@ -34,14 +34,12 @@ export class Club extends BaseEntity {
   updated: Date;
 
   @Column({ nullable: true })
-  @Field()
   legacy: string;
 
   @OneToMany(
     type => ClubMember,
     clubMember => clubMember.club,
   )
-  @Field(type => [ClubMember])
   members: ClubMember[];
 
   @Field({ nullable: true })

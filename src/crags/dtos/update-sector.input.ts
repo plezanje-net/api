@@ -1,6 +1,6 @@
 import { InputType, Field } from '@nestjs/graphql';
 import { IsOptional } from 'class-validator';
-import { SectorStatus } from '../entities/sector.entity';
+import { PublishStatus } from '../entities/enums/publish-status.enum';
 
 @InputType()
 export class UpdateSectorInput {
@@ -21,5 +21,13 @@ export class UpdateSectorInput {
 
   @Field({ nullable: true })
   @IsOptional()
-  status: SectorStatus;
+  publishStatus: PublishStatus;
+
+  @Field({ nullable: true })
+  @IsOptional()
+  cascadePublishStatus: boolean;
+
+  @Field({ nullable: true })
+  @IsOptional()
+  rejectionMessage: string;
 }

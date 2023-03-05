@@ -1,10 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Country } from '../entities/country.entity';
-import { FindManyOptions, MoreThan, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 import { CreateCountryInput } from '../dtos/create-country.input';
 import { UpdateCountryInput } from '../dtos/update-country.input';
 import { FindCountriesInput } from '../dtos/find-countries.input';
+import { setBuilderCache } from '../../core/utils/entity-cache/entity-cache-helpers';
 
 export interface CountryFindParams {
   orderBy: any;
@@ -17,12 +18,12 @@ export class CountriesService {
     private countriesRepository: Repository<Country>,
   ) {}
 
-  findOneBySlug(slug: string): Promise<Country> {
-    return this.countriesRepository.findOneOrFail({ slug: slug });
+  async findOneBySlug(slug: string): Promise<Country> {
+    return this.countriesRepository.findOneByOrFail({ slug });
   }
 
   findOneById(id: string): Promise<Country> {
-    return this.countriesRepository.findOneOrFail(id);
+    return this.countriesRepository.findOneByOrFail({ id });
   }
 
   findByIds(ids: string[]): Promise<Country[]> {
@@ -56,6 +57,8 @@ export class CountriesService {
       qb.leftJoinAndSelect('country.peaks', 'peak').andWhere('peak.id is null');
     }
 
+    setBuilderCache(qb);
+
     return qb.getMany();
   }
 
@@ -68,7 +71,9 @@ export class CountriesService {
   }
 
   async update(data: UpdateCountryInput): Promise<Country> {
-    const country = await this.countriesRepository.findOneOrFail(data.id);
+    const country = await this.countriesRepository.findOneByOrFail({
+      id: data.id,
+    });
 
     this.countriesRepository.merge(country, data);
 
@@ -76,7 +81,7 @@ export class CountriesService {
   }
 
   async delete(id: string): Promise<boolean> {
-    const country = await this.countriesRepository.findOneOrFail(id);
+    const country = await this.countriesRepository.findOneByOrFail({ id });
 
     return this.countriesRepository.remove(country).then(() => true);
   }

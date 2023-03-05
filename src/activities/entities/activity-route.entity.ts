@@ -6,6 +6,7 @@ import {
   UpdateDateColumn,
   BaseEntity,
   ManyToOne,
+  Index,
 } from 'typeorm';
 import { ObjectType, Field } from '@nestjs/graphql';
 import { Route } from '../../crags/entities/route.entity';
@@ -67,9 +68,11 @@ export enum PublishType {
 /**
  * Has Triggers:
  *  - convert_first_repeat_to_redpoint
- *  - delete_difficulty_and_beauty_vote
+ *  - delete_difficulty_vote
  */
 @Entity()
+@Index(['route', 'publish'])
+@Index(['publish', 'activity'])
 @ObjectType()
 export class ActivityRoute extends BaseEntity {
   @PrimaryGeneratedColumn('uuid')
@@ -89,20 +92,18 @@ export class ActivityRoute extends BaseEntity {
   @ManyToOne(
     () => Activity,
     activity => activity.routes,
-    { nullable: true, onDelete: 'CASCADE' },
+    { nullable: true },
   )
   @Field(() => Activity, { nullable: true })
   activity: Promise<Activity>;
   @Column({ nullable: true })
   activityId: string;
 
-  // TODO: why is this many to one relation. One activity route always has only one route
-  // TODO: and why is it nullable. Activity-route without a route makes no sense
-  @ManyToOne(() => Route, { nullable: true })
+  @ManyToOne(() => Route)
   @Field(() => Route)
   route: Promise<Route>;
-  @Column({ nullable: true })
-  @Field({ nullable: true })
+  @Column()
+  @Field()
   routeId: string;
 
   @ManyToOne(() => Pitch, { nullable: true })
@@ -145,4 +146,8 @@ export class ActivityRoute extends BaseEntity {
   user: Promise<User>;
   @Column()
   userId: string;
+
+  // Score is calculated from difficulty and ascentType. The idea is that os > f > rp
+  @Field({ nullable: true })
+  score: number;
 }

@@ -1,119 +1,388 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { Route } from '../entities/route.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Sector } from '../entities/sector.entity';
-import { In, Not, Repository } from 'typeorm';
+import {
+  DataSource,
+  In,
+  MoreThanOrEqual,
+  Not,
+  Repository,
+  SelectQueryBuilder,
+} from 'typeorm';
 import { CreateRouteInput } from '../dtos/create-route.input';
 import { UpdateRouteInput } from '../dtos/update-route.input';
-import { CragStatus } from '../entities/crag.entity';
 import slugify from 'slugify';
 import { DifficultyVote } from '../entities/difficulty-vote.entity';
+import { User } from '../../users/entities/user.entity';
+import { FindRoutesServiceInput } from '../dtos/find-routes-service.input';
+import {
+  ActivityRoute,
+  tickAscentTypes,
+} from '../../activities/entities/activity-route.entity';
+import { Transaction } from '../../core/utils/transaction.class';
+import {
+  getPublishStatusParams,
+  setPublishStatusParams,
+  updateUserContributionsFlag,
+} from '../../core/utils/contributable-helpers';
+import { setBuilderCache } from '../../core/utils/entity-cache/entity-cache-helpers';
 
 @Injectable()
 export class RoutesService {
   constructor(
     @InjectRepository(Route)
-    private routesRepository: Repository<Route>,
+    protected routesRepository: Repository<Route>,
     @InjectRepository(Sector)
-    private sectorsRepository: Repository<Sector>,
-    @InjectRepository(DifficultyVote)
-    private difficultyVoteRepository: Repository<DifficultyVote>,
+    protected sectorsRepository: Repository<Sector>,
+    private dataSource: DataSource,
   ) {}
 
-  async findBySector(sectorId: string): Promise<Route[]> {
-    return this.routesRepository.find({
-      where: { sector: sectorId },
-      order: { position: 'ASC' },
-    });
+  async find(input: FindRoutesServiceInput): Promise<Route[]> {
+    return this.buildQuery(input).getMany();
   }
 
-  async findBySectorIds(sectorIds: string[]): Promise<Route[]> {
-    return this.routesRepository.find({
-      where: { sectorId: In(sectorIds) },
-      order: { position: 'ASC' },
-    });
+  async findOne(input: FindRoutesServiceInput): Promise<Route> {
+    return this.buildQuery(input).getOneOrFail();
   }
 
   async findByIds(ids: string[]): Promise<Route[]> {
-    return this.routesRepository.findByIds(ids);
+    return this.routesRepository.findBy({ id: In(ids) });
+  }
+
+  async findOneById(id: string): Promise<Route> {
+    return this.routesRepository.findOneByOrFail({ id });
   }
 
   async findOneBySlug(
     cragSlug: string,
     routeSlug: string,
-    minStatus: CragStatus,
+    user: User,
   ): Promise<Route> {
     const builder = this.routesRepository.createQueryBuilder('r');
 
     builder
       .innerJoin('crag', 'c', 'c.id = r."cragId"')
       .where('r.slug = :routeSlug', { routeSlug: routeSlug })
-      .andWhere('c.slug = :cragSlug', { cragSlug: cragSlug })
-      .andWhere('c.status <= :minStatus', {
-        minStatus: minStatus,
-      });
+      .andWhere('c.slug = :cragSlug', { cragSlug: cragSlug });
+
+    const { conditions, params } = await getPublishStatusParams('r', user);
+    builder.andWhere(conditions, params);
+
+    if (!(user != null)) {
+      builder.andWhere('c.isHidden = false');
+    }
 
     return builder.getOneOrFail();
   }
 
-  async create(data: CreateRouteInput): Promise<Route> {
+  countManyTicks(keys: readonly string[]) {
+    const builder = this.routesRepository
+      .createQueryBuilder('r')
+      .leftJoin('r.activityRoutes', 'ar', 'ar.ascentType in (:...aTypes)', {
+        aTypes: [...tickAscentTypes],
+      })
+      .select('r.id')
+      .addSelect('COUNT(ar.id)', 'nrTicks')
+      .where('r.id IN (:...rIds)', { rIds: keys })
+      .groupBy('r.id');
+
+    setBuilderCache(builder);
+
+    return builder.getRawMany();
+  }
+
+  countManyTries(keys: readonly string[]) {
+    const builder = this.routesRepository
+      .createQueryBuilder('r')
+      .leftJoin('r.activityRoutes', 'ar')
+      .select('r.id')
+      .addSelect('COUNT(ar.id)', 'nrTries')
+      .where('r.id IN (:...rIds)', { rIds: keys })
+      .groupBy('r.id');
+
+    setBuilderCache(builder);
+
+    return builder.getRawMany();
+  }
+
+  countManyDisctinctClimbers(keys: readonly string[]) {
+    const builder = this.routesRepository
+      .createQueryBuilder('r')
+      .leftJoin('r.activityRoutes', 'ar')
+      .select('r.id')
+      .addSelect('COUNT(DISTINCT(ar."userId")) as "nrClimbers"')
+      .where('r.id IN (:...rIds)', { rIds: keys })
+      .groupBy('r.id');
+
+    setBuilderCache(builder);
+
+    return builder.getRawMany();
+  }
+
+  async create(data: CreateRouteInput, user: User): Promise<Route> {
     const route = new Route();
 
     this.routesRepository.merge(route, data);
 
-    const sector = await this.sectorsRepository.findOneOrFail(data.sectorId);
+    route.user = Promise.resolve(user);
 
-    route.sector = Promise.resolve(sector);
+    const sector = await this.sectorsRepository.findOneByOrFail({
+      id: data.sectorId,
+    });
+
+    route.sectorId = sector.id;
     route.cragId = sector.cragId;
 
     route.slug = await this.generateRouteSlug(route.name, route.cragId);
 
-    if (data.baseDifficulty == null || route.isProject) {
-      return this.routesRepository.save(route);
+    const transaction = new Transaction(this.dataSource);
+    await transaction.start();
+
+    try {
+      await transaction.save(route);
+      await this.shiftFollowingRoutes(route, transaction);
+
+      if (data.baseDifficulty != null && !route.isProject) {
+        await this.createBaseDifficulty(
+          route,
+          data.baseDifficulty,
+          transaction,
+        );
+      }
+      await updateUserContributionsFlag(route.publishStatus, user, transaction);
+    } catch (e) {
+      await transaction.rollback();
+      throw e;
     }
 
-    await this.routesRepository.save(route);
-
-    if (data.baseDifficulty != null && !route.isProject) {
-      await this.createBaseGrade(route, data.baseDifficulty);
-    }
+    await transaction.commit();
 
     return Promise.resolve(route);
   }
 
-  createBaseGrade(route: Route, difficulty: number): Promise<DifficultyVote> {
+  async update(data: UpdateRouteInput): Promise<Route> {
+    const transaction = new Transaction(this.dataSource);
+    await transaction.start();
+    let route = await transaction.queryRunner.manager.findOneByOrFail(Route, {
+      id: data.id,
+    });
+    try {
+      // Is the request trying to update the route base difficulty?
+      if (
+        (data.baseDifficulty != undefined &&
+          data.baseDifficulty != route.difficulty) ||
+        (data.isProject != undefined && data.isProject != route.isProject)
+      ) {
+        // First check that route has no difficulty votes yet (except for the base difficulty vote)
+        if (await this.hasRealDifficultyVotes(route, transaction)) {
+          throw new HttpException(
+            'route_has_difficulty_votes',
+            HttpStatus.CONFLICT,
+          );
+        }
+        // Then check that the route hasn't been logged yet (this condition actually includes the no votes check, as a vote cannot be cast without an ascent, but keep it because of possible legacy data)
+        if (await this.hasLogEntries(route, transaction)) {
+          throw new HttpException('route_has_log_entries', HttpStatus.CONFLICT);
+        }
+
+        // Project and baseDifficulty mutually exclude each other
+        const isProjectAfterUpdate = data.isProject ?? route.isProject;
+        const baseDifficultyAfterUpdate =
+          data.baseDifficulty === undefined
+            ? route.difficulty
+            : data.baseDifficulty;
+        if (isProjectAfterUpdate && baseDifficultyAfterUpdate) {
+          throw new HttpException(
+            'should_not_pass_difficulty_for_a_project',
+            HttpStatus.CONFLICT,
+          );
+        }
+        if (!isProjectAfterUpdate && !baseDifficultyAfterUpdate) {
+          throw new HttpException(
+            'should_pass_difficulty_for_a_non-project',
+            HttpStatus.CONFLICT,
+          );
+        }
+
+        if (route.isProject && !isProjectAfterUpdate) {
+          // Route was a project and now is not. Base difficulty should be received and base difficulty vote should be created.
+          await this.createBaseDifficulty(
+            route,
+            data.baseDifficulty,
+            transaction,
+          );
+        } else if (!route.isProject && isProjectAfterUpdate) {
+          // Route was not a project and now is. Base difficulty should be deleted.
+          await this.deleteBaseDifficulty(route, transaction);
+        } else {
+          await this.updateBaseDifficulty(
+            route,
+            data.baseDifficulty,
+            transaction,
+          );
+        }
+
+        // Refetch route, because trigger should have changed the calculated difficulty
+        route = await transaction.queryRunner.manager.findOneByOrFail(Route, {
+          id: data.id,
+        });
+      }
+
+      transaction.queryRunner.manager.merge(Route, route, data);
+
+      // TODO: this will always be true when posting from route popup in management. should probably update only if the name actually changed
+      if (data.name != null) {
+        route.slug = await this.generateRouteSlug(
+          route.name,
+          route.cragId,
+          route.id,
+        );
+      }
+
+      await transaction.save(route);
+      await this.shiftFollowingRoutes(route, transaction);
+      const user = await route.user;
+      await updateUserContributionsFlag(route.publishStatus, user, transaction);
+    } catch (e) {
+      await transaction.rollback();
+      throw e;
+    }
+    await transaction.commit();
+
+    return Promise.resolve(route);
+  }
+
+  private async shiftFollowingRoutes(route: Route, transaction: Transaction) {
+    const followingRoutes = await transaction.queryRunner.manager.find(Route, {
+      where: {
+        sectorId: route.sectorId,
+        position: MoreThanOrEqual(route.position),
+        id: Not(route.id),
+      },
+      order: {
+        position: 'ASC',
+      },
+    });
+
+    if (
+      followingRoutes.length > 0 &&
+      followingRoutes[0].position == route.position
+    ) {
+      for (let offset = 0; offset < followingRoutes.length; offset++) {
+        followingRoutes[offset].position = route.position + offset + 1;
+        await transaction.save(followingRoutes[offset]);
+      }
+    }
+  }
+
+  async delete(id: string): Promise<boolean> {
+    const route = await this.routesRepository.findOneByOrFail({ id });
+
+    const transaction = new Transaction(this.dataSource);
+    await transaction.start();
+
+    try {
+      const user = await route.user;
+      await transaction.delete(route);
+      await updateUserContributionsFlag(null, user, transaction);
+    } catch (e) {
+      await transaction.rollback();
+      throw e;
+    }
+
+    await transaction.commit();
+
+    return Promise.resolve(true);
+  }
+
+  private async createBaseDifficulty(
+    route: Route,
+    difficulty: number,
+    transaction: Transaction,
+  ): Promise<void> {
     const vote = new DifficultyVote();
     vote.route = Promise.resolve(route);
     vote.difficulty = difficulty;
     vote.isBase = true;
 
-    return this.difficultyVoteRepository.save(vote);
+    return transaction.save(vote);
   }
 
-  async update(data: UpdateRouteInput): Promise<Route> {
-    const route = await this.routesRepository.findOneOrFail(data.id);
+  private async updateBaseDifficulty(
+    route: Route,
+    difficulty: number,
+    transaction: Transaction,
+  ): Promise<void> {
+    const difficultyVote = await transaction.queryRunner.manager.findOneByOrFail(
+      DifficultyVote,
+      {
+        routeId: route.id,
+        isBase: true,
+      },
+    );
+    difficultyVote.difficulty = difficulty;
+    return transaction.save(difficultyVote);
+  }
 
-    this.routesRepository.merge(route, data);
+  private async deleteBaseDifficulty(route: Route, transaction: Transaction) {
+    const difficultyVote = await transaction.queryRunner.manager.findOneByOrFail(
+      DifficultyVote,
+      {
+        routeId: route.id,
+        isBase: true,
+      },
+    );
+    return transaction.delete(difficultyVote);
+  }
 
-    if (data.name != null) {
-      route.slug = await this.generateRouteSlug(
-        route.name,
-        route.cragId,
-        route.id,
-      );
+  private async hasRealDifficultyVotes(route: Route, transaction: Transaction) {
+    return (await transaction.queryRunner.manager.countBy(DifficultyVote, {
+      routeId: route.id,
+      isBase: false,
+    }))
+      ? true
+      : false;
+  }
+
+  private async hasLogEntries(route: Route, transaction: Transaction) {
+    return (await transaction.queryRunner.manager.countBy(ActivityRoute, {
+      routeId: route.id,
+    }))
+      ? true
+      : false;
+  }
+
+  private buildQuery(
+    params: FindRoutesServiceInput = {},
+  ): SelectQueryBuilder<Route> {
+    const builder = this.routesRepository.createQueryBuilder('s');
+
+    builder.orderBy('s.position', 'ASC');
+
+    if (params.sectorId != null) {
+      builder.andWhere('s.sector = :sectorId', {
+        sectorId: params.sectorId,
+      });
     }
 
-    return this.routesRepository.save(route);
-  }
+    if (params.sectorIds != null) {
+      builder.andWhere('s.sector IN (:...sectorIds)', {
+        sectorIds: params.sectorIds,
+      });
+    }
 
-  async delete(id: string): Promise<boolean> {
-    const route = await this.routesRepository.findOneOrFail(id);
+    if (params.id != null) {
+      builder.andWhere('s.id = :id', {
+        id: params.id,
+      });
+    }
 
-    return this.routesRepository.remove(route).then(() => true);
-  }
+    setPublishStatusParams(builder, 's', params);
 
-  async findOneById(id: string): Promise<Route> {
-    return this.routesRepository.findOneOrFail(id);
+    setBuilderCache(builder);
+
+    return builder;
   }
 
   private async generateRouteSlug(
@@ -125,10 +394,11 @@ export class RoutesService {
     let slug = slugify(routeName, { lower: true });
     let suffixCounter = 0;
     let suffix = '';
+
     while (
-      (await this.routesRepository.findOne({
-        where: { ...selfCond, slug: slug + suffix, crag: cragId },
-      })) !== undefined
+      (await this.routesRepository.count({
+        where: { ...selfCond, slug: slug + suffix, cragId: cragId },
+      })) > 0
     ) {
       suffixCounter++;
       suffix = '-' + suffixCounter;

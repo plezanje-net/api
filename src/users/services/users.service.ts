@@ -11,6 +11,7 @@ import { ConfirmInput } from '../dtos/confirm.input';
 import { randomBytes } from 'crypto';
 import * as bcrypt from 'bcrypt';
 import { Role } from '../entities/role.entity';
+import { UpdateUserInput } from '../dtos/update-user.input';
 
 @Injectable()
 export class UsersService {
@@ -26,7 +27,7 @@ export class UsersService {
   }
 
   findOneById(id: string): Promise<User> {
-    return this.usersRepository.findOne(id);
+    return this.usersRepository.findOneBy({ id });
   }
 
   findByIds(ids: string[]): Promise<User[]> {
@@ -41,12 +42,9 @@ export class UsersService {
     });
   }
 
-  findRoles(user: string): Promise<Role[]> {
-    return this.rolesRepository.find({
-      where: {
-        user,
-      },
-    });
+  // TODO: need this service function at all??
+  async findRoles(user: User): Promise<Role[]> {
+    return user.roles;
   }
 
   async register(data: RegisterInput): Promise<User> {
@@ -61,8 +59,13 @@ export class UsersService {
     return this.usersRepository.save(user).then(() => user);
   }
 
+  async update(user: User, data: UpdateUserInput): Promise<User> {
+    this.usersRepository.merge(user, data);
+    return this.usersRepository.save(user).then(() => user);
+  }
+
   async confirm(data: ConfirmInput): Promise<boolean> {
-    const user = await this.usersRepository.findOneOrFail(data.id);
+    const user = await this.usersRepository.findOneByOrFail({ id: data.id });
 
     if (user.confirmationToken != data.token) {
       throw new NotAcceptableException();
@@ -75,7 +78,9 @@ export class UsersService {
   }
 
   async recover(email: string): Promise<User> {
-    const user = await this.usersRepository.findOneOrFail({ email: email });
+    const user = await this.usersRepository.findOneByOrFail({
+      email: email.toLowerCase(),
+    });
 
     user.passwordToken = randomBytes(20).toString('hex');
 
@@ -87,7 +92,7 @@ export class UsersService {
     token: string,
     password: string,
   ): Promise<boolean> {
-    const user = await this.usersRepository.findOneOrFail(id);
+    const user = await this.usersRepository.findOneByOrFail({ id });
 
     if (user.passwordToken != token) {
       throw new NotAcceptableException();
@@ -101,7 +106,7 @@ export class UsersService {
   }
 
   async delete(id: string): Promise<boolean> {
-    const user = await this.usersRepository.findOneOrFail(id);
+    const user = await this.usersRepository.findOneByOrFail({ id });
 
     return this.usersRepository.remove(user).then(() => true);
   }

@@ -1,0 +1,24 @@
+name: test
+on:
+  pull_request:
+    branches: [master]
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v2
+      - name: Use Node 16.x
+        uses: actions/setup-node@v1
+        with:
+          node-version: '16.x'
+      - name: List files in the repository
+        run: |
+          ls ${{ github.workspace }}
+      - name: Install and prepare
+        run: |
+          docker-compose -f docker-compose.e2e.yml up -d
+          npm install
+      - name: Run tests
+        run: |
+          npm run test:e2e

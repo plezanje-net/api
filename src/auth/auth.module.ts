@@ -6,7 +6,6 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { User } from '../users/entities/user.entity';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { CacheControlService } from '../core/services/cache-control.service';
 
 @Module({
   imports: [
@@ -17,12 +16,11 @@ import { CacheControlService } from '../core/services/cache-control.service';
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => ({
         secret: configService.get('JWT_SECRET'),
-        signOptions: { expiresIn: '30d' },
       }),
       inject: [ConfigService],
     }),
   ],
-  providers: [AuthService, CacheControlService, JwtStrategy],
-  exports: [AuthService, CacheControlService],
+  providers: [AuthService, JwtStrategy],
+  exports: [AuthService],
 })
 export class AuthModule {}

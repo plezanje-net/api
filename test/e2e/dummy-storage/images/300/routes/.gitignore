@@ -1,0 +1,6 @@
+# this file is a dummy that ensures that the folder is commited
+
+# ignore all files in this folder 
+*
+# except this file
+!.gitignore

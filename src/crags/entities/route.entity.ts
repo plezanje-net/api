@@ -10,6 +10,7 @@ import {
   Unique,
   JoinTable,
   ManyToMany,
+  Index,
 } from 'typeorm';
 import { ObjectType, Field } from '@nestjs/graphql';
 import { Sector } from './sector.entity';
@@ -23,15 +24,10 @@ import { GradingSystem } from './grading-system.entity';
 import { RouteType } from './route-type.entity';
 import { RouteEvent } from './route-event.entity';
 import { Book } from './book.entity';
-
-export enum RouteStatus {
-  PUBLIC = 'public',
-  HIDDEN = 'hidden',
-  ADMIN = 'admin',
-  ARCHIVE = 'archive',
-  PROPOSAL = 'proposal',
-  USER = 'user',
-}
+import { User } from '../../users/entities/user.entity';
+import { EntityStatus } from './enums/entity-status.enum';
+import { ActivityRoute } from '../../activities/entities/activity-route.entity';
+import { PublishStatus } from './enums/publish-status.enum';
 
 /**
  * Has Triggers:
@@ -40,6 +36,7 @@ export enum RouteStatus {
  */
 @Entity()
 @Unique(['slug', 'crag'])
+@Index(['publishStatus'])
 @ObjectType()
 export class Route extends BaseEntity {
   @PrimaryGeneratedColumn('uuid')
@@ -70,13 +67,13 @@ export class Route extends BaseEntity {
   @Column()
   defaultGradingSystemId: string;
 
-  @Column({ type: 'float', nullable: true })
+  @Column({ type: 'int', nullable: true })
   @Field({ nullable: true })
   starRating: number;
 
   @Column({ type: 'int', nullable: true })
   @Field({ nullable: true })
-  length: string;
+  length: number;
 
   @Column({ nullable: true })
   @Field({ nullable: true })
@@ -88,11 +85,19 @@ export class Route extends BaseEntity {
 
   @Column({
     type: 'enum',
-    enum: RouteStatus,
-    default: RouteStatus.PUBLIC,
+    enum: EntityStatus,
+    default: EntityStatus.PUBLIC,
   })
   @Field()
-  status: RouteStatus;
+  status: EntityStatus;
+
+  @Column({
+    type: 'enum',
+    enum: PublishStatus,
+    default: PublishStatus.PUBLISHED,
+  })
+  @Field()
+  publishStatus: PublishStatus;
 
   @Column({ default: false })
   @Field()
@@ -103,6 +108,7 @@ export class Route extends BaseEntity {
   description: string;
 
   @CreateDateColumn()
+  @Field()
   created: Date;
 
   @UpdateDateColumn()
@@ -182,4 +188,25 @@ export class Route extends BaseEntity {
   @ManyToMany(() => Book)
   @JoinTable()
   books: Book[];
+
+  @ManyToOne(() => User)
+  @Field(() => User, { nullable: true })
+  user: Promise<User>;
+  @Column({ name: 'userId', nullable: true })
+  userId: string;
+
+  @OneToMany(
+    () => ActivityRoute,
+    activityRoute => activityRoute.route,
+  )
+  activityRoutes: ActivityRoute[];
+
+  @Field()
+  nrTicks: number;
+
+  @Field()
+  nrTries: number;
+
+  @Field()
+  nrClimbers: number;
 }

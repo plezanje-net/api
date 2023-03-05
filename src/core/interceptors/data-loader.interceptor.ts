@@ -41,13 +41,16 @@ export class DataLoaderInterceptor implements NestInterceptor {
     const graphqlExecutionContext = GqlExecutionContext.create(context);
     const ctx = graphqlExecutionContext.getContext();
 
+    const contextId = ContextIdFactory.create();
+
     if (ctx[NEST_LOADER_CONTEXT_KEY] === undefined) {
       ctx[NEST_LOADER_CONTEXT_KEY] = {
-        contextId: ContextIdFactory.create(),
+        contextId,
         getLoader: (type: string): Promise<NestDataLoader<any, any>> => {
           if (ctx[type] === undefined) {
             try {
               ctx[type] = (async () => {
+                this.moduleRef.registerRequestByContextId(ctx, contextId);
                 return (
                   await this.moduleRef.resolve<NestDataLoader<any, any>>(
                     type,

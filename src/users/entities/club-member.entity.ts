@@ -47,6 +47,8 @@ export class ClubMember extends BaseEntity {
   )
   @Field(type => User)
   user: Promise<User>;
+  @Column()
+  userId: string;
 
   @ManyToOne(
     type => Club,
@@ -55,6 +57,8 @@ export class ClubMember extends BaseEntity {
   )
   @Field(type => Club)
   club: Promise<Club>;
+  @Column()
+  clubId: string;
 
   @Column({ nullable: true })
   confirmationToken: string;

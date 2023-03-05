@@ -1,12 +1,16 @@
+import { UseInterceptors } from '@nestjs/common';
 import { Args, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql';
-import { MinCragStatus } from '../decorators/min-crag-status.decorator';
-import { FindCragsInput } from '../dtos/find-crags.input';
-import { Crag, CragStatus } from '../entities/crag.entity';
+import { CurrentUser } from '../../auth/decorators/current-user.decorator';
+import { DataLoaderInterceptor } from '../../core/interceptors/data-loader.interceptor';
+import { User } from '../../users/entities/user.entity';
+import { FindCragsServiceInput } from '../dtos/find-crags-service.input';
+import { Crag } from '../entities/crag.entity';
 import { Peak } from '../entities/peak.entity';
 import { CragsService } from '../services/crags.service';
 import { PeaksService } from '../services/peaks.service';
 
 @Resolver(of => Peak)
+@UseInterceptors(DataLoaderInterceptor)
 export class PeaksResolver {
   constructor(
     private peaksService: PeaksService,
@@ -25,14 +29,14 @@ export class PeaksResolver {
 
   @ResolveField('crags', returns => [Crag])
   async getCrags(
-    @MinCragStatus() minStatus: CragStatus,
+    @CurrentUser() user: User,
     @Parent() peak: Peak,
-    @Args('input', { nullable: true }) input: FindCragsInput = {},
+    @Args('input', { nullable: true }) input: FindCragsServiceInput = {},
   ): Promise<Crag[]> {
-    input.peakId = peak.id;
-    input.minStatus = minStatus;
-    input.allowEmpty = true;
-
-    return this.cragsService.find(input);
+    return this.cragsService.find({
+      ...input,
+      peakId: peak.id,
+      user,
+    });
   }
 }

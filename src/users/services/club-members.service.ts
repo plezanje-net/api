@@ -26,17 +26,17 @@ export class ClubMembersService {
   ) {}
 
   async findByClub(clubId: string): Promise<ClubMember[]> {
-    return this.clubMembersRepository.find({ where: { club: clubId } });
+    return this.clubMembersRepository.find({ where: { clubId: clubId } });
   }
 
   async nrMembersByClub(clubId: string): Promise<number> {
     return this.clubMembersRepository.count({
-      where: { club: clubId },
+      where: { clubId: clubId },
     });
   }
 
   async findByUser(userId: string): Promise<ClubMember[]> {
-    return this.clubMembersRepository.find({ where: { user: userId } });
+    return this.clubMembersRepository.find({ where: { userId: userId } });
   }
 
   async createByUserEmail(
@@ -70,7 +70,7 @@ export class ClubMembersService {
     clubMember.user = newMemberUser;
 
     clubMember.club = Promise.resolve(
-      await this.clubRepository.findOneOrFail(clubId),
+      await this.clubRepository.findOneByOrFail({ id: clubId }),
     );
 
     clubMember.admin = asAdmin;
@@ -82,9 +82,9 @@ export class ClubMembersService {
   }
 
   async confirmClubMembership(confirmIn: ConfirmInput): Promise<Club> {
-    const clubMember = await this.clubMembersRepository.findOneOrFail(
-      confirmIn.id,
-    );
+    const clubMember = await this.clubMembersRepository.findOneByOrFail({
+      id: confirmIn.id,
+    });
 
     if (clubMember.confirmationToken != confirmIn.token) {
       throw new NotAcceptableException();
@@ -100,7 +100,7 @@ export class ClubMembersService {
 
   async delete(currentUser: User, id: string): Promise<boolean> {
     // only if the logged in user is admin of this club can she remove a member
-    const clubMember = await this.clubMembersRepository.findOneOrFail(id);
+    const clubMember = await this.clubMembersRepository.findOneByOrFail({ id });
     const clubId = (await clubMember.club).id;
     if (!(await this.isMemberAdmin(clubId, currentUser.id)))
       throw new HttpException('Forbidden', HttpStatus.FORBIDDEN);
@@ -118,7 +118,7 @@ export class ClubMembersService {
 
     // get user that we are adding as a new member
     const newMemberUser = Promise.resolve(
-      await this.usersRepository.findOneOrFail(data.userId),
+      await this.usersRepository.findOneByOrFail({ id: data.userId }),
     );
 
     return this.addUserToClub(newMemberUser, data.clubId, data.admin);
@@ -131,8 +131,8 @@ export class ClubMembersService {
     const currentUserAsAdminClubMember = await this.clubMembersRepository.findOne(
       {
         where: {
-          club: clubId,
-          user: userId,
+          clubId: clubId,
+          userId: userId,
           admin: true,
         },
       },
