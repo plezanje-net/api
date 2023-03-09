@@ -52,3 +52,6 @@ $ npm run test:e2e
 # test coverage
 $ npm run test:cov
 ```
+
+
+This project is tested with BrowserStack.
