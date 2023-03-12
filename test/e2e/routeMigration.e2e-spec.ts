@@ -137,8 +137,8 @@ describe('RouteMigration', () => {
       .send({
         query: `
         mutation {
-          moveRouteToSector(input: { 
-            id: "${mockData.crags.cragWithMultipleSectors.sectors.firstSector.routes.firstRoute.id}", 
+          moveRouteToSector(input: {
+            id: "${mockData.crags.cragWithMultipleSectors.sectors.firstSector.routes.firstRoute.id}",
             sectorId: "${mockData.crags.cragWithMultipleSectors.sectors.secondSector.id}",
             targetRouteId: "${mockData.crags.cragWithMultipleSectors.sectors.secondSector.routes.firstRoute.id}",
             primaryRoute: "source"
@@ -166,8 +166,8 @@ describe('RouteMigration', () => {
       .send({
         query: `
         mutation {
-          moveRouteToSector(input: { 
-            id: "${mockData.crags.cragWithMultipleSectors.sectors.firstSector.routes.firstRoute.id}", 
+          moveRouteToSector(input: {
+            id: "${mockData.crags.cragWithMultipleSectors.sectors.firstSector.routes.firstRoute.id}",
             sectorId: "${mockData.crags.cragWithMultipleSectors.sectors.secondSector.id}",
             targetRouteId: "${mockData.crags.cragWithMultipleSectors.sectors.secondSector.routes.firstRoute.id}",
             primaryRoute: "source"
