@@ -50,12 +50,15 @@ import { RouteNrClimbersLoader } from '../loaders/route-nr-climbers.loader';
 import { NotificationService } from '../../notification/services/notification.service';
 import { LatestDifficultyVotesInput } from '../dtos/latest-difficulty-votes.input';
 import { PaginatedDifficultyVotes } from '../utils/paginated-difficulty-votes';
+import { MoveRouteToSectorInput } from '../dtos/move-route-to-sector.input';
+import { SectorsService } from '../services/sectors.service';
 
 @Resolver(() => Route)
 @UseInterceptors(DataLoaderInterceptor)
 export class RoutesResolver {
   constructor(
     private routesService: RoutesService,
+    private sectorsService: SectorsService,
     private difficultyVotesService: DifficultyVotesService,
     private entityPropertiesService: EntityPropertiesService,
     private notificationService: NotificationService,
@@ -157,7 +160,7 @@ export class RoutesResolver {
     @Args('input', { type: () => [UpdateRouteInput] })
     input: UpdateRouteInput[],
   ): Promise<Route[]> {
-    return Promise.all(input.map(input => this.routesService.update(input)));
+    return Promise.all(input.map((input) => this.routesService.update(input)));
   }
 
   @Mutation(() => Boolean)
@@ -178,6 +181,44 @@ export class RoutesResolver {
     }
 
     return this.routesService.delete(id);
+  }
+
+  @Mutation(() => Boolean)
+  @UseGuards(UserAuthGuard)
+  @UseFilters(NotFoundFilter)
+  @UseInterceptors(AuditInterceptor)
+  async moveRouteToSector(
+    @Args('input', { type: () => MoveRouteToSectorInput })
+    input: MoveRouteToSectorInput,
+    @CurrentUser() user: User,
+  ): Promise<boolean> {
+    if (!user.isAdmin()) {
+      throw new ForbiddenException();
+    }
+
+    const route = await this.routesService.findOne({
+      id: input.id,
+      user,
+    });
+
+    const sector = await this.sectorsService.findOne({
+      id: input.sectorId,
+      user,
+    });
+
+    if (input.targetRouteId) {
+      const targetRoute = await this.routesService.findOne({
+        id: input.targetRouteId,
+        user,
+      });
+      return this.routesService.moveToSector(
+        route,
+        sector,
+        targetRoute,
+        input.primaryRoute ?? 'target',
+      );
+    }
+    return this.routesService.moveToSector(route, sector);
   }
 
   /* FIELDS */
@@ -237,7 +278,7 @@ export class RoutesResolver {
     return loader.load(route.routeTypeId);
   }
 
-  @ResolveField('nrTicks', returns => Number)
+  @ResolveField('nrTicks', (returns) => Number)
   async nrTicks(
     @Parent() route: Route,
     @Loader(RouteNrTicksLoader) loader: DataLoader<string, number>,
@@ -245,7 +286,7 @@ export class RoutesResolver {
     return loader.load(route.id);
   }
 
-  @ResolveField('nrTries', returns => Number)
+  @ResolveField('nrTries', (returns) => Number)
   async nrTries(
     @Parent() route: Route,
     @Loader(RouteNrTriesLoader) loader: DataLoader<string, number>,
@@ -253,7 +294,7 @@ export class RoutesResolver {
     return loader.load(route.id);
   }
 
-  @ResolveField('nrClimbers', returns => Number)
+  @ResolveField('nrClimbers', (returns) => Number)
   async nrClimbers(
     @Parent() route: Route,
     @Loader(RouteNrClimbersLoader) loader: DataLoader<string, number>,
