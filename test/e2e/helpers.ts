@@ -23,6 +23,9 @@ const initializeDbConn = async (app: INestApplication): Promise<DataSource> => {
   await conn.createQueryRunner().query(query);
   await conn.synchronize(true);
 
+  const triggersQuery = fs.readFileSync('./test/e2e/sql/triggers.sql', 'utf8');
+  await conn.createQueryRunner().query(triggersQuery);
+
   return conn;
 };
 
