@@ -16,7 +16,7 @@ describe('RouteMigration', () => {
 
   let mockData: any;
 
-  beforeEach(async () => {
+  beforeAll(async () => {
     prepareEnvironment();
 
     const mailService = { send: () => Promise.resolve({}) };
@@ -113,7 +113,7 @@ describe('RouteMigration', () => {
       .send({
         query: `
         mutation {
-          moveRouteToSector(input: { id: "${mockData.crags.cragWithMultipleSectors.sectors.firstSector.routes.firstRoute.id}", sectorId: "${mockData.crags.cragWithMultipleSectors.sectors.secondSector.id}" })
+          moveRouteToSector(input: { id: "${mockData.crags.cragWithMultipleSectors.sectors.firstSector.routes.secondRoute.id}", sectorId: "${mockData.crags.cragWithMultipleSectors.sectors.secondSector.id}" })
         }
       `,
       })
@@ -152,31 +152,14 @@ describe('RouteMigration', () => {
     const sourceSectorRoutes = await queryRunner.query(
       `SELECT * FROM route WHERE "sectorId" = '${mockData.crags.cragWithMultipleSectors.sectors.firstSector.id}'`,
     );
-    expect(sourceSectorRoutes.length).toBe(1);
+    expect(sourceSectorRoutes.length).toBe(0);
     const targetSectorRoutes = await queryRunner.query(
       `SELECT * FROM route WHERE "sectorId" = '${mockData.crags.cragWithMultipleSectors.sectors.secondSector.id}'`,
     );
-    expect(targetSectorRoutes.length).toBe(2);
+    expect(targetSectorRoutes.length).toBe(3);
   });
 
   it('should change ascent types if invalid state happens after merge', async () => {
-    const response = await request(app.getHttpServer())
-      .post('/graphql')
-      .set('Authorization', `Bearer ${mockData.users.editorUser.authToken}`)
-      .send({
-        query: `
-        mutation {
-          moveRouteToSector(input: {
-            id: "${mockData.crags.cragWithMultipleSectors.sectors.firstSector.routes.firstRoute.id}",
-            sectorId: "${mockData.crags.cragWithMultipleSectors.sectors.secondSector.id}",
-            targetRouteId: "${mockData.crags.cragWithMultipleSectors.sectors.secondSector.routes.firstRoute.id}",
-            primaryRoute: "source"
-          })
-        }
-      `,
-      })
-      .expect(200);
-    expect(response.body.errors).toBeUndefined();
     const onsightAscentsOfRoute = await queryRunner.query(
       `SELECT * FROM activity_route WHERE "routeId" = '${mockData.crags.cragWithMultipleSectors.sectors.firstSector.routes.firstRoute.id}' AND "userId" = '${mockData.users.basicUser1.id}' AND "ascentType" = '${AscentType.ONSIGHT}'`,
     );
@@ -184,23 +167,6 @@ describe('RouteMigration', () => {
   });
 
   it('should only keep latest base and each user grade', async () => {
-    const response = await request(app.getHttpServer())
-      .post('/graphql')
-      .set('Authorization', `Bearer ${mockData.users.editorUser.authToken}`)
-      .send({
-        query: `
-        mutation {
-          moveRouteToSector(input: {
-            id: "${mockData.crags.cragWithMultipleSectors.sectors.firstSector.routes.firstRoute.id}",
-            sectorId: "${mockData.crags.cragWithMultipleSectors.sectors.secondSector.id}",
-            targetRouteId: "${mockData.crags.cragWithMultipleSectors.sectors.secondSector.routes.firstRoute.id}",
-            primaryRoute: "source"
-          })
-        }
-      `,
-      })
-      .expect(200);
-    expect(response.body.errors).toBeUndefined();
     const difficultyVotes = await queryRunner.query(
       `SELECT * FROM difficulty_vote WHERE "routeId" = '${mockData.crags.cragWithMultipleSectors.sectors.firstSector.routes.firstRoute.id}'`,
     );
@@ -213,24 +179,6 @@ describe('RouteMigration', () => {
   });
 
   it('should transfer all comments to target route', async () => {
-    const response = await request(app.getHttpServer())
-      .post('/graphql')
-      .set('Authorization', `Bearer ${mockData.users.editorUser.authToken}`)
-      .send({
-        query: `
-        mutation {
-          moveRouteToSector(input: {
-            id: "${mockData.crags.cragWithMultipleSectors.sectors.firstSector.routes.firstRoute.id}",
-            sectorId: "${mockData.crags.cragWithMultipleSectors.sectors.secondSector.id}",
-            targetRouteId: "${mockData.crags.cragWithMultipleSectors.sectors.secondSector.routes.firstRoute.id}",
-            primaryRoute: "source"
-          })
-        }
-      `,
-      })
-      .expect(200);
-    expect(response.body.errors).toBeUndefined();
-
     const comments = await queryRunner.query(
       `SELECT * FROM comment WHERE "routeId" = '${mockData.crags.cragWithMultipleSectors.sectors.firstSector.routes.firstRoute.id}'`,
     );
@@ -238,24 +186,6 @@ describe('RouteMigration', () => {
   });
 
   it('should use only the latest star rating per user', async () => {
-    const response = await request(app.getHttpServer())
-      .post('/graphql')
-      .set('Authorization', `Bearer ${mockData.users.editorUser.authToken}`)
-      .send({
-        query: `
-        mutation {
-          moveRouteToSector(input: {
-            id: "${mockData.crags.cragWithMultipleSectors.sectors.firstSector.routes.firstRoute.id}",
-            sectorId: "${mockData.crags.cragWithMultipleSectors.sectors.secondSector.id}",
-            targetRouteId: "${mockData.crags.cragWithMultipleSectors.sectors.secondSector.routes.firstRoute.id}",
-            primaryRoute: "source"
-          })
-        }
-      `,
-      })
-      .expect(200);
-    expect(response.body.errors).toBeUndefined();
-
     const starRatings = await queryRunner.query(
       `SELECT * FROM star_rating_vote WHERE "routeId" = '${mockData.crags.cragWithMultipleSectors.sectors.firstSector.routes.firstRoute.id}'`,
     );
@@ -264,24 +194,6 @@ describe('RouteMigration', () => {
   });
 
   it('should migrate route properties from secondary route unless already present on target', async () => {
-    const response = await request(app.getHttpServer())
-      .post('/graphql')
-      .set('Authorization', `Bearer ${mockData.users.editorUser.authToken}`)
-      .send({
-        query: `
-        mutation {
-          moveRouteToSector(input: {
-            id: "${mockData.crags.cragWithMultipleSectors.sectors.firstSector.routes.firstRoute.id}",
-            sectorId: "${mockData.crags.cragWithMultipleSectors.sectors.secondSector.id}",
-            targetRouteId: "${mockData.crags.cragWithMultipleSectors.sectors.secondSector.routes.firstRoute.id}",
-            primaryRoute: "source"
-          })
-        }
-      `,
-      })
-      .expect(200);
-    expect(response.body.errors).toBeUndefined();
-
     const routeProperties = await queryRunner.query(
       `SELECT * FROM route_property WHERE "routeId" = '${mockData.crags.cragWithMultipleSectors.sectors.firstSector.routes.firstRoute.id}' ORDER BY "propertyTypeId" ASC`,
     );
@@ -290,7 +202,7 @@ describe('RouteMigration', () => {
     expect(routeProperties[1].numValue).toBe(5);
   });
 
-  afterEach(async () => {
+  afterAll(async () => {
     await conn.destroy();
     await app.close();
   });
