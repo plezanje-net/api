@@ -25,7 +25,12 @@ async function mergeRoutes(
   const sourceRoute = primaryRoute === 'target' ? route : mergeWithRoute;
   const targetRoute = primaryRoute === 'target' ? mergeWithRoute : route;
 
-  await transferDifficultyVotes(sourceRoute.id, targetRoute.id, transaction);
+  if (targetRoute.isProject && !sourceRoute.isProject) {
+    targetRoute.isProject = false;
+    transaction.save(targetRoute);
+  }
+
+  await transferDifficultyVotes(sourceRoute, targetRoute, transaction);
 
   await transferActivityRoutes(sourceRoute.id, targetRoute.id, transaction);
   await convertAscentTypesAfterRouteMerge(targetRoute, transaction.queryRunner);
@@ -59,18 +64,18 @@ async function transferActivityRoutes(
 }
 
 async function transferDifficultyVotes(
-  routeId: string,
-  targetId: string,
+  route: Route,
+  target: Route,
   transaction: Transaction,
 ) {
   const difficultyVotes = await transaction.queryRunner.manager.find(
     DifficultyVote,
     {
-      where: { routeId: routeId },
+      where: { routeId: route.id },
     },
   );
   for (const difficultyVote of difficultyVotes) {
-    if (difficultyVote.isBase) {
+    if (difficultyVote.isBase && !target.isProject) {
       await transaction.delete(difficultyVote);
       continue;
     }
@@ -79,7 +84,7 @@ async function transferDifficultyVotes(
       DifficultyVote,
       {
         where: {
-          routeId: targetId,
+          routeId: target.id,
           userId: difficultyVote.userId,
         },
       },
@@ -95,7 +100,7 @@ async function transferDifficultyVotes(
     if (existingUserVote && existingUserVote.created < difficultyVote.created) {
       await transaction.delete(existingUserVote);
     }
-    difficultyVote.routeId = targetId;
+    difficultyVote.routeId = target.id;
     await transaction.save(difficultyVote);
   }
 }
