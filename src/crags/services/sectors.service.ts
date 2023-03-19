@@ -195,6 +195,14 @@ export class SectorsService {
     const transaction = new Transaction(this.dataSource);
     await transaction.start();
     try {
+      sector.position =
+        (
+          await transaction.queryRunner.manager.query(
+            `SELECT MAX(position) FROM sector WHERE "cragId" = '${targetCrag.id}'`,
+          )
+        )[0].max + 1;
+
+      console.log();
       sector.cragId = targetCrag.id;
       await transaction.save(sector);
 
