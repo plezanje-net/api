@@ -211,6 +211,18 @@ export class RoutesResolver {
         id: input.targetRouteId,
         user,
       });
+
+      if (
+        route.publishStatus != 'published' ||
+        targetRoute.publishStatus != 'published'
+      ) {
+        throw new BadRequestException('cannot_merge_unpublished_routes');
+      }
+
+      if ((await route.pitches).length || (await targetRoute.pitches).length) {
+        throw new BadRequestException('cannot_merge_multipitch_routes');
+      }
+
       return this.routesService.moveToSector(
         route,
         sector,
