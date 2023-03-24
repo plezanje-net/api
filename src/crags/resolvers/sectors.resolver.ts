@@ -34,11 +34,13 @@ import {
   DataLoaderInterceptor,
   Loader,
 } from '../../core/interceptors/data-loader.interceptor';
+import { CragsService } from '../services/crags.service';
 
 @Resolver(() => Sector)
 @UseInterceptors(DataLoaderInterceptor)
 export class SectorsResolver {
   constructor(
+    private cragsService: CragsService,
     private sectorsService: SectorsService,
     private routesService: RoutesService,
     private notificationService: NotificationService,
@@ -119,7 +121,7 @@ export class SectorsResolver {
     @Args('input', { type: () => [UpdateSectorInput] })
     input: UpdateSectorInput[],
   ): Promise<Sector[]> {
-    return Promise.all(input.map(input => this.sectorsService.update(input)));
+    return Promise.all(input.map((input) => this.sectorsService.update(input)));
   }
 
   @Mutation(() => Boolean)
@@ -140,6 +142,32 @@ export class SectorsResolver {
     }
 
     return this.sectorsService.delete(id);
+  }
+
+  @Mutation(() => Boolean)
+  @UseGuards(UserAuthGuard)
+  @UseFilters(NotFoundFilter)
+  @UseInterceptors(AuditInterceptor)
+  async moveSectorToCrag(
+    @Args('id') id: string,
+    @Args('cragId') cragId: string,
+    @CurrentUser() user: User,
+  ): Promise<boolean> {
+    const sector = await this.sectorsService.findOne({
+      id,
+      user,
+    });
+
+    const crag = await this.cragsService.findOne({
+      id: cragId,
+      user,
+    });
+
+    if (!user.isAdmin()) {
+      throw new ForbiddenException();
+    }
+
+    return this.sectorsService.moveToCrag(sector, crag);
   }
 
   /* FIELDS */
