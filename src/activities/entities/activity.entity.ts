@@ -31,7 +31,7 @@ export class Activity extends BaseEntity {
   @Field()
   id: string;
 
-  @ManyToOne(() => Crag, { nullable: true })
+  @ManyToOne(() => Crag, { nullable: true, onDelete: 'SET NULL' })
   @Field(() => Crag, { nullable: true })
   crag: Promise<Crag>;
   @Column({ nullable: true })
