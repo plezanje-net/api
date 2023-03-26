@@ -6,7 +6,7 @@ import { Crag } from './crag.entity';
 @Entity()
 @ObjectType()
 export class CragProperty extends BaseProperty {
-  @ManyToOne(() => Crag)
+  @ManyToOne(() => Crag, { onDelete: 'CASCADE' })
   @Field(() => Crag)
   crag: Promise<Crag>;
   @Column()
