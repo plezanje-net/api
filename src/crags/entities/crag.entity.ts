@@ -171,6 +171,6 @@ export class Crag extends BaseEntity {
   @ManyToOne(() => User)
   @Field(() => User, { nullable: true })
   user: Promise<User>;
-  @Column({ name: 'userId', nullable: true })
+  @Column({ name: 'user_id', nullable: true })
   userId: string;
 }

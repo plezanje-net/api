@@ -49,7 +49,7 @@ export class ImagesService {
       .limit(latest);
 
     if (!showHiddenCrags) {
-      builder.andWhere('c.isHidden = false');
+      builder.andWhere('c.is_hidden = false');
     }
 
     return builder.getMany();

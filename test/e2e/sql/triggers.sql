@@ -7,16 +7,16 @@ AS $function$
         BEGIN
 
             -- if deleted was a 'real' tick then convert first repeat to redpoint and possibly toprope repeat to toprope redpoint
-            IF  OLD."ascentType" = 'redpoint' OR OLD."ascentType" = 'flash' OR OLD."ascentType" = 'onsight' THEN
+            IF  OLD.ascent_type = 'redpoint' OR OLD.ascent_type = 'flash' OR OLD.ascent_type = 'onsight' THEN
 
                 -- find first repeat by same user for same route and convert it to redpoint if such log exists
                 UPDATE activity_route
-                SET "ascentType" = 'redpoint'
+                SET ascent_type = 'redpoint'
                 WHERE id = (
                     SELECT id FROM activity_route
-                    WHERE "routeId" = OLD."routeId"
-                    AND "userId" = OLD."userId"
-                    AND "ascentType" = 'repeat'
+                    WHERE route_id = OLD.route_id
+                    AND user_id = OLD.user_id
+                    AND ascent_type = 'repeat'
                     ORDER BY date
                     LIMIT 1)
                 RETURNING date INTO ardate;
@@ -24,37 +24,37 @@ AS $function$
                 -- find first toprope repeat and if it is logged before the new redpoint ascent convert it to toprope redpoint
                 -- that is: Find first TR Repeat and convert it to TR Redpoint, but only if: TR Repeat is before new Redpoint OR new Redpoint does not exist
                 UPDATE activity_route
-                SET "ascentType" = 't_redpoint'
+                SET ascent_type = 't_redpoint'
                 WHERE id =(
                     SELECT id FROM activity_route
-                    WHERE "routeId" = OLD."routeId"
-                    AND "userId" = OLD."userId"
+                    WHERE route_id = OLD.route_id
+                    AND user_id = OLD.user_id
                     AND (ardate IS NULL OR date < ardate)  -- if above update did nothing skip this condition
-                    AND "ascentType" = 't_repeat'
+                    AND ascent_type = 't_repeat'
                     ORDER BY date
                     LIMIT 1
                     );
 
             -- if deleted was a toprope tick then convert first toprope repeat to toprope redpoint but only if no real tick is in between
-            ELSEIF OLD."ascentType" = 't_redpoint' OR OLD."ascentType" = 't_flash' OR OLD."ascentType" = 't_onsight' THEN
+            ELSEIF OLD.ascent_type = 't_redpoint' OR OLD.ascent_type = 't_flash' OR OLD.ascent_type = 't_onsight' THEN
 
                 -- find first real tick (if it exists) and save the time
                 SELECT date INTO ardate
                 FROM activity_route
-                WHERE "routeId" = OLD."routeId"
-                AND "userId" = OLD."userId"
-                AND ("ascentType" = 'redpoint' OR "ascentType" = 'flash' OR "ascentType" = 'onsight')
+                WHERE route_id = OLD.route_id
+                AND user_id = OLD.user_id
+                AND (ascent_type = 'redpoint' OR ascent_type = 'flash' OR ascent_type = 'onsight')
                 ORDER BY date
                 LIMIT 1;
 
                 -- convert first toprope repeat that might be logged before the possible real tick log to toprope redpoint
                 UPDATE activity_route
-                SET "ascentType" = 't_redpoint'
+                SET ascent_type = 't_redpoint'
                 WHERE id = (
                     SELECT id FROM activity_route
-                    WHERE "routeId" = OLD."routeId"
-                    AND "userId" = OLD."userId"
-                    AND "ascentType" = 't_repeat'
+                    WHERE route_id = OLD.route_id
+                    AND user_id = OLD.user_id
+                    AND ascent_type = 't_repeat'
                     AND (ardate IS NULL OR date < ardate)
                     ORDER BY date
                     LIMIT 1
@@ -75,9 +75,9 @@ AS $function$
           BEGIN            
               -- see if user has any ticks of this route left
               SELECT count(*) INTO numTicksLeft FROM activity_route
-              WHERE "routeId" = OLD."routeId"
-              AND "userId" = OLD."userId"
-              AND "ascentType" IN ('redpoint', 'flash', 'onsight', 'repeat');
+              WHERE route_id = OLD.route_id
+              AND user_id = OLD.user_id
+              AND ascent_type IN ('redpoint', 'flash', 'onsight', 'repeat');
   
               -- if this was not the last tick, no need to do anything
               IF (numTicksLeft > 0) THEN
@@ -86,8 +86,8 @@ AS $function$
   
               -- delete users difficulty vote for this route
               DELETE FROM difficulty_vote
-              WHERE "userId" = OLD."userId"
-              AND "routeId" = OLD."routeId";
+              WHERE user_id = OLD.user_id
+              AND route_id = OLD.route_id;
   
               RETURN NULL;
           END
@@ -106,12 +106,12 @@ AS $function$
                 SELECT INTO mindiff, maxdiff
                     min(r.difficulty), max(r.difficulty)
                 FROM route r
-                WHERE "cragId" = COALESCE(NEW."cragId", OLD."cragId");
+                WHERE crag_id = COALESCE(NEW.crag_id, OLD.crag_id);
 
                 UPDATE crag
-                SET "minDifficulty" = mindiff,
-                    "maxDifficulty" = maxdiff
-                WHERE id = COALESCE(NEW."cragId", OLD."cragId");
+                SET min_difficulty = mindiff,
+                    max_difficulty = maxdiff
+                WHERE id = COALESCE(NEW.crag_id, OLD.crag_id);
 
                 RETURN NEW;
             END
@@ -134,7 +134,7 @@ AS $function$
             -- one vote, two votes, more than two votes
             SELECT count(*) INTO numvotes
             FROM difficulty_vote
-            WHERE "routeId" = COALESCE(NEW."routeId", OLD."routeId");   -- update and insert pass NEW, update and delete pass OLD
+            WHERE route_id = COALESCE(NEW.route_id, OLD.route_id);   -- update and insert pass NEW, update and delete pass OLD
 
             CASE numvotes
                 WHEN 0 THEN
@@ -143,20 +143,20 @@ AS $function$
 
                     -- if no vote route has no difficulty, so apparently it is a project
                     UPDATE route
-                    SET "isProject" = TRUE
-                    WHERE id = COALESCE(NEW."routeId", OLD."routeId");
+                    SET is_project = TRUE
+                    WHERE id = COALESCE(NEW.route_id, OLD.route_id);
 
                 WHEN 1, 2 THEN
                     -- only one or two votes, so only the base grade is included in calculation
                     calcedDifficulty =(
                         SELECT difficulty
                         FROM difficulty_vote
-                        WHERE "routeId" = COALESCE(NEW."routeId", OLD."routeId") AND "isBase" = true
+                        WHERE route_id = COALESCE(NEW.route_id, OLD.route_id) AND is_base = true
                     );
 
                     UPDATE difficulty_vote
-                    SET "includedInCalculation" = COALESCE("isBase", false)
-                    WHERE "routeId" = COALESCE(NEW."routeId", OLD."routeId");
+                    SET included_in_calculation = COALESCE(is_base, false)
+                    WHERE route_id = COALESCE(NEW.route_id, OLD.route_id);
 
                 ELSE
                     -- more than 2 votes. skip top and bottom 20% grades, and use all others to get the average
@@ -166,19 +166,19 @@ AS $function$
 
                     -- set all as not included in calc, then set only ones that should be as included in calc
                     UPDATE difficulty_vote
-                    SET "includedInCalculation" = FALSE
-                    WHERE "routeId" = COALESCE(NEW."routeId", OLD."routeId");
+                    SET included_in_calculation = FALSE
+                    WHERE route_id = COALESCE(NEW.route_id, OLD.route_id);
 
                     WITH isIncluded AS (
                         SELECT id
                         FROM difficulty_vote
-                        where "routeId" = COALESCE(NEW."routeId", OLD."routeId")
+                        where route_id = COALESCE(NEW.route_id, OLD.route_id)
                         order by difficulty, id     -- add id to order to keep consistency on many same excluded difficulties
                         offset roundedFifth
                         limit  numvotes - roundedFifth - roundedFifth
                     )
                     UPDATE difficulty_vote dv
-                    SET "includedInCalculation" = true
+                    SET included_in_calculation = true
                     FROM isIncluded
                     WHERE dv.id = isIncluded.id;
 
@@ -186,13 +186,13 @@ AS $function$
                     calcedDifficulty =(
                         SELECT AVG(difficulty)
                         FROM difficulty_vote
-                        WHERE "routeId" = COALESCE(NEW."routeId", OLD."routeId") AND "includedInCalculation" = true
+                        WHERE route_id = COALESCE(NEW.route_id, OLD.route_id) AND included_in_calculation = true
                     );
             END CASE;
 
             UPDATE route
             SET difficulty = calcedDifficulty
-            WHERE id = COALESCE(NEW."routeId", OLD."routeId");
+            WHERE id = COALESCE(NEW.route_id, OLD.route_id);
 
             -- reenable triggers after all is done
             SET session_replication_role = DEFAULT;
@@ -212,12 +212,12 @@ AS $function$
             -- get number of routes for the crag whose route is being inserted or deleted
             SELECT COUNT (*) INTO numroutes
             FROM crag c
-            LEFT JOIN route r ON c.id = r."cragId"
-            WHERE c.id = COALESCE(NEW."cragId", OLD."cragId");
+            LEFT JOIN route r ON c.id = r.crag_id
+            WHERE c.id = COALESCE(NEW.crag_id, OLD.crag_id);
         
             UPDATE crag
-            SET "nrRoutes" = numroutes
-            WHERE id = COALESCE(NEW."cragId", OLD."cragId");
+            SET nr_routes = numroutes
+            WHERE id = COALESCE(NEW.crag_id, OLD.crag_id);
         
             RETURN NEW;
         END

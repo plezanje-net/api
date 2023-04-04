@@ -42,7 +42,7 @@ export class CountriesService {
     }
 
     if (params.hasCrags != null && params.hasCrags) {
-      qb.where('"nrCrags" > 0');
+      qb.where('"nr_crags" > 0');
     }
 
     if (params.hasIceFalls != null && params.hasIceFalls) {

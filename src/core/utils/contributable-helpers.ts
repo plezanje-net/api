@@ -29,7 +29,7 @@ async function getPublishStatusParams(
 ): Promise<{ conditions: string; params: ObjectLiteral }> {
   if (user != null && (await user.isAdmin())) {
     return {
-      conditions: `(${alias}.publishStatus IN (:...publishStatuses) OR (${alias}."userId" = :userId AND ${alias}.publishStatus = :publishStatus))`,
+      conditions: `(${alias}.publishStatus IN (:...publishStatuses) OR (${alias}.user_id = :userId AND ${alias}.publishStatus = :publishStatus))`,
       params: {
         publishStatuses: ['published', 'in_review'],
         userId: user.id,
@@ -48,7 +48,7 @@ async function getPublishStatusParams(
   }
 
   return {
-    conditions: `(${alias}.publishStatus = :publishStatus OR ${alias}."userId" = :userId)`,
+    conditions: `(${alias}.publishStatus = :publishStatus OR ${alias}.user_id = :userId)`,
     params: {
       publishStatus: 'published',
       userId: user.id,
@@ -127,13 +127,13 @@ async function getUserContributions(
           'name',
           'created',
           `'${alias}' as entity`,
-          '"userId"',
-          '"publishStatus"::text',
+          'user_id',
+          'publish_status::text',
         ])
         .where(
           user.isAdmin()
-            ? `"publishStatus" = 'in_review' OR ("publishStatus" = 'draft' AND "userId" = '${user.id}')`
-            : `("publishStatus" = 'in_review' OR "publishStatus" = 'draft') AND "userId" = '${user.id}'`,
+            ? `publish_status = 'in_review' OR (publish_status = 'draft' AND user_id = '${user.id}')`
+            : `(publish_status = 'in_review' OR publish_status = 'draft') AND user_id = '${user.id}'`,
         )
         .getQuery(),
     )

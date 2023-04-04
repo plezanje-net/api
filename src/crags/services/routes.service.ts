@@ -63,7 +63,7 @@ export class RoutesService {
     const builder = this.routesRepository.createQueryBuilder('r');
 
     builder
-      .innerJoin('crag', 'c', 'c.id = r."cragId"')
+      .innerJoin('crag', 'c', 'c.id = r.crag_id')
       .where('r.slug = :routeSlug', { routeSlug: routeSlug })
       .andWhere('c.slug = :cragSlug', { cragSlug: cragSlug });
 
@@ -71,7 +71,7 @@ export class RoutesService {
     builder.andWhere(conditions, params);
 
     if (!(user != null)) {
-      builder.andWhere('c.isHidden = false');
+      builder.andWhere('c.is_hidden = false');
     }
 
     return builder.getOneOrFail();
@@ -112,7 +112,7 @@ export class RoutesService {
       .createQueryBuilder('r')
       .leftJoin('r.activityRoutes', 'ar')
       .select('r.id')
-      .addSelect('COUNT(DISTINCT(ar."userId")) as "nrClimbers"')
+      .addSelect('COUNT(DISTINCT(ar.user_id)) as "nrClimbers"')
       .where('r.id IN (:...rIds)', { rIds: keys })
       .groupBy('r.id');
 

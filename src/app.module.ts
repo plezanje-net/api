@@ -41,6 +41,7 @@ import { CragProperty } from './crags/entities/crag-property.entity';
 import { RouteProperty } from './crags/entities/route-property.entity';
 import { PropertyType } from './crags/entities/property-type.entity';
 import EntityCacheSubscriber from './core/utils/entity-cache/entity-cache.subscriber';
+import { SnakeNamingStrategy } from 'typeorm-naming-strategies';
 
 @Module({
   imports: [
@@ -54,6 +55,7 @@ import EntityCacheSubscriber from './core/utils/entity-cache/entity-cache.subscr
         password: configService.get('DB_PASSWORD'),
         database: configService.get('DB_NAME'),
         port: configService.get('DB_PORT'),
+        namingStrategy: new SnakeNamingStrategy(),
         cache:
           configService.get('ENTITY_CACHE') == 'enabled'
             ? {
