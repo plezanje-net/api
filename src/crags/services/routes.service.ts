@@ -27,6 +27,7 @@ import {
   updateUserContributionsFlag,
 } from '../../core/utils/contributable-helpers';
 import { setBuilderCache } from '../../core/utils/entity-cache/entity-cache-helpers';
+import { mergeRoutes } from '../utils/merge-routes';
 
 @Injectable()
 export class RoutesService {
@@ -314,25 +315,21 @@ export class RoutesService {
     difficulty: number,
     transaction: Transaction,
   ): Promise<void> {
-    const difficultyVote = await transaction.queryRunner.manager.findOneByOrFail(
-      DifficultyVote,
-      {
+    const difficultyVote =
+      await transaction.queryRunner.manager.findOneByOrFail(DifficultyVote, {
         routeId: route.id,
         isBase: true,
-      },
-    );
+      });
     difficultyVote.difficulty = difficulty;
     return transaction.save(difficultyVote);
   }
 
   private async deleteBaseDifficulty(route: Route, transaction: Transaction) {
-    const difficultyVote = await transaction.queryRunner.manager.findOneByOrFail(
-      DifficultyVote,
-      {
+    const difficultyVote =
+      await transaction.queryRunner.manager.findOneByOrFail(DifficultyVote, {
         routeId: route.id,
         isBase: true,
-      },
-    );
+      });
     return transaction.delete(difficultyVote);
   }
 
@@ -383,6 +380,29 @@ export class RoutesService {
     setBuilderCache(builder);
 
     return builder;
+  }
+
+  async moveToSector(
+    route: Route,
+    sector: Sector,
+    mergeWithRoute?: Route,
+    primaryRoute?: string,
+  ): Promise<boolean> {
+    const transaction = new Transaction(this.dataSource);
+    await transaction.start();
+    try {
+      route.sectorId = sector.id;
+      await transaction.save(route);
+
+      if (mergeWithRoute != null) {
+        await mergeRoutes(route, mergeWithRoute, primaryRoute, transaction);
+      }
+    } catch (e) {
+      await transaction.rollback();
+      throw e;
+    }
+    transaction.commit();
+    return true;
   }
 
   private async generateRouteSlug(

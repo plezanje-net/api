@@ -9,6 +9,8 @@ services:
       POSTGRES_PASSWORD: plezanjenet
     ports:
       - "5432:5432"
+    volumes:
+      - ./db:/etc/db
   redis: 
     image: redis:6
     restart: always

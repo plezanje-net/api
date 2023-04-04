@@ -31,9 +31,11 @@ export class Activity extends BaseEntity {
   @Field()
   id: string;
 
-  @ManyToOne(() => Crag, { nullable: true })
+  @ManyToOne(() => Crag, { nullable: true, onDelete: 'SET NULL' })
   @Field(() => Crag, { nullable: true })
   crag: Promise<Crag>;
+  @Column({ nullable: true })
+  cragId: string;
 
   @ManyToOne(() => IceFall, { nullable: true })
   @Field(() => IceFall, { nullable: true })
@@ -80,11 +82,7 @@ export class Activity extends BaseEntity {
   @Column({ nullable: true })
   legacy: string;
 
-  @OneToMany(
-    () => ActivityRoute,
-    route => route.activity,
-    { nullable: true },
-  )
+  @OneToMany(() => ActivityRoute, (route) => route.activity, { nullable: true })
   routes: Promise<ActivityRoute[]>;
 
   @ManyToOne(() => User, { nullable: false })

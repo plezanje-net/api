@@ -105,48 +105,29 @@ export class Crag extends BaseEntity {
   @Column({ nullable: true })
   legacy: string;
 
-  @ManyToOne(
-    () => Area,
-    area => area.crags,
-    { nullable: true },
-  )
+  @ManyToOne(() => Area, (area) => area.crags, { nullable: true })
   @Field(() => Area, { nullable: true })
   area: Promise<Area>;
   @Column({ nullable: true })
   areaId: string;
 
-  @ManyToOne(
-    () => Peak,
-    peak => peak.crags,
-    { nullable: true },
-  )
+  @ManyToOne(() => Peak, (peak) => peak.crags, { nullable: true })
   @Field(() => Peak, { nullable: true })
   peak: Promise<Peak>;
   @Column({ nullable: true })
   peakId: string;
 
-  @ManyToOne(
-    () => Country,
-    country => country.crags,
-  )
+  @ManyToOne(() => Country, (country) => country.crags)
   @Field(() => Country)
   country: Promise<Country>;
   @Column({ nullable: true })
   countryId: string;
 
-  @OneToMany(
-    () => Sector,
-    sector => sector.crag,
-    { nullable: true },
-  )
+  @OneToMany(() => Sector, (sector) => sector.crag, { nullable: true })
   @Field(() => [Sector])
   sectors: Promise<Sector[]>;
 
-  @OneToMany(
-    () => Route,
-    route => route.crag,
-    { nullable: true },
-  )
+  @OneToMany(() => Route, (route) => route.crag, { nullable: true })
   @Field(() => [Route])
   routes: Promise<Route[]>;
 
@@ -172,29 +153,19 @@ export class Crag extends BaseEntity {
   @JoinTable()
   books: Book[];
 
-  @OneToMany(
-    () => Comment,
-    comment => comment.crag,
-    { nullable: true },
-  )
+  @OneToMany(() => Comment, (comment) => comment.crag, { nullable: true })
   @Field(() => [Comment])
   comments: Promise<Comment[]>;
 
-  @OneToMany(
-    () => Image,
-    image => image.crag,
-    { nullable: true },
-  )
+  @OneToMany(() => Image, (image) => image.crag, { nullable: true })
   @Field(() => [Image])
   images: Promise<Image[]>;
 
   routeCount: number;
 
-  @OneToMany(
-    () => Activity,
-    activity => activity.crag,
-    { nullable: true },
-  )
+  @OneToMany(() => Activity, (activity) => activity.crag, {
+    nullable: true,
+  })
   activities: Promise<Activity[]>;
 
   @ManyToOne(() => User)
