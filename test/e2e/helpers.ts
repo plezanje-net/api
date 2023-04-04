@@ -150,18 +150,18 @@ const seedDatabase = async (qr: QueryRunner, app) => {
   };
 
   // Add users
-  await qr.query(`INSERT INTO public.user (id, email, firstname, lastname, gender, password, "isActive")
+  await qr.query(`INSERT INTO public.user (id, email, firstname, lastname, gender, password, is_active)
     VALUES ('${mockData.users.basicUser1.id}', 'slavko.majonezic@gmail.com', 'Slavko', 'Majonezić', 'M', '$2b$10$BTiaP8iH11j.xFRcW3wIbuY4FTXaWW7friOLfmIv7CfHCz2D8Slam', true)`);
 
-  await qr.query(`INSERT INTO public.user (id, email, firstname, lastname, gender, password, "isActive")
+  await qr.query(`INSERT INTO public.user (id, email, firstname, lastname, gender, password, is_active)
     VALUES ('${mockData.users.basicUser2.id}', 'aliba.gundic@gmail.com', 'Aliba', 'Gundič', 'F', '$2b$10$BTiaP8iH11j.xFRcW3wIbuY4FTXaWW7friOLfmIv7CfHCz2D8Slam', true)`);
 
-  await qr.query(`INSERT INTO public.user (id, email, firstname, lastname, gender, password, "isActive")
+  await qr.query(`INSERT INTO public.user (id, email, firstname, lastname, gender, password, is_active)
     VALUES ('${mockData.users.editorUser.id}', 'edit.permisonic@gmail.com', 'Edit', 'Permisonič', null, '$2b$10$BTiaP8iH11j.xFRcW3wIbuY4FTXaWW7friOLfmIv7CfHCz2D8Slam', true)`);
 
   // TODO: admin role in this context should become editor role
   await qr.query(
-    `INSERT INTO role (role, "userId") VALUES ('admin', '${mockData.users.editorUser.id}')`,
+    `INSERT INTO role (role, user_id) VALUES ('admin', '${mockData.users.editorUser.id}')`,
   );
 
   // Get auth tokens for all users and save them in mockData
@@ -200,49 +200,49 @@ const seedDatabase = async (qr: QueryRunner, app) => {
   // Add some crags
   // published crag
   await qr.query(
-    `INSERT INTO crag (id, name, slug, "countryId", "defaultGradingSystemId", type, "publishStatus", "isHidden", "userId")
+    `INSERT INTO crag (id, name, slug, country_id, default_grading_system_id, type, publish_status, is_hidden, user_id)
     VALUES ('${mockData.crags.publishedCrag.id}', 'Kot Tečnik', '${mockData.crags.publishedCrag.slug}', '${mockData.countries.slovenia.id}', 'french', 'sport', 'published', false, '${mockData.users.basicUser1.id}')`,
   );
   // in review crag
   await qr.query(
-    `INSERT INTO crag (id, name, slug, "countryId", "defaultGradingSystemId", type, "publishStatus", "isHidden", "userId")
+    `INSERT INTO crag (id, name, slug, country_id, default_grading_system_id, type, publish_status, is_hidden, user_id)
     VALUES ('${mockData.crags.inReviewCrag.id}', 'Podstenčnik', 'podstencnik', '${mockData.countries.slovenia.id}', 'french', 'sport', 'in_review', false, '${mockData.users.basicUser1.id}')`,
   );
   // draft crag
   await qr.query(
-    `INSERT INTO crag (id, name, slug, "countryId", "defaultGradingSystemId", type, "publishStatus", "isHidden", "userId")
+    `INSERT INTO crag (id, name, slug, country_id, default_grading_system_id, type, publish_status, is_hidden, user_id)
     VALUES ('${mockData.crags.draftCrag.id}', 'Nova grapa', 'nova-grapa', '${mockData.countries.slovenia.id}', 'french', 'sport', 'draft', false, '${mockData.users.basicUser1.id}')`,
   );
   // crag with multiple sectors
   await qr.query(
-    `INSERT INTO crag (id, name, slug, "countryId", "defaultGradingSystemId", type, "publishStatus", "isHidden", "userId")
+    `INSERT INTO crag (id, name, slug, country_id, default_grading_system_id, type, publish_status, is_hidden, user_id)
     VALUES ('${mockData.crags.cragWithMultipleSectors.id}', 'Cre tata', '${mockData.crags.cragWithMultipleSectors.slug}', '${mockData.countries.slovenia.id}', 'french', 'sport', 'published', false, '${mockData.users.basicUser1.id}')`,
   );
 
   // Add some sectors
   // published sector in published crag
   await qr.query(
-    `INSERT INTO sector (id, name, label, position, "cragId", "publishStatus")
+    `INSERT INTO sector (id, name, label, position, crag_id, publish_status)
     VALUES ('${mockData.crags.publishedCrag.sectors.publishedSector.id}', 'Leva stena', 'A', 1, '${mockData.crags.publishedCrag.id}', 'published')`,
   );
   // draft sector in published crag
   await qr.query(
-    `INSERT INTO sector (id, name, label, position, "cragId", "publishStatus", "userId")
+    `INSERT INTO sector (id, name, label, position, crag_id, publish_status, user_id)
     VALUES ('${mockData.crags.publishedCrag.sectors.draftSector.id}', 'Drafpub wall', 'A', 1, '${mockData.crags.publishedCrag.id}', 'draft', '${mockData.users.basicUser1.id}')`,
   );
   // draft sector in draft crag
   await qr.query(
-    `INSERT INTO sector (id, name, label, position, "cragId", "publishStatus", "userId")
+    `INSERT INTO sector (id, name, label, position, crag_id, publish_status, user_id)
     VALUES ('${mockData.crags.draftCrag.sectors.draftSector.id}', 'Drafna stena', 'A', 1, '${mockData.crags.draftCrag.id}', 'draft', '${mockData.users.basicUser1.id}')`,
   );
   // in_review sector in in_review crag
   await qr.query(
-    `INSERT INTO sector (id, name, label, position, "cragId", "publishStatus")
+    `INSERT INTO sector (id, name, label, position, crag_id, publish_status)
     VALUES ('${mockData.crags.inReviewCrag.sectors.inReviewSector.id}', 'Pregledni sektor', 'B', 1, '${mockData.crags.inReviewCrag.id}', 'in_review')`,
   );
   // sectors in multiple sector crag
   await qr.query(
-    `INSERT INTO sector (id, name, label, position, "cragId", "publishStatus")
+    `INSERT INTO sector (id, name, label, position, crag_id, publish_status)
     VALUES 
       ('${mockData.crags.cragWithMultipleSectors.sectors.firstSector.id}', 'Ostajajoci sektor', 'A', 1, '${mockData.crags.cragWithMultipleSectors.id}', 'published'),
       ('${mockData.crags.cragWithMultipleSectors.sectors.secondSector.id}', 'Odhajajoci sektor', 'B', 2, '${mockData.crags.cragWithMultipleSectors.id}', 'published')
@@ -252,27 +252,27 @@ const seedDatabase = async (qr: QueryRunner, app) => {
   // Add some routes
   // published route in published sector in published crag
   await qr.query(
-    `INSERT INTO route (id, name, length, position, "sectorId", "cragId", "routeTypeId", "isProject", "defaultGradingSystemId", difficulty, slug, "publishStatus")
+    `INSERT INTO route (id, name, length, position, sector_id, crag_id, route_type_id, is_project, default_grading_system_id, difficulty, slug, publish_status)
     VALUES ('${mockData.crags.publishedCrag.sectors.publishedSector.routes.publishedRoute.id}', 'Highly Unprobable Name 09832rf2', '11', 1, '${mockData.crags.publishedCrag.sectors.publishedSector.id}', '${mockData.crags.publishedCrag.id}', 'sport', false, 'french', '200', '${mockData.crags.publishedCrag.sectors.publishedSector.routes.publishedRoute.slug}', 'published')`,
   );
   // draft route in draft sector in published crag
   await qr.query(
-    `INSERT INTO route (id, name, length, position, "sectorId", "cragId", "routeTypeId", "isProject", "defaultGradingSystemId", difficulty, slug, "publishStatus", "userId")
+    `INSERT INTO route (id, name, length, position, sector_id, crag_id, route_type_id, is_project, default_grading_system_id, difficulty, slug, publish_status, user_id)
     VALUES ('${mockData.crags.publishedCrag.sectors.draftSector.routes.draftRoute.id}', 'Ta drafna pubka', '15', 1, '${mockData.crags.publishedCrag.sectors.draftSector.id}', '${mockData.crags.publishedCrag.id}', 'sport', false, 'french', '200', 'ta-drafna-pubka', 'draft', '${mockData.users.basicUser1.id}')`,
   );
   // draft route in draft sector in draft crag
   await qr.query(
-    `INSERT INTO route (id, name, length, position, "sectorId", "cragId", "routeTypeId", "isProject", "defaultGradingSystemId", difficulty, slug, "publishStatus", "userId")
+    `INSERT INTO route (id, name, length, position, sector_id, crag_id, route_type_id, is_project, default_grading_system_id, difficulty, slug, publish_status, user_id)
     VALUES ('${mockData.crags.draftCrag.sectors.draftSector.routes.draftRoute.id}', 'Ta nova', '12', 1, '${mockData.crags.draftCrag.sectors.draftSector.id}', '${mockData.crags.draftCrag.id}', 'sport', false, 'french', '200', 'ta-nova', 'draft', '${mockData.users.basicUser1.id}')`,
   );
   // in_review route in in_review sector in in_review crag
   await qr.query(
-    `INSERT INTO route (id, name, length, position, "sectorId", "cragId", "routeTypeId", "isProject", "defaultGradingSystemId", difficulty, slug, "publishStatus")
+    `INSERT INTO route (id, name, length, position, sector_id, crag_id, route_type_id, is_project, default_grading_system_id, difficulty, slug, publish_status)
     VALUES ('${mockData.crags.inReviewCrag.sectors.inReviewSector.routes.inReviewRoute.id}', 'Ta v pregledu', '14', 1, '${mockData.crags.inReviewCrag.sectors.inReviewSector.id}', '${mockData.crags.inReviewCrag.id}', 'sport', false, 'french', '200', 'ta-v-pregledu', 'in_review')`,
   );
   // routes in multipe sector crag
   await qr.query(
-    `INSERT INTO route (id, name, length, position, "sectorId", "cragId", "routeTypeId", "isProject", "defaultGradingSystemId", difficulty, slug, "publishStatus")
+    `INSERT INTO route (id, name, length, position, sector_id, crag_id, route_type_id, is_project, default_grading_system_id, difficulty, slug, publish_status)
     VALUES 
       ('${mockData.crags.cragWithMultipleSectors.sectors.firstSector.routes.firstRoute.id}', 'Highly Unprobable Name 09832rf2', '11', 1, '${mockData.crags.cragWithMultipleSectors.sectors.firstSector.id}', '${mockData.crags.cragWithMultipleSectors.id}', 'sport', false, 'french', '200', '${mockData.crags.cragWithMultipleSectors.sectors.firstSector.routes.firstRoute.slug}', 'published'),
       ('${mockData.crags.cragWithMultipleSectors.sectors.firstSector.routes.secondRoute.id}', 'Route Slug 8a63ddcc', '11', 2, '${mockData.crags.cragWithMultipleSectors.sectors.firstSector.id}', '${mockData.crags.cragWithMultipleSectors.id}', 'sport', false, 'french', '200', '${mockData.crags.cragWithMultipleSectors.sectors.firstSector.routes.secondRoute.slug}', 'published'),

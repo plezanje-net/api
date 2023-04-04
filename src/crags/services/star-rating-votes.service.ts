@@ -14,8 +14,8 @@ export class StarRatingVotesService {
   async find(routeIds: string[], currentUser: User): Promise<StarRatingVote[]> {
     return this.starRatingVoteRepository
       .createQueryBuilder('srv')
-      .where('srv."userId" = :userId', { userId: currentUser.id })
-      .andWhere('srv."routeId" IN (:...routeIds)', { routeIds })
+      .where('srv.user_id = :userId', { userId: currentUser.id })
+      .andWhere('srv.route_id IN (:...routeIds)', { routeIds })
       .getMany();
   }
 }

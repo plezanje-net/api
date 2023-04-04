@@ -22,7 +22,7 @@ export class Pitch extends BaseEntity {
   @ManyToOne(() => Route, { onDelete: 'CASCADE' })
   @Field(() => Route)
   route: Promise<Route>;
-  @Column({ name: 'routeId' })
+  @Column({ name: 'route_id' })
   routeId: string;
 
   @Column({ type: 'int' })
@@ -53,6 +53,6 @@ export class Pitch extends BaseEntity {
   @ManyToOne(() => User)
   @Field(() => User, { nullable: true })
   user: Promise<User>;
-  @Column({ name: 'userId', nullable: true })
+  @Column({ name: 'user_id', nullable: true })
   userId: string;
 }

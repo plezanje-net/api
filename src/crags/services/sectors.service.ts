@@ -198,11 +198,10 @@ export class SectorsService {
       sector.position =
         (
           await transaction.queryRunner.manager.query(
-            `SELECT MAX(position) FROM sector WHERE "cragId" = '${targetCrag.id}'`,
+            `SELECT MAX(position) FROM sector WHERE crag_id = '${targetCrag.id}'`,
           )
         )[0].max + 1;
 
-      console.log();
       sector.cragId = targetCrag.id;
       await transaction.save(sector);
 
@@ -270,7 +269,7 @@ export class SectorsService {
           await transaction.save(activityRoute);
 
           const remainingRoutes = await transaction.queryRunner.query(
-            `SELECT * FROM activity_route WHERE "activityId" = '${sourceActivity.id}'`,
+            `SELECT * FROM activity_route WHERE activity_id = '${sourceActivity.id}'`,
           );
           if (remainingRoutes.length == 0) {
             await transaction.delete(sourceActivity);

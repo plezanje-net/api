@@ -115,89 +115,89 @@ describe('Activity', () => {
     };
 
     await queryRunner.query(
-      `INSERT INTO activity (id, type, name, date, "userId")
+      `INSERT INTO activity (id, type, name, date, user_id)
       VALUES ('${mockData.activities.nonCragActivity.id}', '${ActivityType.CLIMBING_GYM}', 'Activity 1', '2001-01-01', '${mockData.users.basicUser1.id}')`,
     );
 
     // add activity with only public routes
     await queryRunner.query(
-      `INSERT INTO activity (id, type, name, date, "userId", "cragId")
+      `INSERT INTO activity (id, type, name, date, user_id, crag_id)
       VALUES ('${mockData.activities.activityWithPublicRoutes.id}', '${ActivityType.CRAG}', 'Activity 2', '2001-01-02', '${mockData.users.basicUser1.id}', '${mockData.crags.publishedCrag.id}')`,
     );
 
     await queryRunner.query(
-      `INSERT INTO activity_route (id, "ascentType", publish, "activityId", "routeId", "userId")
+      `INSERT INTO activity_route (id, ascent_type, publish, activity_id, route_id, user_id)
       VALUES ('${mockData.activities.activityWithPublicRoutes.activityRoutes.publicActivityRoute.id}', '${AscentType.ONSIGHT}', 'public', '${mockData.activities.activityWithPublicRoutes.id}', '${mockData.crags.publishedCrag.sectors.publishedSector.routes.publishedRoute.id}', '${mockData.users.basicUser1.id}')`,
     );
 
     // add activity with only private activity routes
     await queryRunner.query(
-      `INSERT INTO activity (id, type, name, date, "userId", "cragId")
+      `INSERT INTO activity (id, type, name, date, user_id, crag_id)
       VALUES ('${mockData.activities.activityWithPrivateRoutes.id}', '${ActivityType.CRAG}', 'Activity 3', '2001-01-03', '${mockData.users.basicUser1.id}', '${mockData.crags.publishedCrag.id}')`,
     );
 
     await queryRunner.query(
-      `INSERT INTO activity_route (id, "ascentType", publish, "activityId", "routeId", "userId")
+      `INSERT INTO activity_route (id, ascent_type, publish, activity_id, route_id, user_id)
       VALUES ('${mockData.activities.activityWithPrivateRoutes.activityRoutes.privateActivityRoute.id}', '${AscentType.REPEAT}', 'private', '${mockData.activities.activityWithPrivateRoutes.id}', '${mockData.crags.publishedCrag.sectors.publishedSector.routes.publishedRoute.id}', '${mockData.users.basicUser1.id}')`,
     );
 
     // add activity with only log activity routes
     await queryRunner.query(
-      `INSERT INTO activity (id, type, name, date, "userId", "cragId")
+      `INSERT INTO activity (id, type, name, date, user_id, crag_id)
       VALUES ('${mockData.activities.activityWithLogRoutes.id}', '${ActivityType.CRAG}', 'Activity 4', '2001-01-04', '${mockData.users.basicUser1.id}', '${mockData.crags.publishedCrag.id}')`,
     );
 
     await queryRunner.query(
-      `INSERT INTO activity_route (id, "ascentType", publish, "activityId", "routeId", "userId")
+      `INSERT INTO activity_route (id, ascent_type, publish, activity_id, route_id, user_id)
       VALUES ('${mockData.activities.activityWithLogRoutes.activityRoutes.logActivityRoute.id}', '${AscentType.REPEAT}', 'log', '${mockData.activities.activityWithLogRoutes.id}', '${mockData.crags.publishedCrag.sectors.publishedSector.routes.publishedRoute.id}', '${mockData.users.basicUser1.id}')`,
     );
 
     // add activty with mixed activity routes (public, private, log)
     await queryRunner.query(
-      `INSERT INTO activity (id, type, name, date, "userId", "cragId")
+      `INSERT INTO activity (id, type, name, date, user_id, crag_id)
       VALUES ('${mockData.activities.activityWithMixedRoutes.id}', '${ActivityType.CRAG}', 'Activity 5', '2001-01-05', '${mockData.users.basicUser1.id}', '${mockData.crags.publishedCrag.id}')`,
     );
 
     await queryRunner.query(
-      `INSERT INTO activity_route (id, "ascentType", publish, "activityId", "routeId", "userId")
+      `INSERT INTO activity_route (id, ascent_type, publish, activity_id, route_id, user_id)
       VALUES ('${mockData.activities.activityWithMixedRoutes.activityRoutes.publicActivityRoute.id}', '${AscentType.REPEAT}', 'public', '${mockData.activities.activityWithMixedRoutes.id}', '${mockData.crags.publishedCrag.sectors.publishedSector.routes.publishedRoute.id}', '${mockData.users.basicUser1.id}')`,
     );
     await queryRunner.query(
-      `INSERT INTO activity_route (id, "ascentType", publish, "activityId", "routeId", "userId")
+      `INSERT INTO activity_route (id, ascent_type, publish, activity_id, route_id, user_id)
       VALUES ('${mockData.activities.activityWithMixedRoutes.activityRoutes.logActivityRoute.id}', '${AscentType.REPEAT}', 'log', '${mockData.activities.activityWithMixedRoutes.id}', '${mockData.crags.publishedCrag.sectors.publishedSector.routes.publishedRoute.id}', '${mockData.users.basicUser1.id}')`,
     );
     await queryRunner.query(
-      `INSERT INTO activity_route (id, "ascentType", publish, "activityId", "routeId", "userId")
+      `INSERT INTO activity_route (id, ascent_type, publish, activity_id, route_id, user_id)
       VALUES ('${mockData.activities.activityWithMixedRoutes.activityRoutes.privateActivityRoute.id}', '${AscentType.REPEAT}', 'private', '${mockData.activities.activityWithMixedRoutes.id}', '${mockData.crags.publishedCrag.sectors.publishedSector.routes.publishedRoute.id}', '${mockData.users.basicUser1.id}')`,
     );
 
     // add activity in a draft crag
     await queryRunner.query(
-      `INSERT INTO activity (id, type, name, date, "userId", "cragId")
+      `INSERT INTO activity (id, type, name, date, user_id, crag_id)
       VALUES ('${mockData.activities.activityInDraftCrag.id}', '${ActivityType.CRAG}', 'Activity 6', '2001-01-06', '${mockData.users.basicUser1.id}', '${mockData.crags.draftCrag.id}')`,
     );
     await queryRunner.query(
-      `INSERT INTO activity_route (id, "ascentType", publish, "activityId", "routeId", "userId")
+      `INSERT INTO activity_route (id, ascent_type, publish, activity_id, route_id, user_id)
       VALUES ('${mockData.activities.activityInDraftCrag.activityRoutes.activityRoute1.id}', '${AscentType.REPEAT}', 'public', '${mockData.activities.activityInDraftCrag.id}', '${mockData.crags.draftCrag.sectors.draftSector.routes.draftRoute.id}', '${mockData.users.basicUser1.id}')`,
     );
 
     // add activity in an in_review crag
     await queryRunner.query(
-      `INSERT INTO activity (id, type, name, date, "userId", "cragId")
+      `INSERT INTO activity (id, type, name, date, user_id, crag_id)
       VALUES ('${mockData.activities.activityInInReviewCrag.id}', '${ActivityType.CRAG}', 'Activity 7', '2001-01-07', '${mockData.users.basicUser1.id}', '${mockData.crags.inReviewCrag.id}')`,
     );
     await queryRunner.query(
-      `INSERT INTO activity_route (id, "ascentType", publish, "activityId", "routeId", "userId")
+      `INSERT INTO activity_route (id, ascent_type, publish, activity_id, route_id, user_id)
       VALUES ('${mockData.activities.activityInInReviewCrag.activityRoutes.activityRoute1.id}', '${AscentType.REPEAT}', 'public', '${mockData.activities.activityInInReviewCrag.id}', '${mockData.crags.inReviewCrag.sectors.inReviewSector.routes.inReviewRoute.id}', '${mockData.users.basicUser1.id}')`,
     );
 
     // add activity in a published crag and draft sector
     await queryRunner.query(
-      `INSERT INTO activity (id, type, name, date, "userId", "cragId")
+      `INSERT INTO activity (id, type, name, date, user_id, crag_id)
       VALUES ('${mockData.activities.activityInPublishedCragDraftSector.id}', '${ActivityType.CRAG}', 'Activity 8', '2001-01-08', '${mockData.users.basicUser1.id}', '${mockData.crags.publishedCrag.id}')`,
     );
     await queryRunner.query(
-      `INSERT INTO activity_route (id, "ascentType", publish, "activityId", "routeId", "userId")
+      `INSERT INTO activity_route (id, ascent_type, publish, activity_id, route_id, user_id)
       VALUES ('${mockData.activities.activityInPublishedCragDraftSector.activityRoutes.activityRoute1.id}', '${AscentType.REPEAT}', 'public', '${mockData.activities.activityInPublishedCragDraftSector.id}', '${mockData.crags.publishedCrag.sectors.draftSector.routes.draftRoute.id}', '${mockData.users.basicUser1.id}')`,
     );
   });
