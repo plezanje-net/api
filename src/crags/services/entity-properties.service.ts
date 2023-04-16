@@ -51,7 +51,7 @@ export class EntityPropertiesService {
     condition: ObjectLiteral,
   ): Promise<(RouteProperty | CragProperty | IceFallProperty)[]> {
     const qb = repository.createQueryBuilder('property');
-    qb.innerJoin('property.property_type', 'pt');
+    qb.innerJoin('property.propertyType', 'pt');
     qb.where(condition);
     qb.orderBy('pt.position');
     return qb.getMany();

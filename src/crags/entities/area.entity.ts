@@ -47,19 +47,11 @@ export class Area extends BaseEntity {
   @Field()
   type: AreaType;
 
-  @OneToMany(
-    () => Area,
-    area => area.area,
-    { nullable: true },
-  )
+  @OneToMany(() => Area, (area) => area.area, { nullable: true })
   @Field(() => [Area])
   areas: Promise<Area[]>;
 
-  @ManyToOne(
-    () => Area,
-    area => area.areas,
-    { nullable: true },
-  )
+  @ManyToOne(() => Area, (area) => area.areas, { nullable: true })
   @Field(() => Area, {
     nullable: true,
   })
@@ -77,47 +69,28 @@ export class Area extends BaseEntity {
   @UpdateDateColumn()
   updated: Date;
 
-  @Column({ nullable: true })
+  @Column({ nullable: true, select: false })
   legacy: string;
 
-  @OneToMany(
-    () => Crag,
-    crag => crag.area,
-    { nullable: true },
-  )
+  @OneToMany(() => Crag, (crag) => crag.area, { nullable: true })
   @Field(() => [Crag])
   crags: Promise<Crag[]>;
 
-  @OneToMany(
-    () => Peak,
-    peak => peak.area,
-    { nullable: true },
-  )
+  @OneToMany(() => Peak, (peak) => peak.area, { nullable: true })
   @Field(() => [Peak])
   peaks: Promise<Peak[]>;
 
-  @OneToMany(
-    () => IceFall,
-    iceFall => iceFall.area,
-    { nullable: true },
-  )
+  @OneToMany(() => IceFall, (iceFall) => iceFall.area, { nullable: true })
   @Field(() => [IceFall])
   iceFalls: Promise<IceFall[]>;
 
-  @ManyToOne(
-    () => Country,
-    country => country.areas,
-  )
+  @ManyToOne(() => Country, (country) => country.areas)
   @Field(() => Country)
   country: Promise<Country>;
   @Column()
   countryId: string;
 
-  @OneToMany(
-    () => Image,
-    image => image.area,
-    { nullable: true },
-  )
+  @OneToMany(() => Image, (image) => image.area, { nullable: true })
   @Field(() => [Image])
   images: Promise<Image[]>;
 

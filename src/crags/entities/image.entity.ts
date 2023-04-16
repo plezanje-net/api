@@ -64,13 +64,15 @@ export class Image extends BaseEntity {
   @ManyToOne(() => User, (user) => user.images)
   @Field(() => User, { nullable: true })
   user: Promise<User>;
+  @Column({ name: 'user_id', nullable: true })
+  userId: string;
 
   // The actual author of the photo/image
   @Column({ nullable: true })
   @Field({ nullable: true })
   author: string;
 
-  @Column({ nullable: true })
+  @Column({ nullable: true, select: false })
   legacy: string;
 
   @ManyToOne(() => Area, (area) => area.images, { nullable: true })

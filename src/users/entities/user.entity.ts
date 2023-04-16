@@ -76,7 +76,7 @@ export class User extends BaseEntity {
   @UpdateDateColumn()
   updated: Date;
 
-  @Column({ nullable: true })
+  @Column({ nullable: true, select: false })
   legacy: string;
 
   @OneToMany((type) => ClubMember, (clubMember) => clubMember.user)

@@ -35,6 +35,7 @@ import {
   Loader,
 } from '../../core/interceptors/data-loader.interceptor';
 import { CragsService } from '../services/crags.service';
+import { UserLoader } from '../../users/loaders/user.loader';
 
 @Resolver(() => Sector)
 @UseInterceptors(DataLoaderInterceptor)
@@ -184,5 +185,14 @@ export class SectorsResolver {
   @ResolveField('bouldersOnly', () => Boolean)
   async bouldersOnly(@Parent() sector: Sector) {
     return this.sectorsService.bouldersOnly(sector.id);
+  }
+
+  @ResolveField('user', () => User, { nullable: true })
+  async getUser(
+    @Parent() sector: Sector,
+    @Loader(UserLoader)
+    loader: DataLoader<Sector['userId'], User>,
+  ): Promise<User> {
+    return loader.load(sector.userId);
   }
 }

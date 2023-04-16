@@ -79,7 +79,7 @@ export class Activity extends BaseEntity {
   @UpdateDateColumn()
   updated: Date;
 
-  @Column({ nullable: true })
+  @Column({ nullable: true, select: false })
   legacy: string;
 
   @OneToMany(() => ActivityRoute, (route) => route.activity, { nullable: true })

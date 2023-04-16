@@ -85,7 +85,7 @@ export class CommentsResolver {
 
   @AllowAny()
   @UseGuards(UserAuthGuard)
-  @Query(returns => [Comment], { name: 'exposedWarnings' })
+  @Query((returns) => [Comment], { name: 'exposedWarnings' })
   getExposedWarnings(@CurrentUser() user: User) {
     return this.commentsService.getExposedWarnings(user != null);
   }

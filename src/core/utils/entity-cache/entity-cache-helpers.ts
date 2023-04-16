@@ -5,8 +5,9 @@ function setBuilderCache(
   builder: SelectQueryBuilder<BaseEntity>,
   method = 'getMany',
 ): void {
+  return;
   const tables = builder.expressionMap.aliases
-    .map(alias => `:${alias.metadata.tableName}:`)
+    .map((alias) => `:${alias.metadata.tableName}:`)
     .join('');
 
   const hash = crypto

@@ -69,7 +69,7 @@ export class Comment extends BaseEntity {
   @UpdateDateColumn()
   updated: Date;
 
-  @Column({ nullable: true })
+  @Column({ nullable: true, select: false })
   legacy: string;
 
   @ManyToOne(() => Crag, (crag) => crag.comments, {

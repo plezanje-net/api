@@ -85,15 +85,11 @@ export class ActivityRoute extends BaseEntity {
   @UpdateDateColumn()
   updated: Date;
 
-  @Column({ nullable: true })
+  @Column({ nullable: true, select: false })
   legacy: string;
 
   // TODO: if we decided that every activity route belongs to an activity, this can become non nullable
-  @ManyToOne(
-    () => Activity,
-    activity => activity.routes,
-    { nullable: true },
-  )
+  @ManyToOne(() => Activity, (activity) => activity.routes, { nullable: true })
   @Field(() => Activity, { nullable: true })
   activity: Promise<Activity>;
   @Column({ nullable: true })
@@ -107,7 +103,7 @@ export class ActivityRoute extends BaseEntity {
   routeId: string;
 
   @ManyToOne(() => Pitch, { nullable: true })
-  @Field(type => Pitch, { nullable: true })
+  @Field((type) => Pitch, { nullable: true })
   pitch: Promise<Route>;
 
   @Column({
