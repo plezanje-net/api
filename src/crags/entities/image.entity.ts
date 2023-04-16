@@ -72,7 +72,7 @@ export class Image extends BaseEntity {
   @Field({ nullable: true })
   author: string;
 
-  @Column({ nullable: true })
+  @Column({ nullable: true, select: false })
   legacy: string;
 
   @ManyToOne(() => Area, (area) => area.images, { nullable: true })

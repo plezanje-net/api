@@ -102,7 +102,7 @@ export class Crag extends BaseEntity {
   @UpdateDateColumn()
   updated: Date;
 
-  @Column({ nullable: true })
+  @Column({ nullable: true, select: false })
   legacy: string;
 
   @ManyToOne(() => Area, (area) => area.crags, { nullable: true })

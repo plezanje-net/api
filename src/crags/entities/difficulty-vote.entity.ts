@@ -44,14 +44,12 @@ export class DifficultyVote extends BaseEntity {
   @Field()
   updated: Date;
 
-  @Column({ nullable: true })
+  @Column({ nullable: true, select: false })
   legacy: string;
 
-  @ManyToOne(
-    () => Route,
-    route => route.difficultyVotes,
-    { onDelete: 'CASCADE' },
-  )
+  @ManyToOne(() => Route, (route) => route.difficultyVotes, {
+    onDelete: 'CASCADE',
+  })
   @Field(() => Route)
   route: Promise<Route>;
   @Column()

@@ -47,7 +47,7 @@ export class Pitch extends BaseEntity {
   @UpdateDateColumn()
   updated: Date;
 
-  @Column({ nullable: true })
+  @Column({ nullable: true, select: false })
   legacy: string;
 
   @ManyToOne(() => User)

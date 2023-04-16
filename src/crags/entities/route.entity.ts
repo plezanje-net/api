@@ -114,7 +114,7 @@ export class Route extends BaseEntity {
   @UpdateDateColumn()
   updated: Date;
 
-  @Column({ nullable: true })
+  @Column({ nullable: true, select: false })
   legacy: string;
 
   @ManyToOne(() => Crag, (crag) => crag.routes, { onDelete: 'CASCADE' })

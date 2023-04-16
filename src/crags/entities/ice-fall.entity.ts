@@ -64,39 +64,24 @@ export class IceFall extends BaseEntity {
   @UpdateDateColumn()
   updated: Date;
 
-  @Column({ nullable: true })
+  @Column({ nullable: true, select: false })
   legacy: string;
 
-  @ManyToOne(
-    () => Country,
-    country => country.iceFalls,
-  )
+  @ManyToOne(() => Country, (country) => country.iceFalls)
   @Field(() => Country)
   country: Promise<Country>;
   @Column()
   countryId: string;
 
-  @ManyToOne(
-    () => Area,
-    area => area.iceFalls,
-    { nullable: true },
-  )
+  @ManyToOne(() => Area, (area) => area.iceFalls, { nullable: true })
   @Field(() => Area, { nullable: true })
   area: Promise<Area>;
 
-  @OneToMany(
-    () => Comment,
-    comment => comment.iceFall,
-    { nullable: true },
-  )
+  @OneToMany(() => Comment, (comment) => comment.iceFall, { nullable: true })
   @Field(() => [Comment])
   comments: Promise<Comment[]>;
 
-  @OneToMany(
-    () => Image,
-    image => image.iceFall,
-    { nullable: true },
-  )
+  @OneToMany(() => Image, (image) => image.iceFall, { nullable: true })
   @Field(() => [Image])
   images: Promise<Image[]>;
 
