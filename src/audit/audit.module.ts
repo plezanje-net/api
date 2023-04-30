@@ -22,6 +22,7 @@ import { GradingSystem } from '../crags/entities/grading-system.entity';
 import { DifficultyVote } from '../crags/entities/difficulty-vote.entity';
 import { Activity } from '../activities/entities/activity.entity';
 import { ActivityRoute } from '../activities/entities/activity-route.entity';
+import { BullModule } from '@nestjs/bull';
 
 @Module({
   imports: [
@@ -40,6 +41,9 @@ import { ActivityRoute } from '../activities/entities/activity-route.entity';
       DifficultyVote,
     ]),
     forwardRef(() => AuthModule),
+    BullModule.registerQueue({
+      name: 'process-crag',
+    }),
   ],
   providers: [
     UsersService,

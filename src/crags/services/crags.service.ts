@@ -20,6 +20,8 @@ import {
   updateUserContributionsFlag,
 } from '../../core/utils/contributable-helpers';
 import { setBuilderCache } from '../../core/utils/entity-cache/entity-cache-helpers';
+import { Queue } from 'bull';
+import { InjectQueue } from '@nestjs/bull';
 
 @Injectable()
 export class CragsService {
@@ -30,6 +32,7 @@ export class CragsService {
     protected cragsRepository: Repository<Crag>,
     @InjectRepository(Country)
     private countryRepository: Repository<Country>,
+    @InjectQueue('process-crag') private processCragQueue: Queue,
     private dataSource: DataSource,
   ) {}
 
@@ -95,6 +98,10 @@ export class CragsService {
       await crag.user,
       data.cascadePublishStatus ? previousPublishStatus : null,
     );
+
+    await this.processCragQueue.add({
+      cragId: crag.id,
+    });
 
     return Promise.resolve(crag);
   }

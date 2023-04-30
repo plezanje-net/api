@@ -290,27 +290,27 @@ export class RoutesResolver {
     return loader.load(route.routeTypeId);
   }
 
-  @ResolveField('nrTicks', (returns) => Number)
-  async nrTicks(
-    @Parent() route: Route,
-    @Loader(RouteNrTicksLoader) loader: DataLoader<string, number>,
-  ) {
-    return loader.load(route.id);
-  }
+  // @ResolveField('nrTicks', (returns) => Number)
+  // async nrTicks(
+  //   @Parent() route: Route,
+  //   @Loader(RouteNrTicksLoader) loader: DataLoader<string, number>,
+  // ) {
+  //   return loader.load(route.id);
+  // }
 
-  @ResolveField('nrTries', (returns) => Number)
-  async nrTries(
-    @Parent() route: Route,
-    @Loader(RouteNrTriesLoader) loader: DataLoader<string, number>,
-  ) {
-    return loader.load(route.id);
-  }
+  // @ResolveField('nrTries', (returns) => Number)
+  // async nrTries(
+  //   @Parent() route: Route,
+  //   @Loader(RouteNrTriesLoader) loader: DataLoader<string, number>,
+  // ) {
+  //   return loader.load(route.id);
+  // }
 
-  @ResolveField('nrClimbers', (returns) => Number)
-  async nrClimbers(
-    @Parent() route: Route,
-    @Loader(RouteNrClimbersLoader) loader: DataLoader<string, number>,
-  ) {
-    return loader.load(route.id);
-  }
+  // @ResolveField('nrClimbers', (returns) => Number)
+  // async nrClimbers(
+  //   @Parent() route: Route,
+  //   @Loader(RouteNrClimbersLoader) loader: DataLoader<string, number>,
+  // ) {
+  //   return loader.load(route.id);
+  // }
 }

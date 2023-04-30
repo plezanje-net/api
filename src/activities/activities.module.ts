@@ -22,6 +22,7 @@ import { RoutesService } from '../crags/services/routes.service';
 import { CragsService } from '../crags/services/crags.service';
 import { Sector } from '../crags/entities/sector.entity';
 import { Country } from '../crags/entities/country.entity';
+import { BullModule } from '@nestjs/bull';
 
 @Module({
   imports: [
@@ -40,6 +41,9 @@ import { Country } from '../crags/entities/country.entity';
     ]),
     AuditModule,
     UsersModule,
+    BullModule.registerQueue({
+      name: 'process-crag',
+    }),
   ],
   providers: [
     ActivitiesResolver,

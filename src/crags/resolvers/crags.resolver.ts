@@ -207,10 +207,10 @@ export class CragsResolver {
     return loader.load(crag.countryId);
   }
 
-  @ResolveField('activityByMonth', () => [Int])
-  async getActivityByMonth(@Parent() crag: Crag): Promise<number[]> {
-    return this.cragsService.getAcitivityByMonth(crag);
-  }
+  // @ResolveField('activityByMonth', () => [Int])
+  // async getActivityByMonth(@Parent() crag: Crag): Promise<number[]> {
+  //   return this.cragsService.getAcitivityByMonth(crag);
+  // }
 
   @Query(() => [PopularCrag])
   @AllowAny()

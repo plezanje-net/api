@@ -42,6 +42,7 @@ import { RouteProperty } from './crags/entities/route-property.entity';
 import { PropertyType } from './crags/entities/property-type.entity';
 import EntityCacheSubscriber from './core/utils/entity-cache/entity-cache.subscriber';
 import { SnakeNamingStrategy } from 'typeorm-naming-strategies';
+import { BullModule } from '@nestjs/bull';
 
 @Module({
   imports: [
@@ -98,9 +99,9 @@ import { SnakeNamingStrategy } from 'typeorm-naming-strategies';
           IceFallProperty,
           PropertyType,
         ],
-        subscribers: [EntityCacheSubscriber],
+        // subscribers: [EntityCacheSubscriber],
         // logging: ['query', 'error'],
-        // maxQueryExecutionTime: 60,
+        // maxQueryExecutionTime: 80,
       }),
       inject: [ConfigService],
     }),
@@ -120,6 +121,19 @@ import { SnakeNamingStrategy } from 'typeorm-naming-strategies';
     AuditModule,
     NotificationModule,
     ActivitiesModule,
+    BullModule.forRootAsync({
+      imports: [ConfigModule],
+      useFactory: async (configService: ConfigService) => ({
+        redis: {
+          host: configService.get('REDIS_HOST'),
+          port: configService.get('REDIS_PORT'),
+        },
+      }),
+      inject: [ConfigService],
+    }),
+    BullModule.registerQueue({
+      name: 'process-crag',
+    }),
   ],
   providers: [],
 })

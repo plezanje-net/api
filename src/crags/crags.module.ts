@@ -66,6 +66,8 @@ import { SectorRoutesLoader } from './loaders/sector-routes.loader';
 import { UploadController } from './controllers/upload/upload.controller';
 import { Activity } from '../activities/entities/activity.entity';
 import { ActivityRoute } from '../activities/entities/activity-route.entity';
+import { BullModule } from '@nestjs/bull';
+import { ProcessCragConsumer } from './consumers/process-crag-consumer';
 
 @Module({
   imports: [
@@ -93,6 +95,9 @@ import { ActivityRoute } from '../activities/entities/activity-route.entity';
       StarRatingVote,
     ]),
     AuditModule,
+    BullModule.registerQueue({
+      name: 'process-crag',
+    }),
   ],
   providers: [
     CragsResolver,
@@ -135,6 +140,7 @@ import { ActivityRoute } from '../activities/entities/activity-route.entity';
     EntityPropertiesService,
     NotificationService,
     MailService,
+    ProcessCragConsumer,
     ConfigService,
   ],
   controllers: [UploadController],
