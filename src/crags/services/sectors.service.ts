@@ -39,14 +39,14 @@ export class SectorsService {
   ) {}
 
   async find(input: FindSectorsServiceInput): Promise<Sector[]> {
-    return this.buildQuery(input).getMany();
+    return (await this.buildQuery(input)).getMany();
   }
   async findOne(input: FindSectorsServiceInput): Promise<Sector> {
-    return this.buildQuery(input).getOneOrFail();
+    return (await this.buildQuery(input)).getOneOrFail();
   }
 
   async findOneById(id: string): Promise<Sector> {
-    return this.buildQuery({ id: id }).getOneOrFail();
+    return (await this.buildQuery({ id: id })).getOneOrFail();
   }
 
   async create(data: CreateSectorInput, user: User): Promise<Sector> {
@@ -165,9 +165,9 @@ export class SectorsService {
     }
   }
 
-  private buildQuery(
+  private async buildQuery(
     params: FindSectorsServiceInput = {},
-  ): SelectQueryBuilder<Sector> {
+  ): Promise<SelectQueryBuilder<Sector>> {
     const builder = this.sectorsRepository.createQueryBuilder('s');
 
     builder.orderBy('s.position', 'ASC');
@@ -184,7 +184,7 @@ export class SectorsService {
       });
     }
 
-    setPublishStatusParams(builder, 's', params);
+    await setPublishStatusParams(builder, 's', params);
 
     setBuilderCache(builder);
 
