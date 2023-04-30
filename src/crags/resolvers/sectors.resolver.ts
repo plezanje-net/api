@@ -193,6 +193,6 @@ export class SectorsResolver {
     @Loader(UserLoader)
     loader: DataLoader<Sector['userId'], User>,
   ): Promise<User> {
-    return loader.load(sector.userId);
+    return sector.userId ? loader.load(sector.userId) : null;
   }
 }
