@@ -40,11 +40,11 @@ export class RoutesService {
   ) {}
 
   async find(input: FindRoutesServiceInput): Promise<Route[]> {
-    return this.buildQuery(input).getMany();
+    return (await this.buildQuery(input)).getMany();
   }
 
   async findOne(input: FindRoutesServiceInput): Promise<Route> {
-    return this.buildQuery(input).getOneOrFail();
+    return (await this.buildQuery(input)).getOneOrFail();
   }
 
   async findByIds(ids: string[]): Promise<Route[]> {
@@ -350,9 +350,9 @@ export class RoutesService {
       : false;
   }
 
-  private buildQuery(
+  private async buildQuery(
     params: FindRoutesServiceInput = {},
-  ): SelectQueryBuilder<Route> {
+  ): Promise<SelectQueryBuilder<Route>> {
     const builder = this.routesRepository.createQueryBuilder('s');
 
     builder.orderBy('s.position', 'ASC');
@@ -375,7 +375,7 @@ export class RoutesService {
       });
     }
 
-    setPublishStatusParams(builder, 's', params);
+    await setPublishStatusParams(builder, 's', params);
 
     setBuilderCache(builder);
 
