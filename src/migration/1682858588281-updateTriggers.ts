@@ -5,7 +5,7 @@ export class updateTriggers1682858588281 implements MigrationInterface {
 
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`
-        create function min_max_route_difficulty_of_crag() returns trigger
+        create or replace function min_max_route_difficulty_of_crag() returns trigger
         language plpgsql
     as
     $$
@@ -28,7 +28,7 @@ export class updateTriggers1682858588281 implements MigrationInterface {
                 END
                 $$;
 
-                create function recount_routes_of_crag() returns trigger
+                create or replace function recount_routes_of_crag() returns trigger
     language plpgsql
 as
 $$
@@ -49,7 +49,7 @@ $$
         END
         $$;
 
-        create function min_max_route_difficulty_of_crag() returns trigger
+        create or replace function min_max_route_difficulty_of_crag() returns trigger
     language plpgsql
 as
 $$
@@ -72,7 +72,7 @@ $$
             END
             $$;
 
-            create function delete_difficulty_vote() returns trigger
+            create or replace function delete_difficulty_vote() returns trigger
     language plpgsql
 as
 $$
@@ -99,7 +99,7 @@ $$
           END
           $$;
 
-          create function convert_first_repeat_to_redpoint() returns trigger
+          create or replace function convert_first_repeat_to_redpoint() returns trigger
     language plpgsql
 as
 $$
