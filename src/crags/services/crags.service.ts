@@ -67,6 +67,19 @@ export class CragsService {
     return crags;
   }
 
+  async processAllCrags() {
+    (
+      await this.cragsRepository.find({
+        select: ['id'],
+      })
+    ).forEach(({ id }) => {
+      this.processCragQueue.add(
+        { cragId: id },
+        { removeOnComplete: true, removeOnFail: true },
+      );
+    });
+  }
+
   async create(data: CreateCragInput, user: User): Promise<Crag> {
     const crag = new Crag();
 
@@ -99,9 +112,12 @@ export class CragsService {
       data.cascadePublishStatus ? previousPublishStatus : null,
     );
 
-    await this.processCragQueue.add({
-      cragId: crag.id,
-    });
+    await this.processCragQueue.add(
+      {
+        cragId: crag.id,
+      },
+      { removeOnComplete: true, removeOnFail: true },
+    );
 
     return Promise.resolve(crag);
   }
@@ -298,7 +314,7 @@ export class CragsService {
     return popularCrags;
   }
 
-  async getAcitivityByMonth(crag: Crag): Promise<number[]> {
+  async getActivityByMonth(crag: Crag): Promise<number[]> {
     const builder = this.routesRepository
       .createQueryBuilder('r')
       .select([

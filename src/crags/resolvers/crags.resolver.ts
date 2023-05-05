@@ -212,6 +212,13 @@ export class CragsResolver {
   //   return this.cragsService.getAcitivityByMonth(crag);
   // }
 
+  @Mutation(() => Boolean)
+  @AllowAny()
+  async processAllCrags() {
+    await this.cragsService.processAllCrags();
+    return true;
+  }
+
   @Query(() => [PopularCrag])
   @AllowAny()
   @UseGuards(UserAuthGuard)
