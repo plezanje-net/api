@@ -43,11 +43,11 @@ describe('SectorMigration', () => {
     };
 
     await queryRunner.query(
-      `INSERT INTO activity (id, "cragId", type, name, date, "userId")
+      `INSERT INTO activity (id, crag_id, type, name, date, user_id)
       VALUES ('${mockData.activities.activityAcrossSectors.id}', '${mockData.crags.cragWithMultipleSectors.id}', '${ActivityType.CRAG}', 'Activity to be split', '2001-01-01', '${mockData.users.basicUser1.id}')`,
     );
     await queryRunner.query(
-      `INSERT INTO activity_route ("ascentType", publish, "activityId", "routeId", "userId")
+      `INSERT INTO activity_route (ascent_type, publish, activity_id, route_id, user_id)
       VALUES 
         ('${AscentType.ALLFREE}', 'log', '${mockData.activities.activityAcrossSectors.id}', '${mockData.crags.cragWithMultipleSectors.sectors.firstSector.routes.firstRoute.id}', '${mockData.users.basicUser1.id}'),
         ('${AscentType.ALLFREE}', 'log', '${mockData.activities.activityAcrossSectors.id}', '${mockData.crags.cragWithMultipleSectors.sectors.firstSector.routes.secondRoute.id}', '${mockData.users.basicUser1.id}'),
@@ -72,14 +72,14 @@ describe('SectorMigration', () => {
 
     expect(response.body.errors).toBeUndefined();
     const sectors = await queryRunner.query(
-      `SELECT * FROM sector WHERE "cragId" = '${mockData.crags.cragWithMultipleSectors.id}'`,
+      `SELECT * FROM sector WHERE crag_id = '${mockData.crags.cragWithMultipleSectors.id}'`,
     );
     expect(sectors.length).toBe(1);
   });
 
   it('should create activity and link activity routes linked to the new crag', async () => {
     const activityRoutes = await queryRunner.query(
-      `SELECT * FROM activity_route WHERE "activityId" = '${mockData.activities.activityAcrossSectors.id}'`,
+      `SELECT * FROM activity_route WHERE activity_id = '${mockData.activities.activityAcrossSectors.id}'`,
     );
     expect(activityRoutes.length).toBe(2);
   });
@@ -107,7 +107,7 @@ describe('SectorMigration', () => {
     expect(response.body.errors).toBeUndefined();
 
     const activityRoutes = await queryRunner.query(
-      `SELECT * FROM activity_route WHERE "activityId" = '${mockData.activities.activityAcrossSectors.id}'`,
+      `SELECT * FROM activity_route WHERE activity_id = '${mockData.activities.activityAcrossSectors.id}'`,
     );
     expect(activityRoutes.length).toBe(0);
 
@@ -119,7 +119,7 @@ describe('SectorMigration', () => {
 
   it('should update route slug if collision detected in the new crag', async () => {
     const duplicateSlugsInCrag = await queryRunner.query(
-      `SELECT slug FROM route WHERE "cragId" = '${mockData.crags.publishedCrag.id}' GROUP BY slug HAVING COUNT(id) > 1`,
+      `SELECT slug FROM route WHERE crag_id = '${mockData.crags.publishedCrag.id}' GROUP BY slug HAVING COUNT(id) > 1`,
     );
     expect(duplicateSlugsInCrag.length).toBe(0);
   });

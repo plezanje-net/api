@@ -80,12 +80,12 @@ export class CommentsResolver {
     @Loader(UserLoader)
     loader: DataLoader<Comment['userId'], User>,
   ): Promise<User> {
-    return loader.load(comment.userId);
+    return comment.userId ? loader.load(comment.userId) : null;
   }
 
   @AllowAny()
   @UseGuards(UserAuthGuard)
-  @Query(returns => [Comment], { name: 'exposedWarnings' })
+  @Query((returns) => [Comment], { name: 'exposedWarnings' })
   getExposedWarnings(@CurrentUser() user: User) {
     return this.commentsService.getExposedWarnings(user != null);
   }

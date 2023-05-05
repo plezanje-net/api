@@ -65,6 +65,8 @@ export class ContributionsResolver {
 
   @ResolveField('user', () => User, { nullable: true })
   async getUser(@Parent() contribution: Contribution): Promise<User> {
-    return this.usersService.findOneById(contribution.userId);
+    return contribution.userId
+      ? this.usersService.findOneById(contribution.userId)
+      : null;
   }
 }

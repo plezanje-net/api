@@ -21,7 +21,7 @@ export class ClubsService {
       return this.clubsRepository
         .createQueryBuilder('club')
         .leftJoinAndSelect('club.members', 'member')
-        .where('"member"."userId" = :userId', { userId })
+        .where('"member".user_id = :userId', { userId })
         .andWhere('member.status = :status', {
           status: ClubMemberStatus.ACTIVE,
         })

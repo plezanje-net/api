@@ -22,11 +22,7 @@ export class RouteEvent extends BaseEntity {
   @Field()
   author: string;
 
-  @ManyToOne(
-    () => Route,
-    route => route.routeEvents,
-    { onDelete: 'CASCADE' },
-  )
+  @ManyToOne(() => Route, (route) => route.routeEvents, { onDelete: 'CASCADE' })
   route: Promise<Route>;
 
   // this can be converted to enum when we start actually using this entity
@@ -51,6 +47,6 @@ export class RouteEvent extends BaseEntity {
   @UpdateDateColumn()
   updated: Date;
 
-  @Column({ nullable: true })
+  @Column({ nullable: true, select: false })
   legacy: string;
 }

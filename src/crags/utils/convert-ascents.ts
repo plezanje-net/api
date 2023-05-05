@@ -29,9 +29,9 @@ async function convertFirstTickAfterToRepeat(
 ) {
   const futureTick = await queryRunner.manager
     .createQueryBuilder(ActivityRoute, 'ar')
-    .where('ar."routeId" = :routeId', { routeId: routeId })
-    .andWhere('ar."userId" = :userId', { userId: userId })
-    .andWhere('ar."ascentType" IN (:...aTypes)', {
+    .where('ar.route_id = :routeId', { routeId: routeId })
+    .andWhere('ar.user_id = :userId', { userId: userId })
+    .andWhere('ar.ascent_type IN (:...aTypes)', {
       aTypes: [...firstTickAscentTypes],
     })
     .andWhere('ar.date > :arDate', { arDate: date })
@@ -67,9 +67,9 @@ async function convertFirstTrTickAfterToTrRepeat(
 ) {
   const futureTrTick = await queryRunner.manager
     .createQueryBuilder(ActivityRoute, 'ar')
-    .where('ar."routeId" = :routeId', { routeId: routeId })
-    .andWhere('ar."userId" = :userId', { userId: userId })
-    .andWhere('ar."ascentType" IN (:...aTypes)', {
+    .where('ar.route_id = :routeId', { routeId: routeId })
+    .andWhere('ar.user_id = :userId', { userId: userId })
+    .andWhere('ar.ascent_type IN (:...aTypes)', {
       aTypes: [...firstTrTickAscentTypes],
     })
     .andWhere('ar.date > :arDate', { arDate: date })
@@ -107,9 +107,9 @@ async function convertFirstSightOrFlashAfterToRedpoint(
 ) {
   const futureSightOrFlash = await queryRunner.manager
     .createQueryBuilder(ActivityRoute, 'ar')
-    .where('ar."routeId" = :routeId', { routeId: routeId })
-    .andWhere('ar."userId" = :userId', { userId: userId })
-    .andWhere('ar."ascentType" IN (:...aTypes)', {
+    .where('ar.route_id = :routeId', { routeId: routeId })
+    .andWhere('ar.user_id = :userId', { userId: userId })
+    .andWhere('ar.ascent_type IN (:...aTypes)', {
       aTypes: [AscentType.ONSIGHT, AscentType.FLASH],
     })
     .andWhere('ar.date > :arDate', { arDate: date })
@@ -147,9 +147,9 @@ async function convertFirstTrSightOrFlashAfterToTrRedpoint(
 ) {
   const futureTrSightOrFlash = await queryRunner.manager
     .createQueryBuilder(ActivityRoute, 'ar')
-    .where('ar."routeId" = :routeId', { routeId: routeId })
-    .andWhere('ar."userId" = :userId', { userId: userId })
-    .andWhere('ar."ascentType" IN (:...aTypes)', {
+    .where('ar.route_id = :routeId', { routeId: routeId })
+    .andWhere('ar.user_id = :userId', { userId: userId })
+    .andWhere('ar.ascent_type IN (:...aTypes)', {
       aTypes: [AscentType.T_ONSIGHT, AscentType.T_FLASH],
     })
     .andWhere('ar.date > :arDate', { arDate: date })

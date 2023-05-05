@@ -114,7 +114,7 @@ export class Route extends BaseEntity {
   @UpdateDateColumn()
   updated: Date;
 
-  @Column({ nullable: true })
+  @Column({ nullable: true, select: false })
   legacy: string;
 
   @ManyToOne(() => Crag, (crag) => crag.routes, { onDelete: 'CASCADE' })
@@ -166,7 +166,7 @@ export class Route extends BaseEntity {
   @ManyToOne(() => User)
   @Field(() => User, { nullable: true })
   user: Promise<User>;
-  @Column({ name: 'userId', nullable: true })
+  @Column({ name: 'user_id', nullable: true })
   userId: string;
 
   @OneToMany(() => ActivityRoute, (activityRoute) => activityRoute.route)

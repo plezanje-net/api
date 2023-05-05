@@ -52,12 +52,9 @@ export class DifficultyVotesService {
   ): Promise<PaginatedDifficultyVotes> {
     const query = await this.buildQuery(params);
     query.orderBy('v.created', 'DESC');
-    query.andWhere('v.userId IS NOT NULL');
+    query.andWhere('v.user_id IS NOT NULL');
 
-    const countQuery = query
-      .clone()
-      .select('COUNT(*)', 'count')
-      .orderBy(null);
+    const countQuery = query.clone().select('COUNT(*)', 'count').orderBy(null);
     setBuilderCache(countQuery, 'getRawOne');
     const itemCount = await countQuery.getRawOne();
 
@@ -83,10 +80,8 @@ export class DifficultyVotesService {
   ): Promise<SelectQueryBuilder<DifficultyVote>> {
     const builder = this.difficultyVoteRepository.createQueryBuilder('v');
 
-    const {
-      conditions: routePublishConditions,
-      params: routePublishParams,
-    } = await getPublishStatusParams('route', params.user);
+    const { conditions: routePublishConditions, params: routePublishParams } =
+      await getPublishStatusParams('route', params.user);
 
     builder.innerJoin(
       'route',
@@ -95,10 +90,8 @@ export class DifficultyVotesService {
       routePublishParams,
     );
 
-    const {
-      conditions: cragPublishConditions,
-      params: cragPublishParams,
-    } = await getPublishStatusParams('crag', params.user);
+    const { conditions: cragPublishConditions, params: cragPublishParams } =
+      await getPublishStatusParams('crag', params.user);
 
     builder.innerJoin(
       'crag',
@@ -108,23 +101,23 @@ export class DifficultyVotesService {
     );
 
     if (params.user == null) {
-      builder.andWhere('crag.isHidden = false');
+      builder.andWhere('crag.is_hidden = false');
     }
 
     if (params.cragId != null) {
-      builder.andWhere('route."cragId" = :cragId', {
+      builder.andWhere('route.crag_id = :cragId', {
         cragId: params.cragId,
       });
     }
 
     if (params.forUserId != null) {
-      builder.andWhere('v."userId" = :userId', {
+      builder.andWhere('v.user_id = :userId', {
         userId: params.forUserId,
       });
     }
 
     if (params.routeId != null) {
-      builder.andWhere('v."routeId" = :routeId', { routeId: params.routeId });
+      builder.andWhere('v.route_id = :routeId', { routeId: params.routeId });
     }
 
     return builder;

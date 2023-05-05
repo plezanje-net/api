@@ -108,7 +108,7 @@ describe('Upload', () => {
     const [image] = await queryRunner.query(
       `SELECT * FROM image WHERE id = '${imageId}'`,
     );
-    expect(image.cragId).toEqual(mockData.crags.publishedCrag.id);
+    expect(image.crag_id).toEqual(mockData.crags.publishedCrag.id);
     expect(image.path).toEqual(`crags/${mockData.crags.publishedCrag.slug}`);
     expect(image.author).toEqual(`Slavko Majonezic`);
   });
@@ -148,7 +148,7 @@ describe('Upload', () => {
     const [image] = await queryRunner.query(
       `SELECT * FROM image WHERE id = '${imageId}'`,
     );
-    expect(image.routeId).toEqual(
+    expect(image.route_id).toEqual(
       mockData.crags.publishedCrag.sectors.publishedSector.routes.publishedRoute
         .id,
     );

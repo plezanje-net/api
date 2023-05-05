@@ -26,13 +26,9 @@ export class Role extends BaseEntity {
   @UpdateDateColumn()
   updated: Date;
 
-  @Column({ nullable: true })
+  @Column({ nullable: true, select: false })
   legacy: string;
 
-  @ManyToOne(
-    () => User,
-    user => user.roles,
-    { nullable: false },
-  )
+  @ManyToOne(() => User, (user) => user.roles, { nullable: false })
   user: User;
 }
