@@ -224,7 +224,7 @@ export class CragsService {
       builder.andWhere('c.is_hidden = false');
     }
 
-    setPublishStatusParams(builder, 'c', params);
+    await setPublishStatusParams(builder, 'c', params);
 
     const { conditions, params: joinParams } = await getPublishStatusParams(
       'route',
@@ -252,7 +252,7 @@ export class CragsService {
       .select('COUNT(DISTINCT(route.id))', 'count')
       .where('route.crag_id = :cragId', { cragId: crag.id });
 
-    setPublishStatusParams(builder, 'route', { user });
+    await setPublishStatusParams(builder, 'route', { user });
 
     setBuilderCache(builder, 'getRawOne');
     const itemCount = await builder.getRawOne();

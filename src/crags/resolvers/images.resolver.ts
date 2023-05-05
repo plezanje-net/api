@@ -41,6 +41,6 @@ export class ImagesResolver {
     @Loader(UserLoader)
     loader: DataLoader<Image['userId'], User>,
   ): Promise<User> {
-    return loader.load(image.userId);
+    return image.userId ? loader.load(image.userId) : null;
   }
 }

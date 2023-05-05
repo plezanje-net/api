@@ -128,7 +128,7 @@ async function getUserContributions(
           'created',
           `'${alias}' as entity`,
           'user_id',
-          'publish_status::text',
+          'publish_status::text as "publishStatus"',
         ])
         .where(
           user.isAdmin()

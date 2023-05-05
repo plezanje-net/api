@@ -80,7 +80,7 @@ export class CommentsResolver {
     @Loader(UserLoader)
     loader: DataLoader<Comment['userId'], User>,
   ): Promise<User> {
-    return loader.load(comment.userId);
+    return comment.userId ? loader.load(comment.userId) : null;
   }
 
   @AllowAny()
