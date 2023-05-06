@@ -2,6 +2,10 @@ import { Process, Processor } from '@nestjs/bull';
 import { Job } from 'bull';
 import { CragsService } from '../services/crags.service';
 import { RoutesService } from '../services/routes.service';
+import { Crag } from '../entities/crag.entity';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Route } from '../entities/route.entity';
+import { Repository } from 'typeorm';
 
 interface SummaryQueueData {
   cragId?: string;
@@ -13,6 +17,10 @@ export class SummaryQueueConsumer {
   constructor(
     private cragsService: CragsService,
     private routesService: RoutesService,
+    @InjectRepository(Crag)
+    protected cragRepository: Repository<Crag>,
+    @InjectRepository(Route)
+    protected routesRepository: Repository<Route>,
   ) {}
 
   @Process()
@@ -29,18 +37,18 @@ export class SummaryQueueConsumer {
   async processCrag(cragId: string) {
     const crag = await this.cragsService.findOneById(cragId);
 
-    crag.activityByMonth = await this.cragsService.getActivityByMonth(crag);
-
-    await crag.save();
+    await this.cragRepository.update(crag.id, {
+      activityByMonth: await this.cragsService.getActivityByMonth(crag),
+    });
   }
 
   async processRoute(routeId: string) {
     const route = await this.routesService.findOneById(routeId);
 
-    route.nrClimbers = await this.routesService.countDisctinctClimbers(route);
-    route.nrTicks = await this.routesService.countTicks(route);
-    route.nrTries = await this.routesService.countTries(route);
-
-    await route.save();
+    await this.routesRepository.update(route.id, {
+      nrClimbers: await this.routesService.countDisctinctClimbers(route),
+      nrTicks: await this.routesService.countTicks(route),
+      nrTries: await this.routesService.countTries(route),
+    });
   }
 }
