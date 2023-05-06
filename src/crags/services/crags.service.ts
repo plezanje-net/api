@@ -32,7 +32,7 @@ export class CragsService {
     protected cragsRepository: Repository<Crag>,
     @InjectRepository(Country)
     private countryRepository: Repository<Country>,
-    @InjectQueue('process-crag') private processCragQueue: Queue,
+    @InjectQueue('summary') private summaryQueue: Queue,
     private dataSource: DataSource,
   ) {}
 
@@ -72,11 +72,12 @@ export class CragsService {
       await this.cragsRepository.find({
         select: ['id'],
       })
-    ).forEach(({ id }) => {
-      this.processCragQueue.add(
-        { cragId: id },
-        { removeOnComplete: true, removeOnFail: true },
-      );
+    ).forEach(async ({ id, routes }) => {
+      this.summaryQueue.add({ cragId: id }, { removeOnComplete: true });
+
+      (await routes).forEach(({ id }) => {
+        this.summaryQueue.add({ routeId: id }, { removeOnComplete: true });
+      });
     });
   }
 
@@ -112,7 +113,7 @@ export class CragsService {
       data.cascadePublishStatus ? previousPublishStatus : null,
     );
 
-    await this.processCragQueue.add(
+    await this.summaryQueue.add(
       {
         cragId: crag.id,
       },

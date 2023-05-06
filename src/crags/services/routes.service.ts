@@ -36,6 +36,8 @@ export class RoutesService {
     protected routesRepository: Repository<Route>,
     @InjectRepository(Sector)
     protected sectorsRepository: Repository<Sector>,
+    @InjectRepository(ActivityRoute)
+    protected activityRoutesRepository: Repository<ActivityRoute>,
     private dataSource: DataSource,
   ) {}
 
@@ -77,48 +79,29 @@ export class RoutesService {
     return builder.getOneOrFail();
   }
 
-  countManyTicks(keys: readonly string[]) {
-    const builder = this.routesRepository
-      .createQueryBuilder('r')
-      .leftJoin('r.activityRoutes', 'ar', 'ar.ascentType in (:...aTypes)', {
-        aTypes: [...tickAscentTypes],
-      })
-      .select('r.id')
-      .addSelect('COUNT(ar.id)', 'nrTicks')
-      .where('r.id IN (:...rIds)', { rIds: keys })
-      .groupBy('r.id');
-
-    setBuilderCache(builder);
-
-    return builder.getRawMany();
+  countTicks(route: Route): Promise<number> {
+    return this.activityRoutesRepository.count({
+      where: {
+        routeId: route.id,
+        ascentType: In([...tickAscentTypes]),
+      },
+    });
   }
 
-  countManyTries(keys: readonly string[]) {
-    const builder = this.routesRepository
-      .createQueryBuilder('r')
-      .leftJoin('r.activityRoutes', 'ar')
-      .select('r.id')
-      .addSelect('COUNT(ar.id)', 'nrTries')
-      .where('r.id IN (:...rIds)', { rIds: keys })
-      .groupBy('r.id');
-
-    setBuilderCache(builder);
-
-    return builder.getRawMany();
+  countTries(route: Route): Promise<number> {
+    return this.activityRoutesRepository.count({
+      where: { routeId: route.id },
+    });
   }
 
-  countManyDisctinctClimbers(keys: readonly string[]) {
-    const builder = this.routesRepository
-      .createQueryBuilder('r')
-      .leftJoin('r.activityRoutes', 'ar')
-      .select('r.id')
-      .addSelect('COUNT(DISTINCT(ar.user_id)) as "nrClimbers"')
-      .where('r.id IN (:...rIds)', { rIds: keys })
-      .groupBy('r.id');
+  async countDisctinctClimbers(route: Route): Promise<number> {
+    const result = this.activityRoutesRepository
+      .createQueryBuilder('ar')
+      .select('COUNT(DISTINCT(ar.user_id)) as "nrClimbers"')
+      .where('ar.route_id = :routeId', { routeId: route.id })
+      .getRawOne();
 
-    setBuilderCache(builder);
-
-    return builder.getRawMany();
+    return parseInt((await result).nrClimbers);
   }
 
   async create(data: CreateRouteInput, user: User): Promise<Route> {

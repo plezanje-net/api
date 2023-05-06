@@ -42,7 +42,7 @@ import { BullModule } from '@nestjs/bull';
     ]),
     forwardRef(() => AuthModule),
     BullModule.registerQueue({
-      name: 'process-crag',
+      name: 'summary',
     }),
   ],
   providers: [

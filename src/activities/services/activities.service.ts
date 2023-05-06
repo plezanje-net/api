@@ -15,6 +15,8 @@ import { ActivityRoute } from '../entities/activity-route.entity';
 import { Route } from '../../crags/entities/route.entity';
 import { setBuilderCache } from '../../core/utils/entity-cache/entity-cache-helpers';
 import { getPublishStatusParams } from '../../core/utils/contributable-helpers';
+import { InjectQueue } from '@nestjs/bull';
+import { Queue } from 'bull';
 
 @Injectable()
 export class ActivitiesService {
@@ -25,6 +27,7 @@ export class ActivitiesService {
     private cragRepository: Repository<Crag>,
     private dataSource: DataSource,
     private activityRoutesService: ActivityRoutesService,
+    @InjectQueue('summary') private summaryQueue: Queue,
   ) {}
 
   async createActivityWRoutes(
@@ -79,6 +82,19 @@ export class ActivitiesService {
         return Promise.resolve(null);
       } else {
         await queryRunner.commitTransaction();
+
+        routesIn
+          .map((r) => r.routeId)
+          .filter((v, i, a) => a.indexOf(v) === i)
+          .forEach((routeId) => {
+            this.summaryQueue.add({ routeId }, { removeOnComplete: true });
+          });
+
+        this.summaryQueue.add(
+          { cragId: activity.cragId },
+          { removeOnComplete: true },
+        );
+
         return activity;
       }
     } catch (exception) {
@@ -137,6 +153,17 @@ export class ActivitiesService {
         return Promise.resolve(null);
       } else {
         await queryRunner.commitTransaction();
+
+        routesIn
+          .map((r) => r.routeId)
+          .filter((v, i, a) => a.indexOf(v) === i)
+          .forEach((routeId) => {
+            this.summaryQueue.add({ routeId }, { removeOnComplete: true });
+          });
+        this.summaryQueue.add(
+          { cragId: activity.cragId },
+          { removeOnComplete: true },
+        );
         return activity;
       }
     } catch (exception) {
@@ -328,14 +355,26 @@ export class ActivitiesService {
     await queryRunner.connect();
     await queryRunner.startTransaction();
 
+    const routeIds = [];
+
     try {
       const activityRoutes = await activity.routes;
       for (const activityRoute of activityRoutes) {
+        routeIds.push(activityRoute.routeId);
         await this.activityRoutesService.delete(activityRoute, queryRunner);
       }
 
       await queryRunner.manager.remove(Activity, activity);
       await queryRunner.commitTransaction();
+
+      routeIds.forEach((routeId) => {
+        this.summaryQueue.add({ routeId }, { removeOnComplete: true });
+      });
+      this.summaryQueue.add(
+        { cragId: activity.cragId },
+        { removeOnComplete: true },
+      );
+
       return true;
     } catch (exception) {
       await queryRunner.rollbackTransaction();

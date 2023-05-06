@@ -53,9 +53,6 @@ import { RouteProperty } from './entities/route-property.entity';
 import { CragProperty } from './entities/crag-property.entity';
 import { IceFallProperty } from './entities/ice-fall-property.entity';
 import { EntityPropertiesService } from './services/entity-properties.service';
-import { RouteNrTicksLoader } from './loaders/route-nr-ticks.loader';
-import { RouteNrTriesLoader } from './loaders/route-nr-tries.loader';
-import { RouteNrClimbersLoader } from './loaders/route-nr-climbers.loader';
 import { NotificationService } from '../notification/services/notification.service';
 import { MailService } from '../notification/services/mail.service';
 import { ConfigService } from '@nestjs/config';
@@ -67,7 +64,7 @@ import { UploadController } from './controllers/upload/upload.controller';
 import { Activity } from '../activities/entities/activity.entity';
 import { ActivityRoute } from '../activities/entities/activity-route.entity';
 import { BullModule } from '@nestjs/bull';
-import { ProcessCragConsumer } from './consumers/process-crag-consumer';
+import { SummaryQueueConsumer } from './consumers/summary-queue.consumer';
 
 @Module({
   imports: [
@@ -96,7 +93,7 @@ import { ProcessCragConsumer } from './consumers/process-crag-consumer';
     ]),
     AuditModule,
     BullModule.registerQueue({
-      name: 'process-crag',
+      name: 'summary',
     }),
   ],
   providers: [
@@ -125,9 +122,6 @@ import { ProcessCragConsumer } from './consumers/process-crag-consumer';
     GradingSystemLoader,
     RouteTypeLoader,
     CountryLoader,
-    RouteNrTicksLoader,
-    RouteNrTriesLoader,
-    RouteNrClimbersLoader,
     SectorRoutesLoader,
     DifficultyVotesService,
     GradingSystemsResolver,
@@ -140,7 +134,7 @@ import { ProcessCragConsumer } from './consumers/process-crag-consumer';
     EntityPropertiesService,
     NotificationService,
     MailService,
-    ProcessCragConsumer,
+    SummaryQueueConsumer,
     ConfigService,
   ],
   controllers: [UploadController],

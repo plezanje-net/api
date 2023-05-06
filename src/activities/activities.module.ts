@@ -42,7 +42,7 @@ import { BullModule } from '@nestjs/bull';
     AuditModule,
     UsersModule,
     BullModule.registerQueue({
-      name: 'process-crag',
+      name: 'summary',
     }),
   ],
   providers: [

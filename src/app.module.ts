@@ -132,7 +132,7 @@ import { BullModule } from '@nestjs/bull';
       inject: [ConfigService],
     }),
     BullModule.registerQueue({
-      name: 'process-crag',
+      name: 'summary',
     }),
   ],
   providers: [],

@@ -43,6 +43,7 @@ import { User } from '../../users/entities/user.entity';
 import { NotificationService } from '../../notification/services/notification.service';
 import { ForeignKeyConstraintFilter } from '../filters/foreign-key-constraint.filter';
 import { ImagesService } from '../services/images.service';
+import { Roles } from '../../auth/decorators/roles.decorator';
 
 @Resolver(() => Crag)
 @UseInterceptors(DataLoaderInterceptor)
@@ -207,13 +208,9 @@ export class CragsResolver {
     return loader.load(crag.countryId);
   }
 
-  // @ResolveField('activityByMonth', () => [Int])
-  // async getActivityByMonth(@Parent() crag: Crag): Promise<number[]> {
-  //   return this.cragsService.getAcitivityByMonth(crag);
-  // }
-
   @Mutation(() => Boolean)
-  @AllowAny()
+  @Roles('admin')
+  @UseGuards(UserAuthGuard)
   async processAllCrags() {
     await this.cragsService.processAllCrags();
     return true;

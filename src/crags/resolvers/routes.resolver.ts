@@ -44,9 +44,6 @@ import { RouteProperty } from '../entities/route-property.entity';
 import { EntityPropertiesService } from '../services/entity-properties.service';
 import { CurrentUser } from '../../auth/decorators/current-user.decorator';
 import { User } from '../../users/entities/user.entity';
-import { RouteNrTicksLoader } from '../loaders/route-nr-ticks.loader';
-import { RouteNrTriesLoader } from '../loaders/route-nr-tries.loader';
-import { RouteNrClimbersLoader } from '../loaders/route-nr-climbers.loader';
 import { NotificationService } from '../../notification/services/notification.service';
 import { LatestDifficultyVotesInput } from '../dtos/latest-difficulty-votes.input';
 import { PaginatedDifficultyVotes } from '../utils/paginated-difficulty-votes';
@@ -289,28 +286,4 @@ export class RoutesResolver {
   ): Promise<RouteType> {
     return loader.load(route.routeTypeId);
   }
-
-  // @ResolveField('nrTicks', (returns) => Number)
-  // async nrTicks(
-  //   @Parent() route: Route,
-  //   @Loader(RouteNrTicksLoader) loader: DataLoader<string, number>,
-  // ) {
-  //   return loader.load(route.id);
-  // }
-
-  // @ResolveField('nrTries', (returns) => Number)
-  // async nrTries(
-  //   @Parent() route: Route,
-  //   @Loader(RouteNrTriesLoader) loader: DataLoader<string, number>,
-  // ) {
-  //   return loader.load(route.id);
-  // }
-
-  // @ResolveField('nrClimbers', (returns) => Number)
-  // async nrClimbers(
-  //   @Parent() route: Route,
-  //   @Loader(RouteNrClimbersLoader) loader: DataLoader<string, number>,
-  // ) {
-  //   return loader.load(route.id);
-  // }
 }
