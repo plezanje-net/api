@@ -127,7 +127,7 @@ async function getUserContributions(
           'name',
           'created',
           `'${alias}' as entity`,
-          'user_id',
+          'user_id as "userId"',
           'publish_status::text as "publishStatus"',
         ])
         .where(
