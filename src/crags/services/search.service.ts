@@ -127,7 +127,7 @@ export class SearchService {
       "c.id = co.crag_id and c.publish_status = 'published'",
     );
 
-    builder.andWhere('co.ice_peak_id IS NULL');
+    builder.andWhere('co.ice_fall_id IS NULL');
     builder.andWhere('co.peak_id IS NULL');
 
     if (!showHidden) {
