@@ -214,9 +214,4 @@ export class ActivityRoutesResolver {
       inLastNDays,
     );
   }
-
-  @ResolveField()
-  score(@Parent() activityRoute: ActivityRoute): Promise<number> {
-    return this.activityRoutesService.calculateScore(activityRoute);
-  }
 }

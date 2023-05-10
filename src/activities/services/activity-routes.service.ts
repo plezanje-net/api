@@ -180,6 +180,11 @@ export class ActivityRoutesService {
       await queryRunner.manager.save(difficultyVote);
     }
 
+    // recalculate all orderScore and rankingScore fields for all activity routes of this route (including this route)
+    // (below function refetches this rotue from db which is ok, since it's difficulty might have been changed by a trigger)
+    await this.recalculateActivityRoutesScores(routeIn.routeId, queryRunner);
+    // TODO: above recalculation should be placed into queue rather than done synchronously here
+
     // if a vote on star rating (route beauty) is passed add a new star rating vote or update existing one
     if (routeIn.votedStarRating || routeIn.votedStarRating === 0) {
       let starRatingVote = await queryRunner.manager.findOneBy(StarRatingVote, {
@@ -517,6 +522,10 @@ export class ActivityRoutesService {
         params.orderBy.direction || 'DESC',
       );
 
+      if (params.orderBy.field == 'grade') {
+        builder.addOrderBy('ar.orderScore', params.orderBy.direction || 'DESC');
+      }
+
       if (params.orderBy.field != 'position') {
         builder.addOrderBy(
           'ar.position',
@@ -618,10 +627,6 @@ export class ActivityRoutesService {
       return 'difficulty';
     }
 
-    if (field === 'score') {
-      return 'score';
-    }
-
     return `ar.${field}`;
   }
 
@@ -672,7 +677,95 @@ export class ActivityRoutesService {
         await this.recalculateStarRating(route, queryRunner);
       }
     }
+
+    // after the activity route has been removed, the difficulty vote also might have been removed by a trigger.
+    // if so, then the calculated difficulty might have changed, which in turn changes the scores fields of the activity route
+    // that means that we need to recalculate all orderScore and rankingScore fields for this and all other activity routes of this route
+    await this.recalculateActivityRoutesScores(
+      activityRoute.routeId,
+      queryRunner,
+    );
+    // TODO: move calculation to queue
+
     return true;
+  }
+
+  /**
+   * Given a rotue id, get all activity routes for the route and recalculate the fields orderScore and rankingScore
+   */
+  private async recalculateActivityRoutesScores(
+    routeId: string,
+    queryRunner: QueryRunner,
+  ) {
+    const otherActivityRoutes = await queryRunner.manager.findBy(
+      ActivityRoute,
+      { routeId },
+    );
+    const route = await queryRunner.manager.findOneBy(Route, { id: routeId });
+
+    for (const otherActivityRoute of otherActivityRoutes) {
+      otherActivityRoute.orderScore = this.calculateScore(
+        route.difficulty,
+        otherActivityRoute.ascentType,
+        'order',
+      );
+      otherActivityRoute.rankingScore = this.calculateScore(
+        route.difficulty,
+        otherActivityRoute.ascentType,
+        'ranking',
+      );
+      await queryRunner.manager.save(otherActivityRoute);
+    }
+  }
+
+  /**
+   * returns calculated score based on route's difficulty and ar's ascent type
+   * @param difficulty
+   * @param ascentType
+   * @param scoreType
+   * @returns either orderScore or rankingScore
+   */
+  calculateScore(
+    difficulty: number,
+    ascentType: AscentType,
+    scoreType: 'order' | 'ranking',
+  ): number {
+    // only first (lead) ticks count towards ranking
+    const scoreTypeFactor = scoreType === 'order' ? 1 : 0;
+
+    switch (ascentType) {
+      case AscentType.ONSIGHT:
+        return difficulty + 100;
+      case AscentType.FLASH:
+        return difficulty + 50;
+      case AscentType.REDPOINT:
+        return difficulty;
+      case AscentType.REPEAT:
+        return (difficulty - 10) * scoreTypeFactor;
+      case AscentType.ALLFREE:
+        return difficulty * 0.01 * scoreTypeFactor;
+      case AscentType.AID:
+        return difficulty * 0.001 * scoreTypeFactor;
+      case AscentType.ATTEMPT:
+        return difficulty * 0.0001 * scoreTypeFactor;
+      case AscentType.T_ONSIGHT:
+        return (difficulty + 100) * 0.0001 * scoreTypeFactor;
+      case AscentType.T_FLASH:
+        return (difficulty + 50) * 0.0001 * scoreTypeFactor;
+      case AscentType.T_REDPOINT:
+        return difficulty * 0.0001 * scoreTypeFactor;
+      case AscentType.T_REPEAT:
+        return (difficulty - 10) * 0.0001 * scoreTypeFactor;
+      case AscentType.T_ALLFREE:
+        return difficulty * 0.01 * 0.0001 * scoreTypeFactor;
+      case AscentType.T_AID:
+        return difficulty * 0.001 * 0.0001 * scoreTypeFactor;
+      case AscentType.T_ATTEMPT:
+        return difficulty * 0.0001 * 0.0001 * scoreTypeFactor;
+      case AscentType.TICK:
+        // TODO: what is TICK ascent type, and is it even used?? prob not, 1 ar in db... suggest removal, discuss
+        return 0;
+    }
   }
 
   /**
@@ -684,7 +777,7 @@ export class ActivityRoutesService {
 
     /*
      * There are 3 conditions for a route to actually get a star rating:
-     * 1. The route need to have some minimum total number of votes (3)
+     * 1. The route needs to have some minimum total number of votes (3)
      * 2. One of the star options (0, 1 or 2) needs to have more then some predefined majority within all the votes (50%)
      * 3. The rounded average of the stars given needs to be the same as the majority star option. (this prevents from averaging out the star rating and instead shows any stars only when there is an actual consensus on the star rating)
      */
@@ -727,15 +820,5 @@ export class ActivityRoutesService {
     await queryRunner.manager.update(Route, route.id, {
       starRating: route.starRating,
     });
-  }
-
-  // TODO: this is inclomplete --> we chould define scoring for all possible ascent types!
-  async calculateScore(activityRoute: ActivityRoute): Promise<number> {
-    const route = await activityRoute.route;
-    let score = route.difficulty;
-    score += activityRoute.ascentType === 'onsight' ? 100 : 0;
-    score += activityRoute.ascentType === 'flash' ? 50 : 0;
-
-    return score;
   }
 }
