@@ -69,10 +69,10 @@ export class SearchService {
     const builder = this.cragsRepository.createQueryBuilder('c');
 
     if (!showHidden) {
-      builder.andWhere('c.isHidden = false');
+      builder.andWhere('c.is_hidden = false');
     }
 
-    builder.andWhere("c.publishStatus = 'published'");
+    builder.andWhere("c.publish_status = 'published'");
 
     this.tokenizeQueryToBuilder(builder, searchString, 'c');
 
@@ -82,13 +82,13 @@ export class SearchService {
   findRoutes(searchString: string, showHidden: boolean): Promise<Route[]> {
     const builder = this.routesRepository.createQueryBuilder('r');
 
-    builder.innerJoin('crag', 'c', 'c.id = r."cragId"');
+    builder.innerJoin('crag', 'c', 'c.id = r.crag_id');
 
     if (!showHidden) {
-      builder.andWhere('c.isHidden = false');
+      builder.andWhere('c.is_hidden = false');
     }
 
-    builder.andWhere("r.publishStatus = 'published'");
+    builder.andWhere("r.publish_status = 'published'");
 
     this.tokenizeQueryToBuilder(builder, searchString, 'r');
 
@@ -98,13 +98,13 @@ export class SearchService {
   findSectors(searchString: string, showHidden: boolean): Promise<Sector[]> {
     const builder = this.sectorsRepository.createQueryBuilder('s');
 
-    builder.innerJoin('crag', 'c', 'c.id = s."cragId"');
+    builder.innerJoin('crag', 'c', 'c.id = s.crag_id');
 
     if (!showHidden) {
-      builder.andWhere('c.isHidden = false');
+      builder.andWhere('c.is_hidden = false');
     }
 
-    builder.andWhere("s.publishStatus = 'published'");
+    builder.andWhere("s.publish_status = 'published'");
 
     this.tokenizeQueryToBuilder(builder, searchString, 's');
 
@@ -114,26 +114,26 @@ export class SearchService {
   findComments(searchString: string, showHidden: boolean): Promise<Comment[]> {
     const builder = this.commentsRepository.createQueryBuilder('co');
 
-    builder.leftJoin('route', 'r', 'r.id = co.routeId');
+    builder.leftJoin('route', 'r', 'r.id = co.route_id');
     builder.leftJoin(
       'crag',
       'cr',
-      'cr.id = r.cragId and cr."publishStatus" = \'published\'',
+      "cr.id = r.crag_id and cr.publish_status = 'published'",
     ); // join crag through route, to always hide by crag status even if comment is linked to a route
 
     builder.leftJoin(
       'crag',
       'c',
-      'c.id = co.cragId and c."publishStatus" = \'published\'',
+      "c.id = co.crag_id and c.publish_status = 'published'",
     );
 
-    builder.andWhere('co.iceFallId IS NULL');
-    builder.andWhere('co.peakId IS NULL');
+    builder.andWhere('co.ice_fall_id IS NULL');
+    builder.andWhere('co.peak_id IS NULL');
 
     if (!showHidden) {
       builder.andWhere(
-        new Brackets(qb =>
-          qb.where('c.isHidden = false').orWhere('cr.isHidden = false'),
+        new Brackets((qb) =>
+          qb.where('c.is_hidden = false').orWhere('cr.is_hidden = false'),
         ),
       );
     }
@@ -190,7 +190,7 @@ export class SearchService {
     const searchTerms = searchString.split(' ');
 
     searchFieldNames = searchFieldNames.map(
-      fieldName => `${alias}.${fieldName}`,
+      (fieldName) => `${alias}.${fieldName}`,
     );
     const searchFieldName = searchFieldNames.join(" || ' ' || ");
 
@@ -206,7 +206,7 @@ export class SearchService {
     } else {
       searchTerms.forEach((searchTerm, index) => {
         builder.andWhere(
-          new Brackets(qb => {
+          new Brackets((qb) => {
             qb.where(
               `unaccent(lower(${searchFieldName})) like unaccent(lower(:search_start_${index}))`,
               {

@@ -97,7 +97,7 @@ describe('User', () => {
       `SELECT * FROM public.user WHERE email = '${mockData.email}'`,
     );
     mockData.userId = user[0].id;
-    mockData.confirmationToken = user[0].confirmationToken;
+    mockData.confirmationToken = user[0].confirmation_token;
   });
 
   it(`should not allow duplicate emails`, async () => {
@@ -224,7 +224,7 @@ describe('User', () => {
         const user = await queryRunner.query(
           `SELECT * FROM public.user WHERE email = '${mockData.email}'`,
         );
-        mockData.passwordToken = user[0].passwordToken;
+        mockData.passwordToken = user[0].password_token;
       });
   });
 

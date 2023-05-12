@@ -47,7 +47,7 @@ export class Comment extends BaseEntity {
   @Field(() => User, { nullable: true })
   user: Promise<User>;
 
-  @Column({ name: 'userId', nullable: true })
+  @Column({ name: 'user_id', nullable: true })
   userId: string;
 
   @Column({ type: 'text', nullable: true })
@@ -69,55 +69,41 @@ export class Comment extends BaseEntity {
   @UpdateDateColumn()
   updated: Date;
 
-  @Column({ nullable: true })
+  @Column({ nullable: true, select: false })
   legacy: string;
 
-  @ManyToOne(
-    () => Crag,
-    crag => crag.comments,
-    { nullable: true, onDelete: 'CASCADE' },
-  )
+  @ManyToOne(() => Crag, (crag) => crag.comments, {
+    nullable: true,
+    onDelete: 'CASCADE',
+  })
   @Field(() => Crag, { nullable: true })
   crag: Promise<Crag>;
   @Column({ nullable: true })
   cragId: string;
 
-  @ManyToOne(
-    () => Route,
-    route => route.comments,
-    { nullable: true, onDelete: 'CASCADE' },
-  )
+  @ManyToOne(() => Route, (route) => route.comments, {
+    nullable: true,
+    onDelete: 'CASCADE',
+  })
   @Field(() => Route, { nullable: true })
   route: Promise<Route>;
 
-  @Column({ name: 'routeId', nullable: true })
+  @Column({ name: 'route_id', nullable: true })
   routeId: string;
 
   @Column({ nullable: true }) // keep nullable, only comments of type=warning use this field
   @Field({ nullable: true })
   exposedUntil: Date;
 
-  @ManyToOne(
-    () => IceFall,
-    iceFall => iceFall.comments,
-    { nullable: true },
-  )
+  @ManyToOne(() => IceFall, (iceFall) => iceFall.comments, { nullable: true })
   @Field(() => IceFall)
   iceFall: Promise<IceFall>;
 
-  @ManyToOne(
-    () => Peak,
-    peak => peak.comments,
-    { nullable: true },
-  )
+  @ManyToOne(() => Peak, (peak) => peak.comments, { nullable: true })
   @Field(() => Peak)
   peak: Promise<Peak>;
 
-  @OneToMany(
-    () => Image,
-    image => image.comment,
-    { nullable: true },
-  )
+  @OneToMany(() => Image, (image) => image.comment, { nullable: true })
   @Field(() => [Image])
   images: Promise<Image[]>;
 }

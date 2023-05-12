@@ -18,15 +18,15 @@ export class SectorRoutesLoader implements NestDataLoader<string, Route[]> {
   }
 
   generateDataLoader(): DataLoader<string, Route[]> {
-    return new DataLoader<string, Route[]>(async keys => {
+    return new DataLoader<string, Route[]>(async (keys) => {
       const routes = await this.routesService.find({
-        sectorIds: keys.map(k => k),
+        sectorIds: keys.map((k) => k),
         user: this.currentUser,
       });
 
       const sectorRoutes: { [key: string]: Route[] } = {};
 
-      routes.forEach(route => {
+      routes.forEach((route) => {
         if (!sectorRoutes[route.sectorId]) {
           sectorRoutes[route.sectorId] = [route];
         } else {
@@ -34,7 +34,7 @@ export class SectorRoutesLoader implements NestDataLoader<string, Route[]> {
         }
       });
 
-      return keys.map(sectorId => sectorRoutes[sectorId] ?? []);
+      return keys.map((sectorId) => sectorRoutes[sectorId] ?? []);
     });
   }
 }

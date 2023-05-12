@@ -36,20 +36,20 @@ export class ImagesService {
       .leftJoin(
         'route',
         'r',
-        "i.routeId = r.id AND r.publishStatus = 'published'",
+        "i.route_id = r.id AND r.publish_status = 'published'",
       )
       .leftJoin(
         'crag',
         'c',
-        "c.id = COALESCE(i.cragId, r.cragId) AND c.publishStatus = 'published'",
+        "c.id = COALESCE(i.crag_id, r.crag_id) AND c.publish_status = 'published'",
       )
 
-      .andWhere("r.publishStatus = 'published'") // only show ticks for published routes
+      .andWhere("r.publish_status = 'published'") // only show ticks for published routes
       .orderBy('i.created', 'DESC')
       .limit(latest);
 
     if (!showHiddenCrags) {
-      builder.andWhere('c.isHidden = false');
+      builder.andWhere('c.is_hidden = false');
     }
 
     return builder.getMany();

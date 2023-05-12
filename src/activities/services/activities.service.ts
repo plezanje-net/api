@@ -228,7 +228,7 @@ export class ActivitiesService {
 
     // TODO: should we rename this param to: forUserId?
     if (params.userId != null) {
-      builder.andWhere('a."userId" = :userId', {
+      builder.andWhere('a.user_id = :userId', {
         userId: params.userId,
       });
     }
@@ -248,10 +248,10 @@ export class ActivitiesService {
     }
 
     if (params.cragId != null) {
-      builder.andWhere('a."cragId" = :cragId', { cragId: params.cragId });
+      builder.andWhere('a.crag_id = :cragId', { cragId: params.cragId });
     }
 
-    builder.leftJoin(Crag, 'c', 'c.id = a."cragId"');
+    builder.leftJoin(Crag, 'c', 'c.id = a.crag_id');
     // If no current user is passed in, that means we are serving a guest
     if (!currentUser) {
       // Right now, only crag activity might be public, so disallow all other types
@@ -262,7 +262,7 @@ export class ActivitiesService {
       builder.innerJoin(
         ActivityRoute,
         'ar',
-        'ar."activityId" = a.id AND (ar."publish" IN (:...publish))',
+        'ar.activity_id = a.id AND (ar."publish" IN (:...publish))',
         { publish: ['log', 'public'] },
       );
 
@@ -271,14 +271,14 @@ export class ActivitiesService {
       builder.innerJoin(
         Route,
         'r',
-        'r.id = ar."routeId" AND r."publishStatus" = \'published\'',
+        "r.id = ar.route_id AND r.publish_status = 'published'",
       );
 
       // Disallow activities in crags that are hidden
-      builder.andWhere('c."isHidden" = false');
+      builder.andWhere('c.is_hidden = false');
 
       // Allow/disallow based on publishStatus of activitiy's crag (might be redundant to the ar condition)
-      builder.andWhere("c.publishStatus = 'published'");
+      builder.andWhere("c.publish_status = 'published'");
     } else {
       // User is logged in
 
@@ -289,28 +289,28 @@ export class ActivitiesService {
         await getPublishStatusParams('r', currentUser);
 
       // Apply crag publish rules unless activity user is the current user
-      builder.andWhere(`(a."userId" = :userId OR (${cragPublishConditions}))`, {
+      builder.andWhere(`(a.user_id = :userId OR (${cragPublishConditions}))`, {
         userId: currentUser.id,
         ...cragPublishParams,
       });
 
       // Allow/disallow based on publish type of contained activity routes
       // --> allow only activities that belong to the current user or contain at least one activity route that is public (or log)
-      // builder.leftJoin(ActivityRoute, 'ar', 'ar."activityId" = a.id');
-      builder.leftJoin(ActivityRoute, 'ar', 'ar."activityId" = a.id');
+      // builder.leftJoin(ActivityRoute, 'ar', 'ar.activity_id = a.id');
+      builder.leftJoin(ActivityRoute, 'ar', 'ar.activity_id = a.id');
       builder.andWhere(
-        '(a."userId" = :userId OR ar."publish" IN (\'log\', \'public\'))',
+        "(a.user_id = :userId OR ar.\"publish\" IN ('log', 'public'))",
         {
           userId: currentUser.id,
         },
       );
 
       // Apply route publish rules unless activity user is the current user
-      builder.leftJoin(Route, 'r', `r.id = ar."routeId"`, routePublishParams);
-      builder.andWhere(
-        `(a."userId" = :userId OR (${routePublishConditions}))`,
-        { userId: currentUser.id, ...routePublishParams },
-      );
+      builder.leftJoin(Route, 'r', `r.id = ar.route_id`, routePublishParams);
+      builder.andWhere(`(a.user_id = :userId OR (${routePublishConditions}))`, {
+        userId: currentUser.id,
+        ...routePublishParams,
+      });
       // TODO: should also allow showing club ascents
     }
 

@@ -214,10 +214,10 @@ export class CragsService {
     }
 
     if (!(params.user != null)) {
-      builder.andWhere('c.isHidden = false');
+      builder.andWhere('c.is_hidden = false');
     }
 
-    setPublishStatusParams(builder, 'c', params);
+    await setPublishStatusParams(builder, 'c', params);
 
     const { conditions, params: joinParams } = await getPublishStatusParams(
       'route',
@@ -229,7 +229,7 @@ export class CragsService {
     builder.addSelect('COUNT(route.id)', 'routeCount');
 
     if (params.routeTypeId != null) {
-      builder.andWhere('(route.routeTypeId = :routeTypeId)', {
+      builder.andWhere('(route.route_type_id = :routeTypeId)', {
         routeTypeId: params.routeTypeId,
       });
     }
@@ -243,9 +243,9 @@ export class CragsService {
     const builder = this.routesRepository
       .createQueryBuilder('route')
       .select('COUNT(DISTINCT(route.id))', 'count')
-      .where('route."cragId" = :cragId', { cragId: crag.id });
+      .where('route.crag_id = :cragId', { cragId: crag.id });
 
-    setPublishStatusParams(builder, 'route', { user });
+    await setPublishStatusParams(builder, 'route', { user });
 
     setBuilderCache(builder, 'getRawOne');
     const itemCount = await builder.getRawOne();
@@ -260,13 +260,13 @@ export class CragsService {
     const builder = this.cragsRepository
       .createQueryBuilder('c')
       .addSelect('count(c.id)', 'nrvisits')
-      .leftJoin('activity', 'ac', 'ac.cragId = c.id')
+      .leftJoin('activity', 'ac', 'ac.crag_id = c.id')
       .where("c.publishStatus = 'published'")
       .groupBy('c.id')
       .orderBy('nrvisits', 'DESC');
 
     if (!showHiddenCrags) {
-      builder.andWhere('c.isHidden = false');
+      builder.andWhere('c.is_hidden = false');
     }
 
     if (dateFrom) {
@@ -309,7 +309,7 @@ export class CragsService {
 
     const response = new Array(12).fill(0);
 
-    results.forEach(r => {
+    results.forEach((r) => {
       response[r.month] = r.visits;
     });
 

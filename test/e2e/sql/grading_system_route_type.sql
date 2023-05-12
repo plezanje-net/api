@@ -1,4 +1,4 @@
-insert into public.grading_system_route_type ("routeTypeId", "gradingSystemId")
+insert into public.grading_system_route_type (route_type_id, grading_system_id)
 values  ('alpine', 'alpine-ice'),
         ('boulder', 'hueco'),
         ('sport', 'yds'),

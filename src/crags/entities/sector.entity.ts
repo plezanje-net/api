@@ -57,33 +57,31 @@ export class Sector extends BaseEntity {
   @UpdateDateColumn()
   updated: Date;
 
-  @Column({ nullable: true })
+  @Column({ nullable: true, select: false })
   legacy: string;
 
   @Field()
   bouldersOnly: boolean;
 
-  @ManyToOne(
-    () => Crag,
-    crag => crag.sectors,
-    { nullable: false, onDelete: 'CASCADE' },
-  )
+  @ManyToOne(() => Crag, (crag) => crag.sectors, {
+    nullable: false,
+    onDelete: 'CASCADE',
+  })
   @Field(() => Crag)
   crag: Promise<Crag>;
-  @Column({ name: 'cragId' })
+  @Column({ name: 'crag_id' })
   cragId: string;
 
-  @OneToMany(
-    () => Route,
-    route => route.sector,
-    { nullable: true, cascade: true },
-  )
+  @OneToMany(() => Route, (route) => route.sector, {
+    nullable: true,
+    cascade: true,
+  })
   @Field(() => [Route])
   routes: Promise<Route[]>;
 
   @ManyToOne(() => User)
   @Field(() => User, { nullable: true })
   user: Promise<User>;
-  @Column({ name: 'userId', nullable: true })
+  @Column({ name: 'user_id', nullable: true })
   userId: string;
 }

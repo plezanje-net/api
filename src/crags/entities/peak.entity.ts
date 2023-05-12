@@ -55,21 +55,14 @@ export class Peak extends BaseEntity {
   @UpdateDateColumn()
   updated: Date;
 
-  @Column({ nullable: true })
+  @Column({ nullable: true, select: false })
   legacy: string;
 
-  @ManyToOne(
-    () => Area,
-    area => area.peaks,
-    { nullable: true },
-  )
+  @ManyToOne(() => Area, (area) => area.peaks, { nullable: true })
   @Field(() => Area, { nullable: true })
   area: Promise<Area>;
 
-  @ManyToOne(
-    () => Country,
-    country => country.peaks,
-  )
+  @ManyToOne(() => Country, (country) => country.peaks)
   @Field(() => Country)
   country: Promise<Country>;
   @Column()
@@ -79,30 +72,18 @@ export class Peak extends BaseEntity {
   @JoinTable()
   books: Book[];
 
-  @OneToMany(
-    () => Crag,
-    crag => crag.peak,
-    { nullable: true },
-  )
+  @OneToMany(() => Crag, (crag) => crag.peak, { nullable: true })
   @Field(() => [Crag])
   crags: Promise<Crag[]>;
 
-  @OneToMany(
-    () => Comment,
-    comment => comment.peak,
-    { nullable: true },
-  )
+  @OneToMany(() => Comment, (comment) => comment.peak, { nullable: true })
   @Field(() => [Comment])
   comments: Promise<Comment[]>;
 
-  @OneToMany(
-    () => Image,
-    image => image.peak,
-    { nullable: true },
-  )
+  @OneToMany(() => Image, (image) => image.peak, { nullable: true })
   @Field(() => [Image])
   images: Promise<Image[]>;
 
-  @Field(type => Int)
+  @Field((type) => Int)
   nrCrags: number;
 }

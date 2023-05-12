@@ -43,7 +43,7 @@ export class Book extends BaseEntity {
   @UpdateDateColumn()
   updated: Date;
 
-  @Column({ nullable: true })
+  @Column({ nullable: true, select: false })
   legacy: string;
 
   @ManyToMany(() => Crag, { onDelete: 'CASCADE' })

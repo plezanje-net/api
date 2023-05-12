@@ -114,74 +114,48 @@ export class Route extends BaseEntity {
   @UpdateDateColumn()
   updated: Date;
 
-  @Column({ nullable: true })
+  @Column({ nullable: true, select: false })
   legacy: string;
 
-  @ManyToOne(
-    () => Crag,
-    crag => crag.routes,
-    { onDelete: 'CASCADE' },
-  )
+  @ManyToOne(() => Crag, (crag) => crag.routes, { onDelete: 'CASCADE' })
   @Field(() => Crag)
   crag: Promise<Crag>;
   @Column()
   cragId: string;
 
-  @ManyToOne(
-    () => Sector,
-    sector => sector.routes,
-    { onDelete: 'CASCADE' },
-  )
+  @ManyToOne(() => Sector, (sector) => sector.routes, { onDelete: 'CASCADE' })
   @Field(() => Sector)
   sector: Promise<Sector>;
   @Column()
   sectorId: string;
 
-  @OneToMany(
-    () => DifficultyVote,
-    difficultyVote => difficultyVote.route,
-    { nullable: true },
-  )
+  @OneToMany(() => DifficultyVote, (difficultyVote) => difficultyVote.route, {
+    nullable: true,
+  })
   @Field(() => [DifficultyVote])
   difficultyVotes: Promise<DifficultyVote[]>;
 
-  @OneToMany(
-    () => StarRatingVote,
-    starRatingVote => starRatingVote.route,
-    { nullable: true },
-  )
-  @Field(type => [StarRatingVote])
+  @OneToMany(() => StarRatingVote, (starRatingVote) => starRatingVote.route, {
+    nullable: true,
+  })
+  @Field((type) => [StarRatingVote])
   starRatingVotes: Promise<StarRatingVote[]>;
 
-  @OneToMany(
-    () => Pitch,
-    pitch => pitch.route,
-    { nullable: true },
-  )
+  @OneToMany(() => Pitch, (pitch) => pitch.route, { nullable: true })
   @Field(() => [Pitch])
   pitches: Promise<Pitch[]>;
 
-  @OneToMany(
-    () => Comment,
-    comment => comment.route,
-    { nullable: true },
-  )
+  @OneToMany(() => Comment, (comment) => comment.route, { nullable: true })
   @Field(() => [Comment])
   comments: Promise<Comment[]>;
 
-  @OneToMany(
-    () => Image,
-    image => image.route,
-    { nullable: true },
-  )
+  @OneToMany(() => Image, (image) => image.route, { nullable: true })
   @Field(() => [Image])
   images: Promise<Image[]>;
 
-  @OneToMany(
-    () => RouteEvent,
-    routeEvent => routeEvent.route,
-    { nullable: true },
-  )
+  @OneToMany(() => RouteEvent, (routeEvent) => routeEvent.route, {
+    nullable: true,
+  })
   @Field(() => [RouteEvent])
   routeEvents: Promise<RouteEvent[]>;
 
@@ -192,13 +166,10 @@ export class Route extends BaseEntity {
   @ManyToOne(() => User)
   @Field(() => User, { nullable: true })
   user: Promise<User>;
-  @Column({ name: 'userId', nullable: true })
+  @Column({ name: 'user_id', nullable: true })
   userId: string;
 
-  @OneToMany(
-    () => ActivityRoute,
-    activityRoute => activityRoute.route,
-  )
+  @OneToMany(() => ActivityRoute, (activityRoute) => activityRoute.route)
   activityRoutes: ActivityRoute[];
 
   @Field()

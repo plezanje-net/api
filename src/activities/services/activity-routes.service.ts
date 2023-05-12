@@ -33,6 +33,14 @@ import { RoutesTouches } from '../utils/routes-touches.class';
 import { FindRoutesTouchesInput } from '../dtos/find-routes-touches.input';
 import { SideEffect } from '../utils/side-effect.class';
 import { setBuilderCache } from '../../core/utils/entity-cache/entity-cache-helpers';
+import {
+  convertFirstSightOrFlashAfterToRedpoint,
+  convertFirstTickAfterToRepeat,
+  convertFirstTrSightOrFlashAfterToTrRedpoint,
+  convertFirstTrTickAfterToTrRepeat,
+  isTick,
+  isTrTick,
+} from '../../crags/utils/convert-ascents';
 
 @Injectable()
 export class ActivityRoutesService {
@@ -114,25 +122,25 @@ export class ActivityRoutesService {
       queryRunner,
       sideEffects,
     ];
-    if (this.isTick(routeIn.ascentType)) {
-      await this.convertFirstTickAfterToRepeat(...args);
-      await this.convertFirstTrTickAfterToTrRepeat(...args);
-      await this.convertFirstTrSightOrFlashAfterToTrRedpoint(...args);
-    } else if (this.isTrTick(routeIn.ascentType)) {
-      await this.convertFirstSightOrFlashAfterToRedpoint(...args);
-      await this.convertFirstTrTickAfterToTrRepeat(...args);
+    if (isTick(routeIn.ascentType)) {
+      await convertFirstTickAfterToRepeat(...args);
+      await convertFirstTrTickAfterToTrRepeat(...args);
+      await convertFirstTrSightOrFlashAfterToTrRedpoint(...args);
+    } else if (isTrTick(routeIn.ascentType)) {
+      await convertFirstSightOrFlashAfterToRedpoint(...args);
+      await convertFirstTrTickAfterToTrRepeat(...args);
     } else {
       // it is only a try
       // there can really only be one of the below, so one of theese will do nothing. and also could do it in a single query, but leave as is for readability reasons
-      await this.convertFirstSightOrFlashAfterToRedpoint(...args);
-      await this.convertFirstTrSightOrFlashAfterToTrRedpoint(...args);
+      await convertFirstSightOrFlashAfterToRedpoint(...args);
+      await convertFirstTrSightOrFlashAfterToTrRedpoint(...args);
     }
 
     activityRoute.route = Promise.resolve(route);
 
     if (
       route.isProject &&
-      this.isTick(routeIn.ascentType) &&
+      isTick(routeIn.ascentType) &&
       !routeIn.votedDifficulty
     ) {
       throw new HttpException(
@@ -144,7 +152,7 @@ export class ActivityRoutesService {
     // if a vote on difficulty is passed add a new difficulty vote or update existing
     if (routeIn.votedDifficulty) {
       // but first check if a user even can vote (can vote only if the log is a tick)
-      if (!this.isTick(routeIn.ascentType)) {
+      if (!isTick(routeIn.ascentType)) {
         throw new HttpException(
           'Cannot vote on difficulty if not logging a tick.',
           HttpStatus.NOT_ACCEPTABLE,
@@ -198,172 +206,6 @@ export class ActivityRoutesService {
     }
 
     return queryRunner.manager.save(activityRoute);
-  }
-
-  private isTick(ascentType: AscentType) {
-    return tickAscentTypes.has(ascentType);
-  }
-
-  private isTrTick(ascentType: AscentType) {
-    return trTickAscentTypes.has(ascentType);
-  }
-
-  /**
-   * Find user's first tick of a route after the date and convert it to repeat if one exists
-   */
-  private async convertFirstTickAfterToRepeat(
-    routeId: string,
-    userId: string,
-    date: Date,
-    queryRunner: QueryRunner,
-    sideEffects: SideEffect[] = [],
-  ) {
-    const futureTick = await queryRunner.manager
-      .createQueryBuilder(ActivityRoute, 'ar')
-      .where('ar."routeId" = :routeId', { routeId: routeId })
-      .andWhere('ar."userId" = :userId', { userId: userId })
-      .andWhere('ar."ascentType" IN (:...aTypes)', {
-        aTypes: [...firstTickAscentTypes],
-      })
-      .andWhere('ar.date > :arDate', { arDate: date })
-      .orderBy('ar.date', 'ASC') // not realy neccesary, but just in case
-      .getOne(); // If data is valid there can only be one such ascent logged (or none)
-
-    // We do have a tick in the future
-    if (futureTick) {
-      // Remember current activity route state
-      const futureTickBeforeChange = new ActivityRoute();
-      queryRunner.manager.merge(
-        ActivityRoute,
-        futureTickBeforeChange,
-        futureTick,
-      );
-
-      // Convert it to repeat
-      futureTick.ascentType = AscentType.REPEAT;
-      await queryRunner.manager.save(futureTick);
-      sideEffects.push({ before: futureTickBeforeChange, after: futureTick });
-    }
-  }
-
-  /**
-   * Find user's first toprope tick of a route after the date and convert it to toprope repeat if one exists
-   */
-  private async convertFirstTrTickAfterToTrRepeat(
-    routeId: string,
-    userId: string,
-    date: Date,
-    queryRunner: QueryRunner,
-    sideEffects: SideEffect[] = [],
-  ) {
-    const futureTrTick = await queryRunner.manager
-      .createQueryBuilder(ActivityRoute, 'ar')
-      .where('ar."routeId" = :routeId', { routeId: routeId })
-      .andWhere('ar."userId" = :userId', { userId: userId })
-      .andWhere('ar."ascentType" IN (:...aTypes)', {
-        aTypes: [...firstTrTickAscentTypes],
-      })
-      .andWhere('ar.date > :arDate', { arDate: date })
-      .getOne(); // If data is valid there can only be one such ascent logged (or none)
-
-    // We do have a toprope tick in the future
-    if (futureTrTick) {
-      // Remember current activity route state
-      const futureTrTickBeforeChange = new ActivityRoute();
-      queryRunner.manager.merge(
-        ActivityRoute,
-        futureTrTickBeforeChange,
-        futureTrTick,
-      );
-
-      // Convert it to toprope repeat
-      futureTrTick.ascentType = AscentType.T_REPEAT;
-      await queryRunner.manager.save(futureTrTick);
-      sideEffects.push({
-        before: futureTrTickBeforeChange,
-        after: futureTrTick,
-      });
-    }
-  }
-
-  /**
-   * Find user's first onsight or flash of a route after the date and convert it to redpoint if one exists
-   */
-  private async convertFirstSightOrFlashAfterToRedpoint(
-    routeId: string,
-    userId: string,
-    date: Date,
-    queryRunner: QueryRunner,
-    sideEffects: SideEffect[] = [],
-  ) {
-    const futureSightOrFlash = await queryRunner.manager
-      .createQueryBuilder(ActivityRoute, 'ar')
-      .where('ar."routeId" = :routeId', { routeId: routeId })
-      .andWhere('ar."userId" = :userId', { userId: userId })
-      .andWhere('ar."ascentType" IN (:...aTypes)', {
-        aTypes: [AscentType.ONSIGHT, AscentType.FLASH],
-      })
-      .andWhere('ar.date > :arDate', { arDate: date })
-      .getOne(); // If data is valid there can only be one such ascent logged (or none)
-
-    // We do have a flash/onsight in the future
-    if (futureSightOrFlash) {
-      // Remember current activity route state
-      const futureSightOrFlashBeforeChange = new ActivityRoute();
-      queryRunner.manager.merge(
-        ActivityRoute,
-        futureSightOrFlashBeforeChange,
-        futureSightOrFlash,
-      );
-
-      // Convert it to redpoint
-      futureSightOrFlash.ascentType = AscentType.REDPOINT;
-      await queryRunner.manager.save(futureSightOrFlash);
-      sideEffects.push({
-        before: futureSightOrFlashBeforeChange,
-        after: futureSightOrFlash,
-      });
-    }
-  }
-
-  /**
-   * Find user's first toprope onsight or toprope flash of a route after the date and convert it to toprope redpoint if one exists
-   */
-  private async convertFirstTrSightOrFlashAfterToTrRedpoint(
-    routeId: string,
-    userId: string,
-    date: Date,
-    queryRunner: QueryRunner,
-    sideEffects: SideEffect[] = [],
-  ) {
-    const futureTrSightOrFlash = await queryRunner.manager
-      .createQueryBuilder(ActivityRoute, 'ar')
-      .where('ar."routeId" = :routeId', { routeId: routeId })
-      .andWhere('ar."userId" = :userId', { userId: userId })
-      .andWhere('ar."ascentType" IN (:...aTypes)', {
-        aTypes: [AscentType.T_ONSIGHT, AscentType.T_FLASH],
-      })
-      .andWhere('ar.date > :arDate', { arDate: date })
-      .getOne(); // If data is valid there can only be one such ascent logged (or none)
-
-    // We do have a toprope flash/onsight in the future
-    if (futureTrSightOrFlash) {
-      // Remember current activity route state
-      const futureTrSightOrFlashBeforeChange = new ActivityRoute();
-      queryRunner.manager.merge(
-        ActivityRoute,
-        futureTrSightOrFlashBeforeChange,
-        futureTrSightOrFlash,
-      );
-
-      // Convert it to toprope redpoint
-      futureTrSightOrFlash.ascentType = AscentType.T_REDPOINT;
-      await queryRunner.manager.save(futureTrSightOrFlash);
-      sideEffects.push({
-        before: futureTrSightOrFlashBeforeChange,
-        after: futureTrSightOrFlash,
-      });
-    }
   }
 
   /**
@@ -445,13 +287,13 @@ export class ActivityRoutesService {
 
     // Which of the passed routes have been ticked before (or on) the passed date?
     const ticked = await qb
-      .addSelect('"routeId"') // need to add column to get the correct distinct
-      .distinctOn(['ar.routeId'])
-      .orderBy('ar.routeId')
-      .addOrderBy('ar.ascentType')
-      .where('ar.userId = :userId', { userId })
-      .andWhere('ar.routeId in (:...routeIds)', { routeIds: input.routeIds })
-      .andWhere('ar.ascentType in (:...tickTypes)', {
+      .addSelect('route_id') // need to add column to get the correct distinct
+      .distinctOn(['ar.route_id'])
+      .orderBy('ar.route_id')
+      .addOrderBy('ar.ascent_type')
+      .where('ar.user_id = :userId', { userId })
+      .andWhere('ar.route_id in (:...routeIds)', { routeIds: input.routeIds })
+      .andWhere('ar.ascent_type in (:...tickTypes)', {
         tickTypes: [...tickAscentTypes],
       })
       .andWhere('ar.date <= :before', { before: input.before })
@@ -459,13 +301,13 @@ export class ActivityRoutesService {
 
     // Which of the passed routes have been ticked on top rope before (or on) the passed date?
     const trTicked = await qb
-      .addSelect('"routeId"') // need to add column to get the correct distinct
-      .distinctOn(['ar.routeId'])
-      .orderBy('ar.routeId')
-      .addOrderBy('ar.ascentType')
-      .where('ar.userId = :userId', { userId })
-      .andWhere('ar.routeId in (:...routeIds)', { routeIds: input.routeIds })
-      .andWhere('ar.ascentType in (:...trTickTypes)', {
+      .addSelect('route_id') // need to add column to get the correct distinct
+      .distinctOn(['ar.route_id'])
+      .orderBy('ar.route_id')
+      .addOrderBy('ar.ascent_type')
+      .where('ar.user_id = :userId', { userId })
+      .andWhere('ar.route_id in (:...routeIds)', { routeIds: input.routeIds })
+      .andWhere('ar.ascent_type in (:...trTickTypes)', {
         trTickTypes: [...trTickAscentTypes],
       })
       .andWhere('ar.date <= :before', { before: input.before })
@@ -473,12 +315,12 @@ export class ActivityRoutesService {
 
     // Which of the passed routes have been tried before (or on) the passed date?
     const tried = await qb
-      .addSelect('"routeId"') // need to add column to get the correct distinct
-      .distinctOn(['ar.routeId'])
-      .orderBy('ar.routeId')
-      .addOrderBy('ar.ascentType')
-      .where('ar.userId = :userId', { userId })
-      .andWhere('ar.routeId in (:...routeIds)', { routeIds: input.routeIds })
+      .addSelect('route_id') // need to add column to get the correct distinct
+      .distinctOn(['ar.route_id'])
+      .orderBy('ar.route_id')
+      .addOrderBy('ar.ascent_type')
+      .where('ar.user_id = :userId', { userId })
+      .andWhere('ar.route_id in (:...routeIds)', { routeIds: input.routeIds })
       .andWhere('ar.date <= :before', { before: input.before })
       .getMany();
 
@@ -494,19 +336,19 @@ export class ActivityRoutesService {
   ): Promise<ActivityRoute[]> {
     const builder = this.activityRoutesRepository.createQueryBuilder('ar');
 
-    builder.distinctOn(['ar."routeId"']);
-    builder.orderBy('ar."routeId"');
-    builder.addOrderBy('ar."ascentType"'); // note: ascentType is an enum ordered by most valued ascent type (ie onsight) toward least valued (ie t_attempt)
+    builder.distinctOn(['ar.route_id']);
+    builder.orderBy('ar.route_id');
+    builder.addOrderBy('ar.ascent_type'); // note: ascentType is an enum ordered by most valued ascent type (ie onsight) toward least valued (ie t_attempt)
 
     if (params.userId != null) {
-      builder.andWhere('ar."userId" = :userId', {
+      builder.andWhere('ar.user_id = :userId', {
         userId: params.userId,
       });
     }
 
     if (params.cragId != null) {
-      builder.innerJoin('route', 'route', 'ar."routeId" = route.id');
-      builder.andWhere('route."cragId" = :cragId', {
+      builder.innerJoin('route', 'route', 'ar.route_id = route.id');
+      builder.andWhere('route.crag_id = :cragId', {
         cragId: params.cragId,
       });
     }
@@ -575,27 +417,27 @@ export class ActivityRoutesService {
     builder
       .addSelect('DATE(ar.date) AS ardate')
       .addSelect(
-        "(r.difficulty + (ar.ascentType='onsight')::int * 100 + (ar.ascentType='flash')::int * 50) as score",
+        "(r.difficulty + (ar.ascent_type='onsight')::int * 100 + (ar.ascent_type='flash')::int * 50) as score",
       )
-      .innerJoin('route', 'r', 'ar.routeId = r.id')
+      .innerJoin('route', 'r', 'ar.route_id = r.id')
       .innerJoin('crag', 'c', 'r.cragId = c.id')
       // .distinctOn(['ardate', 'ar.userId']) // use this if you want to return only one (best) ascent per user per day
-      .where('ar.ascentType IN (:...aTypes)', {
+      .where('ar.ascent_type IN (:...aTypes)', {
         aTypes: [...firstTickAscentTypes],
       })
       .andWhere('ar.publish IN (:...publish)', {
         publish: ['log', 'public'], // public is public, log is 'javno na mojem profilu'
       })
-      .andWhere('ar.routeId IS NOT NULL') // TODO: what are activity routes with no route id??
+      .andWhere('ar.route_id IS NOT NULL') // TODO: what are activity routes with no route id??
       .andWhere('r.difficulty IS NOT NULL') // TODO: entries with null values for grade? -> multipitch? - skip for now
-      .andWhere("r.publishStatus = 'published'") // only show ticks for published routes
+      .andWhere("r.publish_status = 'published'") // only show ticks for published routes
       .orderBy('ardate', 'DESC')
-      .addOrderBy('ar.userId', 'DESC')
+      .addOrderBy('ar.user_id', 'DESC')
       .addOrderBy('score', 'DESC')
-      .addOrderBy('ar.ascentType', 'ASC');
+      .addOrderBy('ar.ascent_type', 'ASC');
 
     if (!showHiddenCrags) {
-      builder.andWhere('c.isHidden = false'); // don't show hidden crags
+      builder.andWhere('c.is_hidden = false'); // don't show hidden crags
     }
 
     if (inLastNDays) {
@@ -656,17 +498,17 @@ export class ActivityRoutesService {
   ): SelectQueryBuilder<ActivityRoute> {
     const builder = this.activityRoutesRepository.createQueryBuilder('ar');
 
-    builder.innerJoin('route', 'r', 'r.id = ar."routeId"');
+    builder.innerJoin('route', 'r', 'r.id = ar.route_id');
     builder.addSelect('r.difficulty');
 
-    builder.leftJoin('pitch', 'p', 'p.id = ar."pitchId"');
+    builder.leftJoin('pitch', 'p', 'p.id = ar.pitch_id');
     builder.addSelect('p.difficulty');
     builder.addSelect('coalesce(p.difficulty, r.difficulty)', 'difficulty');
 
     // TODO: this is inclomplete --> we should define scoring for all possible ascent types!
     // TODO: how to DRY this and calclulateScore bellow?
     builder.addSelect(
-      "(r.difficulty + (ar.ascentType='onsight')::int * 100 + (ar.ascentType='flash')::int * 50) as score",
+      "(r.difficulty + (ar.ascent_type='onsight')::int * 100 + (ar.ascent_type='flash')::int * 50) as score",
     );
 
     if (params.orderBy != null) {
@@ -686,21 +528,21 @@ export class ActivityRoutesService {
     }
 
     if (params.cragId != null) {
-      builder.innerJoin('route', 'route', 'ar."routeId" = route.id');
-      builder.andWhere('route."cragId" = :cragId', {
+      builder.innerJoin('route', 'route', 'ar.route_id = route.id');
+      builder.andWhere('route.crag_id = :cragId', {
         cragId: params.cragId,
       });
     }
 
     // TODO: should we rename this to forUserId?
     if (params.userId != null) {
-      builder.andWhere('ar."userId" = :userId', {
+      builder.andWhere('ar.user_id = :userId', {
         userId: params.userId,
       });
     }
 
     if (params.ascentType != null) {
-      builder.andWhere('ar."ascentType" IN (:...ascentType)', {
+      builder.andWhere('ar.ascent_type IN (:...ascentType)', {
         ascentType: params.ascentType,
       });
     }
@@ -720,11 +562,11 @@ export class ActivityRoutesService {
     }
 
     if (params.routeId != null) {
-      builder.andWhere('ar."routeId" = :routeId', { routeId: params.routeId });
+      builder.andWhere('ar.route_id = :routeId', { routeId: params.routeId });
     }
 
     if (params.activityId != null) {
-      builder.andWhere('ar."activityId" = :activityId', {
+      builder.andWhere('ar.activity_id = :activityId', {
         activityId: params.activityId,
       });
     }
@@ -737,11 +579,11 @@ export class ActivityRoutesService {
       });
 
       // Allow showing only published routes (no drafts or in_reviews)
-      builder.andWhere('r."publishStatus" = \'published\'');
+      builder.andWhere("r.publish_status = 'published'");
     } else {
       // Allow showing users own ascents and all public ascents
       builder.andWhere(
-        '(ar."userId" = :userId OR ar."publish" IN (:...publish))',
+        '(ar.user_id = :userId OR ar."publish" IN (:...publish))',
         {
           userId: currentUser.id,
           publish: ['log', 'public'],
@@ -752,13 +594,13 @@ export class ActivityRoutesService {
       if (currentUser.isAdmin()) {
         // Allow showing only published and in_review routes and also own drafts
         builder.andWhere(
-          '(r."publishStatus" IN (\'published\', \'in_review\') OR (r."publishStatus" = \'draft\' AND ar."userId" = :userId))',
+          "(r.publish_status IN ('published', 'in_review') OR (r.publish_status = 'draft' AND ar.user_id = :userId))",
           { userId: currentUser.id },
         );
       } else {
         // Allow showing only published routes and also own drafts and in_reviews
         builder.andWhere(
-          '(r."publishStatus" = \'published\' OR (r."publishStatus" IN (\'draft\', \'in_review\') AND ar."userId" = :userId))',
+          "(r.publish_status = 'published' OR (r.publish_status IN ('draft', 'in_review') AND ar.user_id = :userId))",
           { userId: currentUser.id },
         );
       }
@@ -807,8 +649,8 @@ export class ActivityRoutesService {
     const nrAscentsLeft = await queryRunner.manager
       .createQueryBuilder(ActivityRoute, 'ar')
       .select('count(*)')
-      .where('ar."routeId" = :routeId', { routeId: activityRoute.routeId })
-      .andWhere('ar."userId" = :userId', { userId: activityRoute.userId })
+      .where('ar.route_id = :routeId', { routeId: activityRoute.routeId })
+      .andWhere('ar.user_id = :userId', { userId: activityRoute.userId })
       .getRawOne();
 
     if (nrAscentsLeft.count == 0) {
@@ -850,7 +692,7 @@ export class ActivityRoutesService {
     const starRatingVoteCounts = await queryRunner.manager
       .createQueryBuilder(StarRatingVote, 'srv')
       .select(['count(srv.stars) as count', 'srv.stars as stars'])
-      .where('srv."routeId" = :routeId', { routeId: route.id })
+      .where('srv.route_id = :routeId', { routeId: route.id })
       .groupBy('stars')
       .getRawMany();
 
@@ -882,7 +724,9 @@ export class ActivityRoutesService {
       route.starRating = mostVotedStar;
     }
 
-    await queryRunner.manager.save(route);
+    await queryRunner.manager.update(Route, route.id, {
+      starRating: route.starRating,
+    });
   }
 
   // TODO: this is inclomplete --> we chould define scoring for all possible ascent types!

@@ -174,19 +174,19 @@ export class CommentsService {
       .leftJoin(
         'route',
         'r',
-        "co.routeId = r.id AND r.publishStatus = 'published'",
+        "co.route_id = r.id AND r.publish_status = 'published'",
       )
       .leftJoin(
         'crag',
         'cr',
-        "COALESCE(co.cragId, r.cragId) = cr.id AND cr.publishStatus = 'published'",
+        "COALESCE(co.crag_id, r.crag_id) = cr.id AND cr.publish_status = 'published'",
       )
       .where('co.type = :type', { type: 'warning' })
-      .andWhere('"exposedUntil" > NOW()')
+      .andWhere('exposed_until > NOW()')
       .orderBy('co.updated', 'DESC');
 
     if (!showHiddenCrags) {
-      builder.andWhere('cr.isHidden = false');
+      builder.andWhere('cr.is_hidden = false');
     }
 
     return builder.getMany();

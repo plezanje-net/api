@@ -38,41 +38,25 @@ export class Country extends BaseEntity {
   @UpdateDateColumn()
   updated: Date;
 
-  @Column({ nullable: true })
+  @Column({ nullable: true, select: false })
   legacy: string;
 
-  @OneToMany(
-    () => Crag,
-    crag => crag.country,
-    { nullable: true },
-  )
+  @OneToMany(() => Crag, (crag) => crag.country, { nullable: true })
   @Field(() => [Crag])
   crags: Promise<Crag[]>;
 
-  @OneToMany(
-    () => Area,
-    area => area.country,
-    { nullable: true },
-  )
+  @OneToMany(() => Area, (area) => area.country, { nullable: true })
   @Field(() => [Area])
   areas: Promise<Area[]>;
 
-  @OneToMany(
-    () => Peak,
-    peak => peak.country,
-    { nullable: true },
-  )
+  @OneToMany(() => Peak, (peak) => peak.country, { nullable: true })
   @Field(() => [Peak])
   peaks: Promise<Peak[]>;
 
-  @Field(type => Int)
+  @Field((type) => Int)
   nrPeaks: number;
 
-  @OneToMany(
-    () => IceFall,
-    iceFall => iceFall.country,
-    { nullable: true },
-  )
+  @OneToMany(() => IceFall, (iceFall) => iceFall.country, { nullable: true })
   @Field(() => [IceFall])
   iceFalls: Promise<IceFall[]>;
 
