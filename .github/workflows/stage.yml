@@ -1,0 +1,32 @@
+name: deploy
+on:
+  push:
+    branches:
+      - stage
+jobs:
+  deploy:
+    runs-on: stage
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v3
+      - name: Use Node 16.x
+        uses: actions/setup-node@v1
+        with:
+          node-version: '16.x'
+      - name: List files in the repository
+        run: |
+          ls ${{ github.workspace }}
+      - name: Install and deploy
+        run: |
+          npm install
+          npm run build
+          sudo supervisorctl stop api-stage
+          rm -rf /var/www/plezanjenet/stage/api/*
+          cp -r ./ /var/www/plezanjenet/stage/api/
+          cp /var/www/plezanjenet/stage/.env /var/www/plezanjenet/stage/api/.env
+      - name: Run database migrations
+        run: |
+          cd /var/www/plezanjenet/stage/api && npm run migration:run
+      - name: Start server
+        run: |
+          sudo supervisorctl start api-stage

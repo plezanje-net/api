@@ -53,9 +53,6 @@ import { RouteProperty } from './entities/route-property.entity';
 import { CragProperty } from './entities/crag-property.entity';
 import { IceFallProperty } from './entities/ice-fall-property.entity';
 import { EntityPropertiesService } from './services/entity-properties.service';
-import { RouteNrTicksLoader } from './loaders/route-nr-ticks.loader';
-import { RouteNrTriesLoader } from './loaders/route-nr-tries.loader';
-import { RouteNrClimbersLoader } from './loaders/route-nr-climbers.loader';
 import { NotificationService } from '../notification/services/notification.service';
 import { MailService } from '../notification/services/mail.service';
 import { ConfigService } from '@nestjs/config';
@@ -66,6 +63,8 @@ import { SectorRoutesLoader } from './loaders/sector-routes.loader';
 import { UploadController } from './controllers/upload/upload.controller';
 import { Activity } from '../activities/entities/activity.entity';
 import { ActivityRoute } from '../activities/entities/activity-route.entity';
+import { BullModule } from '@nestjs/bull';
+import { SummaryQueueConsumer } from './consumers/summary-queue.consumer';
 
 @Module({
   imports: [
@@ -93,6 +92,9 @@ import { ActivityRoute } from '../activities/entities/activity-route.entity';
       StarRatingVote,
     ]),
     AuditModule,
+    BullModule.registerQueue({
+      name: 'summary',
+    }),
   ],
   providers: [
     CragsResolver,
@@ -120,9 +122,6 @@ import { ActivityRoute } from '../activities/entities/activity-route.entity';
     GradingSystemLoader,
     RouteTypeLoader,
     CountryLoader,
-    RouteNrTicksLoader,
-    RouteNrTriesLoader,
-    RouteNrClimbersLoader,
     SectorRoutesLoader,
     DifficultyVotesService,
     GradingSystemsResolver,
@@ -135,6 +134,7 @@ import { ActivityRoute } from '../activities/entities/activity-route.entity';
     EntityPropertiesService,
     NotificationService,
     MailService,
+    SummaryQueueConsumer,
     ConfigService,
   ],
   controllers: [UploadController],

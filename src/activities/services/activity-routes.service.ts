@@ -22,7 +22,6 @@ import {
   tickAscentTypes,
   firstTickAscentTypes,
   trTickAscentTypes,
-  firstTrTickAscentTypes,
 } from '../entities/activity-route.entity';
 import { Activity } from '../entities/activity.entity';
 import { PaginatedActivityRoutes } from '../utils/paginated-activity-routes.class';
@@ -41,7 +40,6 @@ import {
   isTick,
   isTrTick,
 } from '../../crags/utils/convert-ascents';
-
 @Injectable()
 export class ActivityRoutesService {
   constructor(

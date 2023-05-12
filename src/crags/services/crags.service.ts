@@ -20,6 +20,8 @@ import {
   updateUserContributionsFlag,
 } from '../../core/utils/contributable-helpers';
 import { setBuilderCache } from '../../core/utils/entity-cache/entity-cache-helpers';
+import { Queue } from 'bull';
+import { InjectQueue } from '@nestjs/bull';
 
 @Injectable()
 export class CragsService {
@@ -30,6 +32,7 @@ export class CragsService {
     protected cragsRepository: Repository<Crag>,
     @InjectRepository(Country)
     private countryRepository: Repository<Country>,
+    @InjectQueue('summary') private summaryQueue: Queue,
     private dataSource: DataSource,
   ) {}
 
@@ -64,6 +67,20 @@ export class CragsService {
     return crags;
   }
 
+  async processAllCrags() {
+    (
+      await this.cragsRepository.find({
+        select: ['id'],
+      })
+    ).forEach(async ({ id, routes }) => {
+      this.summaryQueue.add({ cragId: id }, { removeOnComplete: true });
+
+      (await routes).forEach(({ id }) => {
+        this.summaryQueue.add({ routeId: id }, { removeOnComplete: true });
+      });
+    });
+  }
+
   async create(data: CreateCragInput, user: User): Promise<Crag> {
     const crag = new Crag();
 
@@ -94,6 +111,13 @@ export class CragsService {
       crag,
       await crag.user,
       data.cascadePublishStatus ? previousPublishStatus : null,
+    );
+
+    await this.summaryQueue.add(
+      {
+        cragId: crag.id,
+      },
+      { removeOnComplete: true, removeOnFail: true },
     );
 
     return Promise.resolve(crag);
@@ -291,7 +315,7 @@ export class CragsService {
     return popularCrags;
   }
 
-  async getAcitivityByMonth(crag: Crag): Promise<number[]> {
+  async getActivityByMonth(crag: Crag): Promise<number[]> {
     const builder = this.routesRepository
       .createQueryBuilder('r')
       .select([
