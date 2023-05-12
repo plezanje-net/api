@@ -94,7 +94,7 @@ export class ActivityRoutesService {
 
     activityRoute.user = Promise.resolve(user);
 
-    const route = await queryRunner.manager.findOneByOrFail(Route, {
+    let route = await queryRunner.manager.findOneByOrFail(Route, {
       id: routeIn.routeId,
     });
 
@@ -180,10 +180,25 @@ export class ActivityRoutesService {
       await queryRunner.manager.save(difficultyVote);
     }
 
-    // recalculate all orderScore and rankingScore fields for all activity routes of this route (including this route)
-    // (below function refetches this rotue from db which is ok, since it's difficulty might have been changed by a trigger)
+    // recalculate all orderScore and rankingScore fields for all other activity routes of this route
     await this.recalculateActivityRoutesScores(routeIn.routeId, queryRunner);
     // TODO: above recalculation should be placed into queue rather than done synchronously here
+
+    // TODO: after above recalc is moved into q this will not be neccessary because recalc will happen after this transaction (and will include this ar)
+    // but for now we need refetch the route of the current activity route because the trigger might have changed the difficulty
+    route = await queryRunner.manager.findOneBy(Route, {
+      id: routeIn.routeId,
+    });
+    activityRoute.orderScore = this.calculateScore(
+      route.difficulty,
+      activityRoute.ascentType,
+      'order',
+    );
+    activityRoute.rankingScore = this.calculateScore(
+      route.difficulty,
+      activityRoute.ascentType,
+      'ranking',
+    );
 
     // if a vote on star rating (route beauty) is passed add a new star rating vote or update existing one
     if (routeIn.votedStarRating || routeIn.votedStarRating === 0) {
@@ -509,12 +524,6 @@ export class ActivityRoutesService {
     builder.leftJoin('pitch', 'p', 'p.id = ar.pitch_id');
     builder.addSelect('p.difficulty');
     builder.addSelect('coalesce(p.difficulty, r.difficulty)', 'difficulty');
-
-    // TODO: this is inclomplete --> we should define scoring for all possible ascent types!
-    // TODO: how to DRY this and calclulateScore bellow?
-    builder.addSelect(
-      "(r.difficulty + (ar.ascent_type='onsight')::int * 100 + (ar.ascent_type='flash')::int * 50) as score",
-    );
 
     if (params.orderBy != null) {
       builder.orderBy(
