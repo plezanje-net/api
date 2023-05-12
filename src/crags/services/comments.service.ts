@@ -143,21 +143,25 @@ export class CommentsService {
 
     queryBuilder.orderBy('co.updated', 'DESC');
 
-    const allComments = await queryBuilder.getMany();
+    const countQuery = queryBuilder
+      .clone()
+      .select('COUNT(*)', 'count')
+      .orderBy(null);
 
-    const latestComments = allComments.slice(
-      latestCommentsInput.pageSize * (latestCommentsInput.pageNumber - 1),
-      latestCommentsInput.pageSize * latestCommentsInput.pageNumber,
-    );
+    const itemCount = await countQuery.getRawOne();
 
     const pagination = new PaginationMeta(
-      allComments.length,
+      itemCount.count,
       latestCommentsInput.pageNumber,
       latestCommentsInput.pageSize,
     );
 
+    queryBuilder
+      .offset(pagination.pageSize * (pagination.pageNumber - 1))
+      .limit(pagination.pageSize);
+
     return {
-      items: latestComments,
+      items: await queryBuilder.getMany(),
       meta: pagination,
     };
   }
