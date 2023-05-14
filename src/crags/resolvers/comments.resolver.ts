@@ -25,6 +25,8 @@ import {
   Loader,
 } from '../../core/interceptors/data-loader.interceptor';
 import DataLoader from 'dataloader';
+import { PaginatedComments } from '../utils/paginated-comments';
+import { LatestCommentsInput } from '../dtos/latest-comments.input';
 
 @Resolver(() => Comment)
 @UseInterceptors(DataLoaderInterceptor)
@@ -88,5 +90,16 @@ export class CommentsResolver {
   @Query((returns) => [Comment], { name: 'exposedWarnings' })
   getExposedWarnings(@CurrentUser() user: User) {
     return this.commentsService.getExposedWarnings(user != null);
+  }
+
+  @AllowAny()
+  @UseGuards(UserAuthGuard)
+  @Query((returns) => PaginatedComments, { name: 'latestComments' })
+  getLatestComments(
+    @Args('input', { type: () => LatestCommentsInput })
+    input: LatestCommentsInput,
+    @CurrentUser() currentUser: User,
+  ) {
+    return this.commentsService.getLatestComments(input, currentUser);
   }
 }

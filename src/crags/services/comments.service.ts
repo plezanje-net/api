@@ -8,6 +8,9 @@ import { UpdateCommentInput } from '../dtos/update-comment';
 import { Comment } from '../entities/comment.entity';
 import { Crag } from '../entities/crag.entity';
 import { IceFall } from '../entities/ice-fall.entity';
+import { PaginationMeta } from '../../core/utils/pagination-meta.class';
+import { PaginatedComments } from '../utils/paginated-comments';
+import { LatestCommentsInput } from '../dtos/latest-comments.input';
 
 @Injectable()
 export class CommentsService {
@@ -74,7 +77,10 @@ export class CommentsService {
     return this.commentsRepository.remove(comment).then(() => true);
   }
 
-  find(params: FindCommentsInput = {}): Promise<Comment[]> {
+  async find(
+    params: FindCommentsInput = {},
+    currentUser: User,
+  ): Promise<Comment[]> {
     const options: FindManyOptions = {
       order: {},
       where: {},
@@ -96,9 +102,68 @@ export class CommentsService {
       options.where['type'] = params.type;
     }
 
+    if (!currentUser) {
+      options.relations = {
+        crag: true,
+      };
+      options.where['crag'] = {
+        isHidden: false,
+      };
+    }
+
     options.order = { created: 'DESC' };
 
-    return this.commentsRepository.find(options);
+    let comments = await this.commentsRepository.find(options);
+
+    return comments;
+  }
+
+  async getLatestComments(
+    latestCommentsInput: LatestCommentsInput,
+    currentUser: User,
+  ): Promise<PaginatedComments> {
+    const queryBuilder = this.commentsRepository.createQueryBuilder('co');
+
+    queryBuilder
+      .leftJoin(
+        'route',
+        'r',
+        "co.routeId = r.id AND r.publishStatus = 'published'",
+      )
+      .leftJoin(
+        'crag',
+        'cr',
+        "COALESCE(co.cragId, r.cragId) = cr.id AND cr.publishStatus = 'published'",
+      )
+      .where("cr.publishStatus = 'published'");
+
+    if (!currentUser) {
+      queryBuilder.andWhere('cr.isHidden = false');
+    }
+
+    queryBuilder.orderBy('co.updated', 'DESC');
+
+    const countQuery = queryBuilder
+      .clone()
+      .select('COUNT(*)', 'count')
+      .orderBy(null);
+
+    const itemCount = await countQuery.getRawOne();
+
+    const pagination = new PaginationMeta(
+      itemCount.count,
+      latestCommentsInput.pageNumber,
+      latestCommentsInput.pageSize,
+    );
+
+    queryBuilder
+      .offset(pagination.pageSize * (pagination.pageNumber - 1))
+      .limit(pagination.pageSize);
+
+    return {
+      items: await queryBuilder.getMany(),
+      meta: pagination,
+    };
   }
 
   /**
