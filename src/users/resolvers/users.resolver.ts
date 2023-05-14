@@ -56,18 +56,6 @@ export class UsersResolver {
     return this.usersService.findAll();
   }
 
-  // TODO: auth?
-  @Query((returns) => User)
-  async user(
-    @Args('email') email: string,
-    @Args('id', { nullable: true }) id: string,
-  ): Promise<User> {
-    if (id) {
-      return this.usersService.findOneById(id);
-    }
-    return this.usersService.findOneByEmail(email);
-  }
-
   /* MUTATIONS */
 
   @Mutation(() => Boolean)
