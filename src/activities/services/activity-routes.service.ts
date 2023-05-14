@@ -22,7 +22,6 @@ import {
   tickAscentTypes,
   firstTickAscentTypes,
   trTickAscentTypes,
-  firstTrTickAscentTypes,
 } from '../entities/activity-route.entity';
 import { Activity } from '../entities/activity.entity';
 import { PaginatedActivityRoutes } from '../utils/paginated-activity-routes.class';
@@ -41,6 +40,10 @@ import {
   isTick,
   isTrTick,
 } from '../../crags/utils/convert-ascents';
+import {
+  calculateScore,
+  recalculateActivityRoutesScores,
+} from '../../crags/utils/calculate-scores';
 
 @Injectable()
 export class ActivityRoutesService {
@@ -181,7 +184,8 @@ export class ActivityRoutesService {
     }
 
     // recalculate all orderScore and rankingScore fields for all other activity routes of this route
-    await this.recalculateActivityRoutesScores(routeIn.routeId, queryRunner);
+    await recalculateActivityRoutesScores(routeIn.routeId, queryRunner);
+    // await this.recalculateActivityRoutesScores(routeIn.routeId, queryRunner);
     // TODO: above recalculation should be placed into queue rather than done synchronously here
 
     // TODO: after above recalc is moved into q this will not be neccessary because recalc will happen after this transaction (and will include this ar)
@@ -189,12 +193,12 @@ export class ActivityRoutesService {
     route = await queryRunner.manager.findOneBy(Route, {
       id: routeIn.routeId,
     });
-    activityRoute.orderScore = this.calculateScore(
+    activityRoute.orderScore = calculateScore(
       route.difficulty,
       activityRoute.ascentType,
       'order',
     );
-    activityRoute.rankingScore = this.calculateScore(
+    activityRoute.rankingScore = calculateScore(
       route.difficulty,
       activityRoute.ascentType,
       'ranking',
@@ -690,91 +694,10 @@ export class ActivityRoutesService {
     // after the activity route has been removed, the difficulty vote also might have been removed by a trigger.
     // if so, then the calculated difficulty might have changed, which in turn changes the scores fields of the activity route
     // that means that we need to recalculate all orderScore and rankingScore fields for this and all other activity routes of this route
-    await this.recalculateActivityRoutesScores(
-      activityRoute.routeId,
-      queryRunner,
-    );
+    await recalculateActivityRoutesScores(activityRoute.routeId, queryRunner);
     // TODO: move calculation to queue
 
     return true;
-  }
-
-  /**
-   * Given a rotue id, get all activity routes for the route and recalculate the fields orderScore and rankingScore
-   */
-  private async recalculateActivityRoutesScores(
-    routeId: string,
-    queryRunner: QueryRunner,
-  ) {
-    const otherActivityRoutes = await queryRunner.manager.findBy(
-      ActivityRoute,
-      { routeId },
-    );
-    const route = await queryRunner.manager.findOneBy(Route, { id: routeId });
-
-    for (const otherActivityRoute of otherActivityRoutes) {
-      otherActivityRoute.orderScore = this.calculateScore(
-        route.difficulty,
-        otherActivityRoute.ascentType,
-        'order',
-      );
-      otherActivityRoute.rankingScore = this.calculateScore(
-        route.difficulty,
-        otherActivityRoute.ascentType,
-        'ranking',
-      );
-      await queryRunner.manager.save(otherActivityRoute);
-    }
-  }
-
-  /**
-   * returns calculated score based on route's difficulty and ar's ascent type
-   * @param difficulty
-   * @param ascentType
-   * @param scoreType
-   * @returns either orderScore or rankingScore
-   */
-  calculateScore(
-    difficulty: number,
-    ascentType: AscentType,
-    scoreType: 'order' | 'ranking',
-  ): number {
-    // only first (lead) ticks count towards ranking
-    const scoreTypeFactor = scoreType === 'order' ? 1 : 0;
-
-    switch (ascentType) {
-      case AscentType.ONSIGHT:
-        return difficulty + 100;
-      case AscentType.FLASH:
-        return difficulty + 50;
-      case AscentType.REDPOINT:
-        return difficulty;
-      case AscentType.REPEAT:
-        return (difficulty - 10) * scoreTypeFactor;
-      case AscentType.ALLFREE:
-        return difficulty * 0.01 * scoreTypeFactor;
-      case AscentType.AID:
-        return difficulty * 0.001 * scoreTypeFactor;
-      case AscentType.ATTEMPT:
-        return difficulty * 0.0001 * scoreTypeFactor;
-      case AscentType.T_ONSIGHT:
-        return (difficulty + 100) * 0.0001 * scoreTypeFactor;
-      case AscentType.T_FLASH:
-        return (difficulty + 50) * 0.0001 * scoreTypeFactor;
-      case AscentType.T_REDPOINT:
-        return difficulty * 0.0001 * scoreTypeFactor;
-      case AscentType.T_REPEAT:
-        return (difficulty - 10) * 0.0001 * scoreTypeFactor;
-      case AscentType.T_ALLFREE:
-        return difficulty * 0.01 * 0.0001 * scoreTypeFactor;
-      case AscentType.T_AID:
-        return difficulty * 0.001 * 0.0001 * scoreTypeFactor;
-      case AscentType.T_ATTEMPT:
-        return difficulty * 0.0001 * 0.0001 * scoreTypeFactor;
-      case AscentType.TICK:
-        // TODO: what is TICK ascent type, and is it even used?? prob not, 1 ar in db... suggest removal, discuss
-        return 0;
-    }
   }
 
   /**
