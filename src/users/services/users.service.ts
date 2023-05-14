@@ -101,6 +101,7 @@ export class UsersService {
     user.passwordToken = null;
     user.lastPasswordChange = new Date();
     user.password = await bcrypt.hash(password, 10);
+    user.isActive = true; // reset link also counts as a user email confirmation, so set user to active (in case that confirmation email was never clicked when registering)
 
     return this.usersRepository.save(user).then(() => true);
   }

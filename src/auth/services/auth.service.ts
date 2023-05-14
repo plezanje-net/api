@@ -70,9 +70,9 @@ export class AuthService {
       return null;
     }
 
-    const userRoles = (await user.roles).map(r => r.role);
+    const userRoles = (await user.roles).map((r) => r.role);
 
-    if (roles.filter(r => !userRoles.includes(r)).length > 0) {
+    if (roles.filter((r) => !userRoles.includes(r)).length > 0) {
       return null;
     }
 
