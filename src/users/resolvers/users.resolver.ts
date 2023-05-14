@@ -57,7 +57,7 @@ export class UsersResolver {
   }
 
   // TODO: auth?
-  @Query(returns => User)
+  @Query((returns) => User)
   async user(
     @Args('email') email: string,
     @Args('id', { nullable: true }) id: string,
@@ -152,7 +152,7 @@ export class UsersResolver {
     return user.firstname + ' ' + user.lastname;
   }
 
-  @ResolveField('clubs', returns => [ClubMember])
+  @ResolveField('clubs', (returns) => [ClubMember])
   async getClubs(
     @Parent() user: User,
     @CurrentUser() currentUser: User,
