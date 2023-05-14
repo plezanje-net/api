@@ -15,6 +15,7 @@ import {
   isTick,
   isTrTick,
 } from './convert-ascents';
+import { recalculateActivityRoutesScores } from './calculate-scores';
 
 async function mergeRoutes(
   route: Route,
@@ -40,6 +41,12 @@ async function mergeRoutes(
   await transferComments(sourceRoute.id, targetRoute.id, transaction);
 
   await transferRouteProperties(sourceRoute.id, targetRoute.id, transaction);
+
+  // recalculate scores of all activity routes whose route has been updated
+  await recalculateActivityRoutesScores(
+    targetRoute.id,
+    transaction.queryRunner,
+  );
 
   await transaction.delete(sourceRoute);
 
