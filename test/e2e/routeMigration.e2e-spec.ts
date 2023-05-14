@@ -7,7 +7,10 @@ import { initializeDbConn, prepareEnvironment, seedDatabase } from './helpers';
 import { INestApplication } from '@nestjs/common';
 import { CragsModule } from '../../src/crags/crags.module';
 import { ActivityType } from '../../src/activities/entities/activity.entity';
-import { AscentType } from '../../src/activities/entities/activity-route.entity';
+import {
+  AscentType,
+  PublishType,
+} from '../../src/activities/entities/activity-route.entity';
 
 describe('RouteMigration', () => {
   let app: INestApplication;
@@ -54,10 +57,10 @@ describe('RouteMigration', () => {
         `,
     );
     await queryRunner.query(
-      `INSERT INTO activity_route (ascent_type, publish, activity_id, route_id, user_id, date)
+      `INSERT INTO activity_route (ascent_type, publish, activity_id, route_id, user_id, date, order_score, ranking_score)
         VALUES
-          ('${AscentType.ONSIGHT}', 'log', '${mockData.activities.activityAcrossSectors.id}', '${mockData.crags.cragWithMultipleSectors.sectors.firstSector.routes.firstRoute.id}', '${mockData.users.basicUser1.id}', '${mockData.activities.activityAcrossSectors.date}'),
-          ('${AscentType.ONSIGHT}', 'log', '${mockData.activities.activityWithDuplicateRoute.id}', '${mockData.crags.cragWithMultipleSectors.sectors.secondSector.routes.firstRoute.id}', '${mockData.users.basicUser1.id}', '${mockData.activities.activityWithDuplicateRoute.date}')
+          ('${AscentType.ONSIGHT}', 'log', '${mockData.activities.activityAcrossSectors.id}', '${mockData.crags.cragWithMultipleSectors.sectors.firstSector.routes.firstRoute.id}', '${mockData.users.basicUser1.id}', '${mockData.activities.activityAcrossSectors.date}', 1000, 1000),
+          ('${AscentType.ONSIGHT}', 'log', '${mockData.activities.activityWithDuplicateRoute.id}', '${mockData.crags.cragWithMultipleSectors.sectors.secondSector.routes.firstRoute.id}', '${mockData.users.basicUser1.id}', '${mockData.activities.activityWithDuplicateRoute.date}', 1000, 1000)
           `,
     );
 
@@ -200,6 +203,182 @@ describe('RouteMigration', () => {
     expect(routeProperties.length).toBe(2);
     expect(routeProperties[0].string_value).toBe('First first ascensionist');
     expect(routeProperties[1].num_value).toBe(5);
+  });
+
+  it('should recalculate acivity route score if route merged', async () => {
+    // Part A:
+    // log a route
+    // merge another route with a different difficulty into this one
+    // check if scores for the log from first step have changed properly
+    // Part B:
+    // vice versa: keep target route when merging
+
+    const mockRoutes = mockData.crags.simpleCrag.sectors.simpleSector1.routes;
+
+    // Part A
+    // log a route (with diff 1000)
+    const logResponse = await request(app.getHttpServer())
+      .post('/graphql')
+      .set('Authorization', `Bearer ${mockData.users.basicUser1.authToken}`)
+      .send({
+        query: `
+          mutation {
+            createActivity(
+              input: {
+                date: "2017-03-07"
+                name: "test",
+                type: "${ActivityType.CRAG}",
+                cragId: "${mockData.crags.simpleCrag.id}"
+              },
+              routes: [
+                {
+                  ascentType: "${AscentType.ONSIGHT}",
+                  publish: "${PublishType.PUBLIC}",
+                  date: "2017-03-07",
+                  routeId: "${mockRoutes[0].id}"
+                }                
+              ]
+            )
+            {
+              id
+            }
+          }
+        `,
+      })
+      .expect(200);
+
+    const activityId = logResponse.body.data.createActivity.id;
+
+    // merge another route (with diff 2000) into the just logged route
+    await request(app.getHttpServer())
+      .post('/graphql')
+      .set('Authorization', `Bearer ${mockData.users.editorUser.authToken}`)
+      .send({
+        query: `
+        mutation {
+          moveRouteToSector(input: {
+            id: "${mockData.crags.simpleCrag.sectors.simpleSector1.routes[10].id}",
+            sectorId: "${mockData.crags.simpleCrag.sectors.simpleSector1.id}",
+            targetRouteId: "${mockData.crags.simpleCrag.sectors.simpleSector1.routes[0].id}",
+            primaryRoute: "source"
+          })
+        }
+      `,
+      })
+      .expect(200);
+
+    const queryResponse = await request(app.getHttpServer())
+      .post('/graphql')
+      .set('Authorization', `Bearer ${mockData.users.basicUser1.authToken}`)
+      .send({
+        query: `query {
+                  activity(id: "${activityId}") {
+                    routes {
+                      id
+                      ascentType
+                      orderScore
+                      rankingScore
+                      route {
+                        id
+                        difficulty
+                      }
+                    }
+                  }
+                }
+      `,
+      })
+      .expect(200);
+
+    // check that ar scores have been properly recalculated
+    expect(queryResponse.body.data.activity.routes[0].orderScore).toBe(
+      mockRoutes[10].difficulty + 100,
+    );
+    expect(queryResponse.body.data.activity.routes[0].rankingScore).toBe(
+      mockRoutes[10].difficulty + 100,
+    );
+
+    // Part B
+    // check vice versa: logging a route that is then merged into another route
+    // log a route (with diff 1100)
+    const logResponse2 = await request(app.getHttpServer())
+      .post('/graphql')
+      .set('Authorization', `Bearer ${mockData.users.basicUser1.authToken}`)
+      .send({
+        query: `
+          mutation {
+            createActivity(
+              input: {
+                date: "2017-03-08"
+                name: "test",
+                type: "${ActivityType.CRAG}",
+                cragId: "${mockData.crags.simpleCrag.id}"
+              },
+              routes: [
+                {
+                  ascentType: "${AscentType.REDPOINT}",
+                  publish: "${PublishType.PUBLIC}",
+                  date: "2017-03-07",
+                  routeId: "${mockRoutes[1].id}"
+                }                
+              ]
+            )
+            {
+              id
+            }
+          }
+        `,
+      })
+      .expect(200);
+
+    const activityId2 = logResponse2.body.data.createActivity.id;
+
+    // merge another route (with diff 1900) with the just logged one, but keep the logged one as primary
+    await request(app.getHttpServer())
+      .post('/graphql')
+      .set('Authorization', `Bearer ${mockData.users.editorUser.authToken}`)
+      .send({
+        query: `
+        mutation {
+          moveRouteToSector(input: {
+            id: "${mockData.crags.simpleCrag.sectors.simpleSector1.routes[9].id}",
+            sectorId: "${mockData.crags.simpleCrag.sectors.simpleSector1.id}",
+            targetRouteId: "${mockData.crags.simpleCrag.sectors.simpleSector1.routes[1].id}",
+            primaryRoute: "target"
+          })
+        }
+      `,
+      })
+      .expect(200);
+
+    const queryResponse2 = await request(app.getHttpServer())
+      .post('/graphql')
+      .set('Authorization', `Bearer ${mockData.users.basicUser1.authToken}`)
+      .send({
+        query: `query {
+                  activity(id: "${activityId2}") {
+                    routes {
+                      id
+                      ascentType
+                      orderScore
+                      rankingScore
+                      route {
+                        id
+                        difficulty
+                      }
+                    }
+                  }
+                }
+      `,
+      })
+      .expect(200);
+
+    // check that ar scores have been properly recalculated - that is: stayed the same
+    expect(queryResponse2.body.data.activity.routes[0].orderScore).toBe(
+      mockRoutes[1].difficulty,
+    );
+    expect(queryResponse2.body.data.activity.routes[0].rankingScore).toBe(
+      mockRoutes[1].difficulty,
+    );
   });
 
   afterAll(async () => {

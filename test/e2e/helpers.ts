@@ -146,6 +146,115 @@ const seedDatabase = async (qr: QueryRunner, app) => {
           },
         },
       },
+      simpleCrag: {
+        id: '6dd8f080-f0d6-11ed-a05b-0242ac120003',
+        slug: 'simple-crah',
+        sectors: {
+          simpleSector1: {
+            id: '7cbd9204-f0d6-11ed-a05b-0242ac120003',
+            routes: [
+              // 0:
+              {
+                id: '9c1f82a6-f0d6-11ed-a05b-0242ac120003',
+                slug: '9c1f82a6-f0d6-11ed-a05b-0242ac120003',
+                name: '9c1f82a6-f0d6-11ed-a05b-0242ac120003',
+                difficulty: 1000,
+              },
+              // 1:
+              {
+                id: '9c1f89c2-f0d6-11ed-a05b-0242ac120003',
+                slug: '9c1f89c2-f0d6-11ed-a05b-0242ac120003',
+                name: '9c1f89c2-f0d6-11ed-a05b-0242ac120003',
+                difficulty: 1100,
+              },
+              // 2:
+              {
+                id: '9c1f8bac-f0d6-11ed-a05b-0242ac120003',
+                slug: '9c1f8bac-f0d6-11ed-a05b-0242ac120003',
+                name: '9c1f8bac-f0d6-11ed-a05b-0242ac120003',
+                difficulty: 1200,
+              },
+              // 3:
+              {
+                id: '9c1f8d46-f0d6-11ed-a05b-0242ac120003',
+                slug: '9c1f8d46-f0d6-11ed-a05b-0242ac120003',
+                name: '9c1f8d46-f0d6-11ed-a05b-0242ac120003',
+                difficulty: 1300,
+              },
+              // 4:
+              {
+                id: '9c1f8e68-f0d6-11ed-a05b-0242ac120003',
+                slug: '9c1f8e68-f0d6-11ed-a05b-0242ac120003',
+                name: '9c1f8e68-f0d6-11ed-a05b-0242ac120003',
+                difficulty: 1400,
+              },
+              // 5:
+              {
+                id: '9c1f8fa8-f0d6-11ed-a05b-0242ac120003',
+                slug: '9c1f8fa8-f0d6-11ed-a05b-0242ac120003',
+                name: '9c1f8fa8-f0d6-11ed-a05b-0242ac120003',
+                difficulty: 1500,
+              },
+              // 6:
+              {
+                id: '9c1f90d4-f0d6-11ed-a05b-0242ac120003',
+                slug: '9c1f90d4-f0d6-11ed-a05b-0242ac120003',
+                name: '9c1f90d4-f0d6-11ed-a05b-0242ac120003',
+                difficulty: 1600,
+              },
+              // 7:
+              {
+                id: '9c1f9200-f0d6-11ed-a05b-0242ac120003',
+                slug: '9c1f9200-f0d6-11ed-a05b-0242ac120003',
+                name: '9c1f9200-f0d6-11ed-a05b-0242ac120003',
+                difficulty: 1700,
+              },
+              // 8:
+              {
+                id: '9c1f9598-f0d6-11ed-a05b-0242ac120003',
+                slug: '9c1f9598-f0d6-11ed-a05b-0242ac120003',
+                name: '9c1f9598-f0d6-11ed-a05b-0242ac120003',
+                difficulty: 1800,
+              },
+              // 9:
+              {
+                id: '9c1f96ce-f0d6-11ed-a05b-0242ac120003',
+                slug: '9c1f96ce-f0d6-11ed-a05b-0242ac120003',
+                name: '9c1f96ce-f0d6-11ed-a05b-0242ac120003',
+                difficulty: 1900,
+              },
+              // 10:
+              {
+                id: '9c1f97f0-f0d6-11ed-a05b-0242ac120003',
+                slug: '9c1f97f0-f0d6-11ed-a05b-0242ac120003',
+                name: '9c1f97f0-f0d6-11ed-a05b-0242ac120003',
+                difficulty: 2000,
+              },
+              // 11:
+              {
+                id: '9c1f9926-f0d6-11ed-a05b-0242ac120003',
+                slug: '9c1f9926-f0d6-11ed-a05b-0242ac120003',
+                name: '9c1f9926-f0d6-11ed-a05b-0242ac120003',
+                difficulty: 2100,
+              },
+              // 12:
+              {
+                id: '9c1f9a5c-f0d6-11ed-a05b-0242ac120003',
+                slug: '9c1f9a5c-f0d6-11ed-a05b-0242ac120003',
+                name: '9c1f9a5c-f0d6-11ed-a05b-0242ac120003',
+                difficulty: 2200,
+              },
+              // 13:
+              {
+                id: '08a14a5e-f0d7-11ed-a05b-0242ac120003',
+                slug: '08a14a5e-f0d7-11ed-a05b-0242ac120003',
+                name: '08a14a5e-f0d7-11ed-a05b-0242ac120003',
+                difficulty: 2300,
+              },
+            ],
+          },
+        },
+      },
     },
   };
 
@@ -218,6 +327,11 @@ const seedDatabase = async (qr: QueryRunner, app) => {
     `INSERT INTO crag (id, name, slug, country_id, default_grading_system_id, type, publish_status, is_hidden, user_id)
     VALUES ('${mockData.crags.cragWithMultipleSectors.id}', 'Cre tata', '${mockData.crags.cragWithMultipleSectors.slug}', '${mockData.countries.slovenia.id}', 'french', 'sport', 'published', false, '${mockData.users.basicUser1.id}')`,
   );
+  // simple crag
+  await qr.query(
+    `INSERT INTO crag (id, name, slug, country_id, default_grading_system_id, type, publish_status, is_hidden, user_id)
+    VALUES ('${mockData.crags.simpleCrag.id}', 'Cragus simplus', '${mockData.crags.simpleCrag.slug}', '${mockData.countries.slovenia.id}', 'french', 'sport', 'published', false, '${mockData.users.basicUser1.id}')`,
+  );
 
   // Add some sectors
   // published sector in published crag
@@ -247,6 +361,11 @@ const seedDatabase = async (qr: QueryRunner, app) => {
       ('${mockData.crags.cragWithMultipleSectors.sectors.firstSector.id}', 'Ostajajoci sektor', 'A', 1, '${mockData.crags.cragWithMultipleSectors.id}', 'published'),
       ('${mockData.crags.cragWithMultipleSectors.sectors.secondSector.id}', 'Odhajajoci sektor', 'B', 2, '${mockData.crags.cragWithMultipleSectors.id}', 'published')
     `,
+  );
+  // simple sector 1 in simple crag
+  await qr.query(
+    `INSERT INTO sector (id, name, label, position, crag_id, publish_status)
+    VALUES ('${mockData.crags.simpleCrag.sectors.simpleSector1.id}', 'Secotrius simplicus', 'A', 1, '${mockData.crags.simpleCrag.id}', 'published')`,
   );
 
   // Add some routes
@@ -280,6 +399,25 @@ const seedDatabase = async (qr: QueryRunner, app) => {
       ('${mockData.crags.cragWithMultipleSectors.sectors.secondSector.routes.secondRoute.id}', 'Route Slug 87ca8c06', '11', 2, '${mockData.crags.cragWithMultipleSectors.sectors.secondSector.id}', '${mockData.crags.cragWithMultipleSectors.id}', 'sport', false, 'french', '200', '${mockData.crags.cragWithMultipleSectors.sectors.secondSector.routes.secondRoute.slug}', 'published')
     `,
   );
+  // all routes in a simple crag's sector1
+  for (const [
+    i,
+    route,
+  ] of mockData.crags.simpleCrag.sectors.simpleSector1.routes.entries()) {
+    await qr.query(
+      `INSERT INTO route (id, name, route_type_id, default_grading_system_id, position, crag_id, sector_id, difficulty)
+       VALUES (
+        '${route.id}',
+        '${route.name}',
+        'sport',
+        'french',
+        ${i + 1},
+        '${mockData.crags.simpleCrag.id}',
+        '${mockData.crags.simpleCrag.sectors.simpleSector1.id}',
+        ${route.difficulty}
+       )`,
+    );
+  }
 
   return mockData;
 };

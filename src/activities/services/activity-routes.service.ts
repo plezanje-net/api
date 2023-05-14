@@ -40,6 +40,11 @@ import {
   isTick,
   isTrTick,
 } from '../../crags/utils/convert-ascents';
+import {
+  calculateScore,
+  recalculateActivityRoutesScores,
+} from '../../crags/utils/calculate-scores';
+
 @Injectable()
 export class ActivityRoutesService {
   constructor(
@@ -92,7 +97,7 @@ export class ActivityRoutesService {
 
     activityRoute.user = Promise.resolve(user);
 
-    const route = await queryRunner.manager.findOneByOrFail(Route, {
+    let route = await queryRunner.manager.findOneByOrFail(Route, {
       id: routeIn.routeId,
     });
 
@@ -177,6 +182,27 @@ export class ActivityRoutesService {
 
       await queryRunner.manager.save(difficultyVote);
     }
+
+    // recalculate all orderScore and rankingScore fields for all other activity routes of this route
+    await recalculateActivityRoutesScores(routeIn.routeId, queryRunner);
+    // await this.recalculateActivityRoutesScores(routeIn.routeId, queryRunner);
+    // TODO: above recalculation should be placed into queue rather than done synchronously here
+
+    // TODO: after above recalc is moved into q this will not be neccessary because recalc will happen after this transaction (and will include this ar)
+    // but for now we need refetch the route of the current activity route because the trigger might have changed the difficulty
+    route = await queryRunner.manager.findOneBy(Route, {
+      id: routeIn.routeId,
+    });
+    activityRoute.orderScore = calculateScore(
+      route.difficulty,
+      activityRoute.ascentType,
+      'order',
+    );
+    activityRoute.rankingScore = calculateScore(
+      route.difficulty,
+      activityRoute.ascentType,
+      'ranking',
+    );
 
     // if a vote on star rating (route beauty) is passed add a new star rating vote or update existing one
     if (routeIn.votedStarRating || routeIn.votedStarRating === 0) {
@@ -503,17 +529,15 @@ export class ActivityRoutesService {
     builder.addSelect('p.difficulty');
     builder.addSelect('coalesce(p.difficulty, r.difficulty)', 'difficulty');
 
-    // TODO: this is inclomplete --> we should define scoring for all possible ascent types!
-    // TODO: how to DRY this and calclulateScore bellow?
-    builder.addSelect(
-      "(r.difficulty + (ar.ascent_type='onsight')::int * 100 + (ar.ascent_type='flash')::int * 50) as score",
-    );
-
     if (params.orderBy != null) {
       builder.orderBy(
         this.orderByField(params.orderBy.field),
         params.orderBy.direction || 'DESC',
       );
+
+      if (params.orderBy.field == 'grade') {
+        builder.addOrderBy('ar.orderScore', params.orderBy.direction || 'DESC');
+      }
 
       if (params.orderBy.field != 'position') {
         builder.addOrderBy(
@@ -616,10 +640,6 @@ export class ActivityRoutesService {
       return 'difficulty';
     }
 
-    if (field === 'score') {
-      return 'score';
-    }
-
     return `ar.${field}`;
   }
 
@@ -670,6 +690,13 @@ export class ActivityRoutesService {
         await this.recalculateStarRating(route, queryRunner);
       }
     }
+
+    // after the activity route has been removed, the difficulty vote also might have been removed by a trigger.
+    // if so, then the calculated difficulty might have changed, which in turn changes the scores fields of the activity route
+    // that means that we need to recalculate all orderScore and rankingScore fields for this and all other activity routes of this route
+    await recalculateActivityRoutesScores(activityRoute.routeId, queryRunner);
+    // TODO: move calculation to queue
+
     return true;
   }
 
@@ -682,7 +709,7 @@ export class ActivityRoutesService {
 
     /*
      * There are 3 conditions for a route to actually get a star rating:
-     * 1. The route need to have some minimum total number of votes (3)
+     * 1. The route needs to have some minimum total number of votes (3)
      * 2. One of the star options (0, 1 or 2) needs to have more then some predefined majority within all the votes (50%)
      * 3. The rounded average of the stars given needs to be the same as the majority star option. (this prevents from averaging out the star rating and instead shows any stars only when there is an actual consensus on the star rating)
      */
@@ -725,15 +752,5 @@ export class ActivityRoutesService {
     await queryRunner.manager.update(Route, route.id, {
       starRating: route.starRating,
     });
-  }
-
-  // TODO: this is inclomplete --> we chould define scoring for all possible ascent types!
-  async calculateScore(activityRoute: ActivityRoute): Promise<number> {
-    const route = await activityRoute.route;
-    let score = route.difficulty;
-    score += activityRoute.ascentType === 'onsight' ? 100 : 0;
-    score += activityRoute.ascentType === 'flash' ? 50 : 0;
-
-    return score;
   }
 }

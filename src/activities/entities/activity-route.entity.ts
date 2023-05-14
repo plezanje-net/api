@@ -143,7 +143,15 @@ export class ActivityRoute extends BaseEntity {
   @Column()
   userId: string;
 
-  // Score is calculated from difficulty and ascentType. The idea is that os > f > rp
-  @Field({ nullable: true })
-  score: number;
+  // A score for the activity route. It is used for ordering all ascents by difficulty, thus also scores ascent types such as attempt, allfree and all tr sub types (in contrast with rankingScore which only scores successfull (lead) ticks (all other ascents types get score 0)
+  // It is a function of route's difficulty and ascent type.
+  @Column({ type: 'float' })
+  @Field()
+  orderScore: number;
+
+  // A score for the activity route. It is used for ranking user's ascents, thus scores all non-tick ascent types such as attempt, allfree and all tr sub types with 0
+  // It is a function of route's difficulty and ascent type.
+  @Column({ type: 'float' })
+  @Field()
+  rankingScore: number;
 }
