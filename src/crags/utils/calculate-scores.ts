@@ -18,7 +18,7 @@ async function recalculateActivityRoutesScores(
     routeId,
   });
   const route = await queryRunner.manager.findOneBy(Route, { id: routeId });
-  console.log(otherActivityRoutes);
+
   for (const otherActivityRoute of otherActivityRoutes) {
     otherActivityRoute.orderScore = calculateScore(
       route.difficulty,
