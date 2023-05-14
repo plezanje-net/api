@@ -172,12 +172,15 @@ export class Route extends BaseEntity {
   @OneToMany(() => ActivityRoute, (activityRoute) => activityRoute.route)
   activityRoutes: ActivityRoute[];
 
-  @Field()
+  @Column({ type: 'int', nullable: true })
+  @Field({ nullable: true })
   nrTicks: number;
 
-  @Field()
+  @Column({ type: 'int', nullable: true })
+  @Field({ nullable: true })
   nrTries: number;
 
-  @Field()
+  @Column({ type: 'int', nullable: true })
+  @Field({ nullable: true })
   nrClimbers: number;
 }

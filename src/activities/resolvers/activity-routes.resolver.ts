@@ -41,6 +41,8 @@ import { UpdateActivityRouteInput } from '../dtos/update-activity-route.input';
 import { FindRoutesTouchesInput } from '../dtos/find-routes-touches.input';
 import { RoutesTouches } from '../utils/routes-touches.class';
 import { Connection } from 'typeorm';
+import { Queue } from 'bull';
+import { InjectQueue } from '@nestjs/bull';
 
 @Resolver(() => ActivityRoute)
 @UseInterceptors(DataLoaderInterceptor)
@@ -48,6 +50,7 @@ export class ActivityRoutesResolver {
   constructor(
     private activityRoutesService: ActivityRoutesService,
     private connection: Connection,
+    @InjectQueue('summary') private summaryQueue: Queue,
   ) {}
 
   @Query(() => ActivityRoute)
@@ -178,6 +181,10 @@ export class ActivityRoutesResolver {
     try {
       await this.activityRoutesService.delete(activityRoute, queryRunner);
       await queryRunner.commitTransaction();
+      this.summaryQueue.add(
+        { routeId: activityRoute.routeId },
+        { removeOnComplete: true },
+      );
       return true;
     } catch (exception) {
       await queryRunner.rollbackTransaction();

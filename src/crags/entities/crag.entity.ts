@@ -173,4 +173,8 @@ export class Crag extends BaseEntity {
   user: Promise<User>;
   @Column({ name: 'user_id', nullable: true })
   userId: string;
+
+  @Column({ type: 'int', array: true, nullable: true })
+  @Field(() => [Int], { nullable: true })
+  activityByMonth: number[];
 }
