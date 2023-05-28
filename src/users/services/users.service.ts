@@ -1,8 +1,4 @@
-import {
-  Injectable,
-  NotFoundException,
-  NotAcceptableException,
-} from '@nestjs/common';
+import { Injectable, NotAcceptableException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from '../entities/user.entity';
 import { Repository } from 'typeorm';
@@ -12,14 +8,24 @@ import { randomBytes } from 'crypto';
 import * as bcrypt from 'bcrypt';
 import { Role } from '../entities/role.entity';
 import { UpdateUserInput } from '../dtos/update-user.input';
+import { ActivitiesService } from '../../activities/services/activities.service';
+import { CommentsService } from '../../crags/services/comments.service';
+import { ImagesService } from '../../crags/services/images.service';
+import { ClubMembersService } from './club-members.service';
+import { RouteEventsService } from '../../crags/services/route-events.service';
 
 @Injectable()
 export class UsersService {
   constructor(
     @InjectRepository(User)
     private usersRepository: Repository<User>,
+    private activitiesService: ActivitiesService,
+    private commentsService: CommentsService,
+    private imagesService: ImagesService,
     @InjectRepository(Role)
     private rolesRepository: Repository<Role>,
+    private clubMembersService: ClubMembersService,
+    private routeEventsService: RouteEventsService,
   ) {}
 
   findAll(): Promise<User[]> {
@@ -106,9 +112,83 @@ export class UsersService {
     return this.usersRepository.save(user).then(() => true);
   }
 
+  // Delete a user and all related entities/data
   async delete(id: string): Promise<boolean> {
     const user = await this.usersRepository.findOneByOrFail({ id });
 
-    return this.usersRepository.remove(user).then(() => true);
+    // 1. delete all activities, activity routes, difficulty votes, star rating votes
+    const activities = await user.activities;
+    for (const activity of activities) {
+      await this.activitiesService.delete(activity);
+    }
+
+    // 2. delete all comments
+    const comments = await user.comments;
+    for (const comment of comments) {
+      await this.commentsService.delete(comment.id);
+    }
+
+    // 3. delete all images and image files
+    const images = await user.images;
+    for (const image of images) {
+      await this.imagesService.deleteImage(image.id);
+    }
+
+    // 4. delete all roles
+    const roles = await user.roles;
+    await this.rolesRepository.remove(roles);
+
+    // 5. delete membership in all clubs the user is member of
+    const clubMembers = await user.clubs;
+    for (const clubMember of clubMembers) {
+      await this.clubMembersService.delete(user, clubMember.id);
+    }
+
+    // 6. delete all unpublished contributables (crags, sectors, routes) and unlink user from published ones
+    const crags = await user.crags;
+    for (const crag of crags) {
+      switch (crag.publishStatus) {
+        case 'draft':
+        case 'in_review':
+          await crag.remove();
+          break;
+        case 'published':
+          crag.user = null;
+          await crag.save();
+      }
+    }
+
+    const sectors = await user.sectors;
+    for (const sector of sectors) {
+      switch (sector.publishStatus) {
+        case 'draft':
+        case 'in_review':
+          await sector.remove();
+          break;
+        case 'published':
+          sector.user = null;
+          await sector.save();
+      }
+    }
+
+    const routes = await user.routes;
+    for (const route of routes) {
+      switch (route.publishStatus) {
+        case 'draft':
+        case 'in_review':
+          await route.remove();
+          break;
+        case 'published':
+          route.user = null;
+          await route.save();
+      }
+    }
+
+    // 7. Unlink all route events that the user might be associated with
+    const routeEvents = await user.routeEvents;
+    await this.routeEventsService.deleteMany(routeEvents);
+
+    await user.remove();
+    return Promise.resolve(true);
   }
 }
