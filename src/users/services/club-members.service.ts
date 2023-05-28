@@ -99,11 +99,15 @@ export class ClubMembersService {
   }
 
   async delete(currentUser: User, id: string): Promise<boolean> {
-    // only if the logged in user is admin of this club can she remove a member
+    // only if the logged in user is admin of this club or if the user is deleting herself can she remove a member
     const clubMember = await this.clubMembersRepository.findOneByOrFail({ id });
     const clubId = (await clubMember.club).id;
-    if (!(await this.isMemberAdmin(clubId, currentUser.id)))
+    if (
+      !(await this.isMemberAdmin(clubId, currentUser.id)) &&
+      currentUser.id != clubMember.userId
+    ) {
       throw new HttpException('Forbidden', HttpStatus.FORBIDDEN);
+    }
 
     return this.clubMembersRepository.remove(clubMember).then(() => true);
   }
@@ -128,15 +132,14 @@ export class ClubMembersService {
     clubId: string,
     userId: string,
   ): Promise<boolean> {
-    const currentUserAsAdminClubMember = await this.clubMembersRepository.findOne(
-      {
+    const currentUserAsAdminClubMember =
+      await this.clubMembersRepository.findOne({
         where: {
           clubId: clubId,
           userId: userId,
           admin: true,
         },
-      },
-    );
+      });
     if (currentUserAsAdminClubMember) {
       return true;
     }

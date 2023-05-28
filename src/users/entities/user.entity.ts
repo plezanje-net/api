@@ -80,7 +80,7 @@ export class User extends BaseEntity {
   legacy: string;
 
   @OneToMany((type) => ClubMember, (clubMember) => clubMember.user)
-  clubs: ClubMember[];
+  clubs: Promise<ClubMember[]>;
 
   // All of thr images that the user contributed
   @OneToMany(() => Image, (image) => image.user)
