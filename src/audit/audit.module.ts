@@ -10,12 +10,8 @@ import { ContributionsService } from './services/contributions.service';
 import { Route } from '../crags/entities/route.entity';
 import { Sector } from '../crags/entities/sector.entity';
 import { Crag } from '../crags/entities/crag.entity';
-import { UsersService } from '../users/services/users.service';
 import { User } from '../users/entities/user.entity';
 import { Role } from '../users/entities/role.entity';
-import { CragsService } from '../crags/services/crags.service';
-import { SectorsService } from '../crags/services/sectors.service';
-import { RoutesService } from '../crags/services/routes.service';
 import { Country } from '../crags/entities/country.entity';
 import { Area } from '../crags/entities/area.entity';
 import { GradingSystem } from '../crags/entities/grading-system.entity';
@@ -23,6 +19,8 @@ import { DifficultyVote } from '../crags/entities/difficulty-vote.entity';
 import { Activity } from '../activities/entities/activity.entity';
 import { ActivityRoute } from '../activities/entities/activity-route.entity';
 import { BullModule } from '@nestjs/bull';
+import { UsersModule } from '../users/users.module';
+import { CragsModule } from '../crags/crags.module';
 
 @Module({
   imports: [
@@ -40,16 +38,14 @@ import { BullModule } from '@nestjs/bull';
       GradingSystem,
       DifficultyVote,
     ]),
-    forwardRef(() => AuthModule),
+    AuthModule,
     BullModule.registerQueue({
       name: 'summary',
     }),
+    forwardRef(() => UsersModule),
+    forwardRef(() => CragsModule),
   ],
   providers: [
-    UsersService,
-    CragsService,
-    SectorsService,
-    RoutesService,
     AuditService,
     AuditSubscriber,
     AuditInterceptor,
