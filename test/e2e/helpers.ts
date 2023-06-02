@@ -201,7 +201,7 @@ const seedDatabase = async (qr: QueryRunner, app) => {
       },
       simpleCrag: {
         id: '6dd8f080-f0d6-11ed-a05b-0242ac120003',
-        slug: 'simple-crah',
+        slug: 'simple-crag',
         sectors: {
           simpleSector1: {
             id: '7cbd9204-f0d6-11ed-a05b-0242ac120003',

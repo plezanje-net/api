@@ -12,7 +12,6 @@ import {
   prepareEnvironment,
   seedDatabase,
 } from './helpers';
-import { ActivityType } from '../../src/activities/entities/activity.entity';
 import {
   AscentType,
   PublishType,
@@ -31,6 +30,7 @@ describe('UserDelete', () => {
 
   beforeAll(async () => {
     prepareEnvironment();
+    process.env.STORAGE_PATH = `${__dirname}/dummy-storage`;
 
     const moduleRef = await Test.createTestingModule({
       imports: [AppModule, UsersModule, CragsModule],
