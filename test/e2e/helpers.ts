@@ -2,6 +2,7 @@ import { DataSource, QueryRunner } from 'typeorm';
 import * as fs from 'fs';
 import request from 'supertest';
 import { INestApplication } from '@nestjs/common';
+import { ActivityType } from '../../src/activities/entities/activity.entity';
 
 const prepareEnvironment = async () => {
   process.env.JWT_SECRET = '456755345g6345g63456g345g63456';
@@ -43,18 +44,70 @@ const seedDatabase = async (qr: QueryRunner, app) => {
         email: 'slavko.majonezic@gmail.com',
         password: '123456789',
         authToken: null,
+        passwordHash:
+          '$2b$10$BTiaP8iH11j.xFRcW3wIbuY4FTXaWW7friOLfmIv7CfHCz2D8Slam',
+        firstname: 'Slavko',
+        lastname: 'Majonezić',
       },
       basicUser2: {
         id: 'c828500a-4a10-4286-928c-e58202a94ea0',
         email: 'aliba.gundic@gmail.com',
         password: '123456789',
         authToken: null,
+        passwordHash:
+          '$2b$10$BTiaP8iH11j.xFRcW3wIbuY4FTXaWW7friOLfmIv7CfHCz2D8Slam',
+        firstname: 'Aliba',
+        lastname: 'Gundić',
+      },
+      basicUser3: {
+        id: 'ea923bb8-011b-11ee-be56-0242ac120002',
+        email: 'goran.vampic@gmail.com',
+        password: '123456789',
+        authToken: null,
+        passwordHash:
+          '$2b$10$BTiaP8iH11j.xFRcW3wIbuY4FTXaWW7friOLfmIv7CfHCz2D8Slam',
+        firstname: 'Goran',
+        lastname: 'Vampić',
+      },
+      basicUser4: {
+        id: 'f11d4144-011b-11ee-be56-0242ac120002',
+        email: 'dusan.kokol@gmail.com',
+        password: '123456789',
+        authToken: null,
+        passwordHash:
+          '$2b$10$BTiaP8iH11j.xFRcW3wIbuY4FTXaWW7friOLfmIv7CfHCz2D8Slam',
+        firstname: 'Dušan',
+        lastname: 'Kokol',
+      },
+      basicUser5: {
+        id: 'f5c40fe8-011b-11ee-be56-0242ac120002',
+        email: 'drilon.semispahic@gmail.com',
+        password: '123456789',
+        authToken: null,
+        passwordHash:
+          '$2b$10$BTiaP8iH11j.xFRcW3wIbuY4FTXaWW7friOLfmIv7CfHCz2D8Slam',
+        firstname: 'Drilon',
+        lastname: 'Semispahić',
       },
       editorUser: {
         id: 'd00462ef-40e9-409c-af2d-479cd1accf08',
         email: 'edit.permisonic@gmail.com',
         password: '123456789',
         authToken: null,
+        passwordHash:
+          '$2b$10$BTiaP8iH11j.xFRcW3wIbuY4FTXaWW7friOLfmIv7CfHCz2D8Slam',
+        firstname: 'Edit',
+        lastname: 'Permisonić',
+      },
+      superAdminUser: {
+        id: 'ee872476-ffd2-11ed-be56-0242ac120002',
+        email: 'tomaz.bevk@gmail.com',
+        password: '123456789',
+        authToken: null,
+        passwordHash:
+          '$2b$10$BTiaP8iH11j.xFRcW3wIbuY4FTXaWW7friOLfmIv7CfHCz2D8Slam',
+        firstname: 'Tomaž',
+        lastname: 'Bevk',
       },
     },
 
@@ -256,39 +309,55 @@ const seedDatabase = async (qr: QueryRunner, app) => {
         },
       },
     },
+
+    peaks: {
+      simplePeak: {
+        id: 'bb081bbc-0128-11ee-be56-0242ac120002',
+        slug: 'simple-peak',
+        name: 'Simple Peak',
+      },
+    },
+
+    icefalls: {
+      simpleIcefall: {
+        id: '2481aeda-012b-11ee-be56-0242ac120002',
+        slug: 'simple-icefall',
+        name: 'Simple Icefall',
+      },
+    },
+
+    clubs: {
+      simpleClub: {
+        id: '6dfb624e-0140-11ee-be56-0242ac120002',
+        name: 'Simple Club',
+        slug: 'simple-club',
+      },
+    },
+
+    routeEvents: {
+      simpleEvent: {
+        id: '6ea2ee90-0147-11ee-be56-0242ac120002',
+        author: 'Slavko Majonezić',
+      },
+    },
   };
 
   // Add users
-  await qr.query(`INSERT INTO public.user (id, email, firstname, lastname, gender, password, is_active)
-    VALUES ('${mockData.users.basicUser1.id}', 'slavko.majonezic@gmail.com', 'Slavko', 'Majonezić', 'M', '$2b$10$BTiaP8iH11j.xFRcW3wIbuY4FTXaWW7friOLfmIv7CfHCz2D8Slam', true)`);
+  for (const user of Object.values(mockData.users)) {
+    await qr.query(`INSERT INTO public.user (id, email, firstname, lastname, password, is_active)
+    VALUES ('${user.id}', '${user.email}', '${user.firstname}', '${user.lastname}', '${user.passwordHash}', true)`);
 
-  await qr.query(`INSERT INTO public.user (id, email, firstname, lastname, gender, password, is_active)
-    VALUES ('${mockData.users.basicUser2.id}', 'aliba.gundic@gmail.com', 'Aliba', 'Gundič', 'F', '$2b$10$BTiaP8iH11j.xFRcW3wIbuY4FTXaWW7friOLfmIv7CfHCz2D8Slam', true)`);
+    // Get auth token and save it back to mockData object
+    user.authToken = await getAuthToken(app, user.email, user.password);
+  }
 
-  await qr.query(`INSERT INTO public.user (id, email, firstname, lastname, gender, password, is_active)
-    VALUES ('${mockData.users.editorUser.id}', 'edit.permisonic@gmail.com', 'Edit', 'Permisonič', null, '$2b$10$BTiaP8iH11j.xFRcW3wIbuY4FTXaWW7friOLfmIv7CfHCz2D8Slam', true)`);
-
+  // Add roles for the special users
   // TODO: admin role in this context should become editor role
   await qr.query(
     `INSERT INTO role (role, user_id) VALUES ('admin', '${mockData.users.editorUser.id}')`,
   );
-
-  // Get auth tokens for all users and save them in mockData
-  mockData.users.basicUser1.authToken = await getAuthToken(
-    app,
-    mockData.users.basicUser1.email,
-    mockData.users.basicUser1.password,
-  );
-  mockData.users.basicUser2.authToken = await getAuthToken(
-    app,
-    mockData.users.basicUser2.email,
-    mockData.users.basicUser2.password,
-  );
-  mockData.users.editorUser.authToken = await getAuthToken(
-    app,
-    mockData.users.editorUser.email,
-    mockData.users.editorUser.password,
-  );
+  // superadmin role is determind via email ??!!?
+  // TODO: this is just not nice. implement superadmin role and add it here...
 
   // Add countries
   let q = fs.readFileSync('./test/e2e/sql/country.sql', 'utf8');
@@ -336,8 +405,8 @@ const seedDatabase = async (qr: QueryRunner, app) => {
   // Add some sectors
   // published sector in published crag
   await qr.query(
-    `INSERT INTO sector (id, name, label, position, crag_id, publish_status)
-    VALUES ('${mockData.crags.publishedCrag.sectors.publishedSector.id}', 'Leva stena', 'A', 1, '${mockData.crags.publishedCrag.id}', 'published')`,
+    `INSERT INTO sector (id, name, label, position, crag_id, publish_status, user_id)
+    VALUES ('${mockData.crags.publishedCrag.sectors.publishedSector.id}', 'Leva stena', 'A', 1, '${mockData.crags.publishedCrag.id}', 'published', '${mockData.users.basicUser1.id}')`,
   );
   // draft sector in published crag
   await qr.query(
@@ -351,8 +420,8 @@ const seedDatabase = async (qr: QueryRunner, app) => {
   );
   // in_review sector in in_review crag
   await qr.query(
-    `INSERT INTO sector (id, name, label, position, crag_id, publish_status)
-    VALUES ('${mockData.crags.inReviewCrag.sectors.inReviewSector.id}', 'Pregledni sektor', 'B', 1, '${mockData.crags.inReviewCrag.id}', 'in_review')`,
+    `INSERT INTO sector (id, name, label, position, crag_id, publish_status, user_id)
+    VALUES ('${mockData.crags.inReviewCrag.sectors.inReviewSector.id}', 'Pregledni sektor', 'B', 1, '${mockData.crags.inReviewCrag.id}', 'in_review', '${mockData.users.basicUser1.id}')`,
   );
   // sectors in multiple sector crag
   await qr.query(
@@ -386,8 +455,8 @@ const seedDatabase = async (qr: QueryRunner, app) => {
   );
   // in_review route in in_review sector in in_review crag
   await qr.query(
-    `INSERT INTO route (id, name, length, position, sector_id, crag_id, route_type_id, is_project, default_grading_system_id, difficulty, slug, publish_status)
-    VALUES ('${mockData.crags.inReviewCrag.sectors.inReviewSector.routes.inReviewRoute.id}', 'Ta v pregledu', '14', 1, '${mockData.crags.inReviewCrag.sectors.inReviewSector.id}', '${mockData.crags.inReviewCrag.id}', 'sport', false, 'french', '200', 'ta-v-pregledu', 'in_review')`,
+    `INSERT INTO route (id, name, length, position, sector_id, crag_id, route_type_id, is_project, default_grading_system_id, difficulty, slug, publish_status, user_id)
+    VALUES ('${mockData.crags.inReviewCrag.sectors.inReviewSector.routes.inReviewRoute.id}', 'Ta v pregledu', '14', 1, '${mockData.crags.inReviewCrag.sectors.inReviewSector.id}', '${mockData.crags.inReviewCrag.id}', 'sport', false, 'french', '200', 'ta-v-pregledu', 'in_review', '${mockData.users.basicUser1.id}')`,
   );
   // routes in multipe sector crag
   await qr.query(
@@ -418,6 +487,45 @@ const seedDatabase = async (qr: QueryRunner, app) => {
        )`,
     );
   }
+  for (const route of mockData.crags.simpleCrag.sectors.simpleSector1.routes) {
+    await qr.query(
+      `INSERT INTO difficulty_vote (difficulty, is_base, route_id)
+       VALUES (
+         ${route.difficulty},
+         true,
+        '${route.id}'
+       )`,
+    );
+  }
+
+  // Add a peak
+  await qr.query(
+    `INSERT INTO peak (id, name, slug, country_id)
+      VALUES ('${mockData.peaks.simplePeak.id}', '${mockData.peaks.simplePeak.name}', '${mockData.peaks.simplePeak.slug}', '${mockData.countries.slovenia.id}')`,
+  );
+
+  // Add an icefall
+  await qr.query(
+    `INSERT INTO ice_fall (id, name, slug, country_id, position)
+      VALUES ('${mockData.icefalls.simpleIcefall.id}', '${mockData.icefalls.simpleIcefall.name}', '${mockData.icefalls.simpleIcefall.slug}', '${mockData.countries.slovenia.id}', 1)`,
+  );
+
+  // Add a club
+  await qr.query(
+    `INSERT INTO club (id, name, slug)
+      VALUES ('${mockData.clubs.simpleClub.id}', '${mockData.clubs.simpleClub.name}', '${mockData.clubs.simpleClub.slug}')`,
+  );
+  // Add basicUser1 as a club member
+  await qr.query(
+    `INSERT INTO club_member (user_id, club_id, admin)
+      VALUES ('${mockData.users.basicUser1.id}', '${mockData.clubs.simpleClub.id}', true)`,
+  );
+
+  // Add a route event linked to a user
+  await qr.query(
+    `INSERT INTO route_event (id, route_id, user_id, author, event_date)
+      VALUES ('${mockData.routeEvents.simpleEvent.id}', '${mockData.crags.simpleCrag.sectors.simpleSector1.routes[0].id}', '${mockData.users.basicUser1.id}', '${mockData.routeEvents.simpleEvent.author}', '2015-05-05')`,
+  );
 
   return mockData;
 };
@@ -437,4 +545,82 @@ const getAuthToken = async (app, email: string, password: string) => {
   return response.body.data.login.token;
 };
 
-export { prepareEnvironment, initializeDbConn, seedDatabase };
+const logRoutes = async (app, user, crag, ascents, date = '2017-03-07') => {
+  const activityCreateResponse = await request(app.getHttpServer())
+    .post('/graphql')
+    .set('Authorization', `Bearer ${user.authToken}`)
+    .send({
+      query: `
+      mutation {
+        createActivity(
+          input: {
+            date: "${date}",
+            name: "test",
+            type: "${ActivityType.CRAG}",
+            cragId: "${crag.id}"
+          },
+          routes: [
+          ${ascents.map(
+            (ascent) => `{
+            ascentType: "${ascent.ascentType}",
+            publish: "${ascent.publishType}",
+            date: "${date}",
+            routeId: "${ascent.route.id}",
+            votedDifficulty: ${ascent.votedDifficulty || null},
+            votedStarRating: ${ascent.votedStarRating || null}
+          }`,
+          )}]
+          
+        )
+        {
+          id
+        }
+      }
+    `,
+    });
+  return activityCreateResponse;
+};
+
+const comment = async (
+  app,
+  user,
+  commentType,
+  routeId,
+  cragId,
+  icefallId,
+  peakId,
+  exposedUntil,
+) => {
+  const commentCreateResponse = await request(app.getHttpServer())
+    .post('/graphql')
+    .set('Authorization', `Bearer ${user.authToken}`)
+    .send({
+      query: `
+      mutation {
+        createComment(
+          input: {
+            type: "${commentType}",
+            content: "test comment",
+            routeId: ${routeId ? `"${routeId}"` : null},
+            cragId: ${cragId ? `"${cragId}"` : null},
+            iceFallId: ${icefallId ? `"${icefallId}"` : null},
+            peakId: ${peakId ? `"${peakId}"` : null},
+            exposedUntil: ${exposedUntil ? `"${exposedUntil}"` : null}
+          }
+        )
+        {
+          id
+        }
+      }
+    `,
+    });
+  return commentCreateResponse;
+};
+
+export {
+  prepareEnvironment,
+  initializeDbConn,
+  seedDatabase,
+  logRoutes,
+  comment,
+};
