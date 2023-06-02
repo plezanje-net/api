@@ -68,7 +68,6 @@ import { SummaryQueueConsumer } from './consumers/summary-queue.consumer';
 import { CragLoader } from './loaders/crag.loader';
 import { RouteLoader } from './loaders/route.loader';
 import { RouteEvent } from './entities/route-event.entity';
-import { RouteEventsService } from './services/route-events.service';
 
 @Module({
   imports: [
@@ -143,7 +142,6 @@ import { RouteEventsService } from './services/route-events.service';
     ConfigService,
     CragLoader,
     RouteLoader,
-    RouteEventsService,
   ],
   controllers: [UploadController],
   exports: [
@@ -154,7 +152,6 @@ import { RouteEventsService } from './services/route-events.service';
     RouteLoader,
     CommentsService,
     ImagesService,
-    RouteEventsService,
   ],
 })
 export class CragsModule {}

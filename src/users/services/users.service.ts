@@ -12,7 +12,6 @@ import { ActivitiesService } from '../../activities/services/activities.service'
 import { CommentsService } from '../../crags/services/comments.service';
 import { ImagesService } from '../../crags/services/images.service';
 import { ClubMembersService } from './club-members.service';
-import { RouteEventsService } from '../../crags/services/route-events.service';
 
 @Injectable()
 export class UsersService {
@@ -25,7 +24,6 @@ export class UsersService {
     @InjectRepository(Role)
     private rolesRepository: Repository<Role>,
     private clubMembersService: ClubMembersService,
-    private routeEventsService: RouteEventsService,
   ) {}
 
   findAll(): Promise<User[]> {
@@ -184,9 +182,12 @@ export class UsersService {
       }
     }
 
-    // 7. Unlink all route events that the user might be associated with
+    // 7. Unlink user from all route events that the user might be associated with
     const routeEvents = await user.routeEvents;
-    await this.routeEventsService.deleteMany(routeEvents);
+    for (const routeEvent of routeEvents) {
+      routeEvent.user = null;
+      await routeEvent.save();
+    }
 
     await user.remove();
     return Promise.resolve(true);
