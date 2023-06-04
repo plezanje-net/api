@@ -14,6 +14,13 @@ import { Role } from './role.entity';
 import { Image } from '../../crags/entities/image.entity';
 import { ClubMember } from './club-member.entity';
 import { checkRoleMiddleware } from '../../core/middleware/check-role.middleware';
+import { Activity } from '../../activities/entities/activity.entity';
+import { Comment } from '../../crags/entities/comment.entity';
+import { Crag } from '../../crags/entities/crag.entity';
+import { Sector } from '../../crags/entities/sector.entity';
+import { Route } from '../../crags/entities/route.entity';
+import { RouteEvent } from '../../crags/entities/route-event.entity';
+import { DifficultyVote } from '../../crags/entities/difficulty-vote.entity';
 
 @Entity()
 @ObjectType()
@@ -80,9 +87,9 @@ export class User extends BaseEntity {
   legacy: string;
 
   @OneToMany((type) => ClubMember, (clubMember) => clubMember.user)
-  clubs: ClubMember[];
+  clubs: Promise<ClubMember[]>;
 
-  // All of thr images that the user contributed
+  // All of the images that the user contributed
   @OneToMany(() => Image, (image) => image.user)
   @Field(() => [Image])
   images: Promise<Image[]>;
@@ -97,4 +104,32 @@ export class User extends BaseEntity {
     const roles = await this.roles;
     return roles ? roles.some((r) => r.role == 'admin') : false;
   };
+
+  @OneToMany(() => Activity, (activity) => activity.user)
+  @Field(() => [Activity])
+  activities: Promise<Activity[]>;
+
+  @OneToMany(() => Comment, (comment) => comment.user)
+  @Field(() => [Comment])
+  comments: Promise<Comment[]>;
+
+  @OneToMany(() => Crag, (crag) => crag.user)
+  @Field(() => [Crag])
+  crags: Promise<Crag[]>;
+
+  @OneToMany(() => Sector, (sector) => sector.user)
+  @Field(() => [Sector])
+  sectors: Promise<Sector[]>;
+
+  @OneToMany(() => Route, (route) => route.user)
+  @Field(() => [Route])
+  routes: Promise<Route[]>;
+
+  @OneToMany(() => RouteEvent, (routeEvent) => routeEvent.user)
+  @Field(() => [RouteEvent])
+  routeEvents: Promise<RouteEvent[]>;
+
+  @OneToMany(() => DifficultyVote, (difficultyVote) => difficultyVote.user)
+  @Field(() => [DifficultyVote])
+  difficultyVotes: Promise<DifficultyVote[]>;
 }

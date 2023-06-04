@@ -19,11 +19,13 @@ import { Role } from '../entities/role.entity';
 import { Roles } from '../../auth/decorators/roles.decorator';
 import { NotFoundFilter } from '../../crags/filters/not-found.filter';
 import {
+  ForbiddenException,
   HttpException,
   HttpStatus,
   InternalServerErrorException,
   UseFilters,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 import { ConflictFilter } from '../../crags/filters/conflict.filter';
 import { NotificationService } from '../../notification/services/notification.service';
@@ -32,6 +34,7 @@ import { ClubMember } from '../entities/club-member.entity';
 import { ClubMembersService } from '../services/club-members.service';
 import { UserAuthGuard } from '../../auth/guards/user-auth.guard';
 import { UpdateUserInput } from '../dtos/update-user.input';
+import { AuditInterceptor } from '../../audit/interceptors/audit.interceptor';
 
 @Resolver(() => User)
 export class UsersResolver {
@@ -124,6 +127,27 @@ export class UsersResolver {
     req.user = { id, email, roles };
 
     return loginResponse;
+  }
+
+  @Mutation(() => Boolean)
+  @UseGuards(UserAuthGuard)
+  @UseFilters(NotFoundFilter)
+  @UseInterceptors(AuditInterceptor)
+  async deleteUser(
+    @Args('id') id: string,
+    @CurrentUser() currentUser: User,
+  ): Promise<boolean> {
+    // TODO: check if current user is a superadmin -- superadmin role should be implemented! For now hardcode this condition
+    if (
+      !(
+        currentUser.email === 'tomaz.bevk@gmail.com' ||
+        currentUser.email === 'anze.demsar@gmail.com'
+      )
+    ) {
+      throw new ForbiddenException();
+    }
+
+    return this.usersService.delete(id);
   }
 
   @ResolveField('roles', () => [String])

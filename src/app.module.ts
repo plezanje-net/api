@@ -118,7 +118,6 @@ import { BullModule } from '@nestjs/bull';
     AuditModule,
     UsersModule,
     CragsModule,
-    AuditModule,
     NotificationModule,
     ActivitiesModule,
     BullModule.forRootAsync({

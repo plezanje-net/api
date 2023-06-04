@@ -111,39 +111,25 @@ export class ImagesService {
   }
 
   async deleteImage(id: string): Promise<Boolean> {
-    try {
-      const image = await this.imagesRepository.findOneOrFail({
-        where: {
-          id,
-        },
-      });
+    const image = await this.imagesRepository.findOneOrFail({
+      where: {
+        id,
+      },
+    });
 
-      this.targetSizes.forEach((size) => {
-        fs.rm(
-          `${env.STORAGE_PATH}/images/${image.path}.jpg`,
-          this.handleImageRemove,
-        );
-        fs.rm(
-          `${env.STORAGE_PATH}/images/${size}/${image.path}.webp`,
-          this.handleImageRemove,
-        );
-        fs.rm(
-          `${env.STORAGE_PATH}/images/${size}/${image.path}.avif`,
-          this.handleImageRemove,
-        );
-        fs.rm(
-          `${env.STORAGE_PATH}/images/${size}/${image.path}.jpg`,
-          this.handleImageRemove,
-        );
-      });
+    // delete the 'master' image file
+    fs.unlinkSync(`${env.STORAGE_PATH}/images/${image.path}${image.extension}`);
 
-      await this.imagesRepository.remove(image);
+    // delete all the size/format variations of the image file
+    this.targetSizes.forEach((size) => {
+      fs.unlinkSync(`${env.STORAGE_PATH}/images/${size}/${image.path}.webp`);
+      fs.unlinkSync(`${env.STORAGE_PATH}/images/${size}/${image.path}.avif`);
+      fs.unlinkSync(`${env.STORAGE_PATH}/images/${size}/${image.path}.jpg`);
+    });
 
-      return true;
-    } catch (error) {
-      // TODO log to Sentry when we have it on the API
-      return false;
-    }
+    await this.imagesRepository.remove(image);
+
+    return true;
   }
 
   private async generateUniqueStem(entity: string, stemBase: string) {
@@ -223,9 +209,5 @@ export class ImagesService {
     );
 
     return { maxIntrinsicWidth, aspectRatio };
-  }
-
-  private handleImageRemove() {
-    // TODO log to Sentry when we have it on the API
   }
 }

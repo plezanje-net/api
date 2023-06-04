@@ -13,12 +13,18 @@ import { ClubsResolver } from './resolvers/clubs.resolver';
 import { ClubMembersService } from './services/club-members.service';
 import { ClubMembersResolver } from './resolvers/club-members.resolver';
 import { UserLoader } from './loaders/user.loader';
+import { AuditModule } from '../audit/audit.module';
+import { ActivitiesModule } from '../activities/activities.module';
+import { CragsModule } from '../crags/crags.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([User, Role, Club, ClubMember]),
-    forwardRef(() => AuthModule),
+    AuthModule,
     NotificationModule,
+    forwardRef(() => AuditModule),
+    forwardRef(() => ActivitiesModule),
+    CragsModule,
   ],
   providers: [
     UsersService,

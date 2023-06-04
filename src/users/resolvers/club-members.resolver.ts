@@ -11,7 +11,7 @@ import { Club } from '../entities/club.entity';
 import { User } from '../entities/user.entity';
 import { ClubMembersService } from '../services/club-members.service';
 
-@Resolver(of => ClubMember)
+@Resolver((of) => ClubMember)
 export class ClubMembersResolver {
   constructor(
     private clubMembersService: ClubMembersService,
@@ -19,7 +19,7 @@ export class ClubMembersResolver {
   ) {}
 
   @UseGuards(UserAuthGuard)
-  @Mutation(returns => ClubMember)
+  @Mutation((returns) => ClubMember)
   async createClubMember(
     @CurrentUser() user: User,
     @Args('input', { type: () => CreateClubMemberInput })
@@ -29,7 +29,7 @@ export class ClubMembersResolver {
   }
 
   @UseGuards(UserAuthGuard)
-  @Mutation(returns => ClubMember)
+  @Mutation((returns) => ClubMember)
   async createClubMemberByEmail(
     @CurrentUser() user: User,
     @Args('input', { type: () => CreateClubMemberByEmailInput })
@@ -52,7 +52,7 @@ export class ClubMembersResolver {
     return Promise.resolve(clubMember);
   }
 
-  @Mutation(returns => Club)
+  @Mutation((returns) => Club)
   async confirmClubMembership(
     @Args('input', { type: () => ConfirmInput }) input: ConfirmInput,
   ): Promise<Club> {
@@ -60,11 +60,11 @@ export class ClubMembersResolver {
   }
 
   @UseGuards(UserAuthGuard)
-  @Mutation(returns => Boolean)
+  @Mutation((returns) => Boolean)
   async deleteClubMember(
-    @CurrentUser() user: User,
+    @CurrentUser() currentUser: User,
     @Args('id') id: string,
   ): Promise<boolean> {
-    return this.clubMembersService.delete(user, id);
+    return this.clubMembersService.delete(currentUser, id);
   }
 }

@@ -11,6 +11,7 @@ import { IceFall } from '../entities/ice-fall.entity';
 import { PaginationMeta } from '../../core/utils/pagination-meta.class';
 import { PaginatedComments } from '../utils/paginated-comments';
 import { LatestCommentsInput } from '../dtos/latest-comments.input';
+import { Peak } from '../entities/peak.entity';
 
 @Injectable()
 export class CommentsService {
@@ -21,6 +22,8 @@ export class CommentsService {
     private cragRepository: Repository<Crag>,
     @InjectRepository(IceFall)
     private iceFallRepository: Repository<IceFall>,
+    @InjectRepository(Peak)
+    private peakRepository: Repository<Peak>,
   ) {}
 
   async findOneById(id: string): Promise<Comment> {
@@ -45,6 +48,12 @@ export class CommentsService {
     if (data.iceFallId != null) {
       comment.iceFall = Promise.resolve(
         await this.iceFallRepository.findOneByOrFail({ id: data.iceFallId }),
+      );
+    }
+
+    if (data.peakId != null) {
+      comment.peak = Promise.resolve(
+        await this.peakRepository.findOneByOrFail({ id: data.peakId }),
       );
     }
 

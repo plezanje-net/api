@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuditModule } from '../audit/audit.module';
 
@@ -65,6 +65,9 @@ import { Activity } from '../activities/entities/activity.entity';
 import { ActivityRoute } from '../activities/entities/activity-route.entity';
 import { BullModule } from '@nestjs/bull';
 import { SummaryQueueConsumer } from './consumers/summary-queue.consumer';
+import { CragLoader } from './loaders/crag.loader';
+import { RouteLoader } from './loaders/route.loader';
+import { RouteEvent } from './entities/route-event.entity';
 
 @Module({
   imports: [
@@ -86,12 +89,13 @@ import { SummaryQueueConsumer } from './consumers/summary-queue.consumer';
       GradingSystem,
       RouteType,
       DifficultyVote,
+      RouteEvent,
       RouteProperty,
       CragProperty,
       IceFallProperty,
       StarRatingVote,
     ]),
-    AuditModule,
+    forwardRef(() => AuditModule),
     BullModule.registerQueue({
       name: 'summary',
     }),
@@ -136,7 +140,18 @@ import { SummaryQueueConsumer } from './consumers/summary-queue.consumer';
     MailService,
     SummaryQueueConsumer,
     ConfigService,
+    CragLoader,
+    RouteLoader,
   ],
   controllers: [UploadController],
+  exports: [
+    CragsService,
+    SectorsService,
+    RoutesService,
+    CragLoader,
+    RouteLoader,
+    CommentsService,
+    ImagesService,
+  ],
 })
 export class CragsModule {}
