@@ -114,10 +114,17 @@ export class UsersService {
   async delete(id: string): Promise<boolean> {
     const user = await this.usersRepository.findOneByOrFail({ id });
 
-    // 1. delete all activities, activity routes, difficulty votes, star rating votes
+    // 1. delete all activities, activity routes, difficulty votes, star rating votes (ars, diffVotes, starVotes are deleted automatically)
     const activities = await user.activities;
     for (const activity of activities) {
       await this.activitiesService.delete(activity);
+    }
+
+    // 1.a
+    // legacy logic allowed voting on difficulty of a route without logging ascents of the route, so we need to also delete those votes manually
+    const difficultyVotes = await user.difficultyVotes;
+    for (const difficultyVote of difficultyVotes) {
+      await difficultyVote.remove();
     }
 
     // 2. delete all comments

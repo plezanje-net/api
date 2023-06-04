@@ -20,6 +20,7 @@ import { Crag } from '../../crags/entities/crag.entity';
 import { Sector } from '../../crags/entities/sector.entity';
 import { Route } from '../../crags/entities/route.entity';
 import { RouteEvent } from '../../crags/entities/route-event.entity';
+import { DifficultyVote } from '../../crags/entities/difficulty-vote.entity';
 
 @Entity()
 @ObjectType()
@@ -127,4 +128,8 @@ export class User extends BaseEntity {
   @OneToMany(() => RouteEvent, (routeEvent) => routeEvent.user)
   @Field(() => [RouteEvent])
   routeEvents: Promise<RouteEvent[]>;
+
+  @OneToMany(() => DifficultyVote, (difficultyVote) => difficultyVote.user)
+  @Field(() => [DifficultyVote])
+  difficultyVotes: Promise<DifficultyVote[]>;
 }

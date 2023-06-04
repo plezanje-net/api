@@ -46,6 +46,8 @@ describe('UserDelete', () => {
     mockData = await seedDatabase(queryRunner, app);
 
     // Add more user data that the tests will use
+
+    // 1. Activities, activity routes, difficulty votes and star rating votes
     // Add an activity with some activity routes to the user that will be deleted
     const activityCreateResponse = await logRoutes(
       app,
@@ -115,6 +117,23 @@ describe('UserDelete', () => {
     ]);
     // starRating of route [0] is now 2
 
+    // 1.a
+    // Add some difficulty votes from a tobedeleted user without activity routes
+    // This is a legacy scenario, since on the old page it was possible to vote on difficulty without ticking the route
+    await queryRunner.query(
+      `INSERT INTO difficulty_vote (route_id, user_id, difficulty) VALUES ('${mockData.crags.simpleCrag.sectors.simpleSector1.routes[2].id}', '${mockData.users.basicUser1.id}', 1300),
+      ('${mockData.crags.simpleCrag.sectors.simpleSector1.routes[3].id}', '${mockData.users.basicUser1.id}', 3500)`,
+    );
+
+    // Add some difficulty votes for route [2] from other users
+    await queryRunner.query(
+      `INSERT INTO difficulty_vote (route_id, user_id, difficulty) VALUES ('${mockData.crags.simpleCrag.sectors.simpleSector1.routes[2].id}', '${mockData.users.basicUser2.id}', 1400),
+      ('${mockData.crags.simpleCrag.sectors.simpleSector1.routes[2].id}', '${mockData.users.basicUser3.id}', 1500)
+      `,
+    );
+    // difficulty of route [2] is now 1350
+
+    // 2. Comments
     // Add some comments from a user that will be deleted
     const commentOnEntities = [
       {
@@ -146,6 +165,7 @@ describe('UserDelete', () => {
       }
     }
 
+    // 3. Images
     // Add some images uploaded by the tobedeleted user
     // Upload a route image
     const routeImageUploadResponse = await request(app.getHttpServer())
@@ -184,14 +204,21 @@ describe('UserDelete', () => {
       cragImageUploadResponse.text,
     ).id;
 
-    // 5. Make the tobedeleted user an editor so that we can test roles removal
+    // 4. Roles
+    // Make the tobedeleted user an editor so that we can test roles removal
     // TODO: admin role in this context should become editor role
     await queryRunner.query(
       `INSERT INTO role (role, user_id) VALUES ('admin', '${mockData.users.basicUser1.id}')`,
     );
 
-    // 6. User is already in a club. Done by db seeding.
-    // 7. User's route events added by seed.
+    // 5. Clubs
+    // User is already in a club. Done by db seeding.
+
+    // 6. Contributables
+    // User is already the contributor of some contributables. Done by db seeding.
+
+    // 7. Route events
+    // User's route events added by seed.
   });
 
   it('should fail to delete a user if logged in with a normal user', async () => {
@@ -286,7 +313,7 @@ describe('UserDelete', () => {
   });
 
   it('should recalculate route difficulty of a route for which the deleted user voted on difficulty', async () => {
-    const response = await request(app.getHttpServer())
+    const response0 = await request(app.getHttpServer())
       .post('/graphql')
       .send({
         query: `
@@ -300,7 +327,23 @@ describe('UserDelete', () => {
       })
       .expect(200);
 
-    expect(response.body.data.route.difficulty).toBe(1200);
+    expect(response0.body.data.route.difficulty).toBe(1200);
+
+    const response2 = await request(app.getHttpServer())
+      .post('/graphql')
+      .send({
+        query: `
+        query {
+          route(id: "${mockData.crags.simpleCrag.sectors.simpleSector1.routes[2].id}")
+          {
+            difficulty
+          }
+        }
+      `,
+      })
+      .expect(200);
+
+    expect(response2.body.data.route.difficulty).toBe(1400);
   });
 
   it('should recalculate route star rating of a route for which the deleted user voted on star rating', async () => {
