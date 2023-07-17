@@ -44,6 +44,7 @@ import {
   calculateScore,
   recalculateActivityRoutesScores,
 } from '../../crags/utils/calculate-scores';
+import { StatsActivities } from '../utils/stats-activities.class';
 
 @Injectable()
 export class ActivityRoutesService {
@@ -488,7 +489,6 @@ export class ActivityRoutesService {
     currentUser: User = null,
   ): Promise<PaginatedActivityRoutes> {
     const query = this.buildQuery(params, currentUser);
-
     const itemCount = await query.getCount();
 
     const pagination = new PaginationMeta(
@@ -505,6 +505,49 @@ export class ActivityRoutesService {
       items: await query.getMany(),
       meta: pagination,
     });
+  }
+
+  async getStats(
+    params: FindActivityRoutesInput = {},
+    currentUser: User = null,
+  ): Promise<StatsActivities[]> {
+
+    const builder = this.activityRoutesRepository
+      .createQueryBuilder('ar')
+      .select('EXTRACT(YEAR FROM ar.date)', 'year')
+      .addSelect('r.difficulty', 'difficulty')
+      .addSelect('ar.ascent_type', 'ascent_type')
+      .addSelect('count(ar.id)', 'nr_ascents')
+      .addSelect('count(r.id)', 'nr_routes')
+      .addSelect('count(p.id)', 'nr_pitches')
+      .innerJoin('route', 'r', 'r.id = ar.route_id')
+      .leftJoin('pitch', 'p', 'p.id = ar.pitch_id')
+      .where('ar.user_id = :userId', {
+        userId: currentUser.id,
+      })
+      .andWhere('ar.ascent_type IN (:...ascentType)', {
+        ascentType: ['onsight', 'redpoint', 'flash'],
+      })
+      .andWhere(
+        "(r.publish_status IN ('published', 'in_review') OR (r.publish_status = 'draft' AND ar.user_id = :userId))",
+        { userId: currentUser.id },
+      )
+      .groupBy("r.difficulty").addGroupBy("EXTRACT(YEAR FROM ar.date)").addGroupBy("ar.ascent_type")
+      .orderBy('r.difficulty', 'ASC')
+      .addOrderBy('year', 'ASC');
+
+      setBuilderCache(builder, 'getRawAndEntities');
+
+      const raw = await builder.getRawMany()
+      const myStats = raw.map((element, index) => {
+        return {
+          year: element.year,
+          difficulty: element.difficulty,
+          ascent_type: element.ascent_type,
+          nr_routes: element.nr_routes,
+        };
+      });
+      return myStats;
   }
 
   async find(

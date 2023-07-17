@@ -34,6 +34,7 @@ import { Activity } from '../entities/activity.entity';
 import { ActivityLoader } from '../loaders/activity.loader';
 import { ActivityRoutesService } from '../services/activity-routes.service';
 import { PaginatedActivityRoutes } from '../utils/paginated-activity-routes.class';
+import { StatsActivities } from '../utils/stats-activities.class';
 import { GraphQLResolveInfo } from 'graphql';
 import { CacheScope } from 'apollo-server-types';
 import { CreateActivityRouteInput } from '../dtos/create-activity-route.input';
@@ -114,6 +115,22 @@ export class ActivityRoutesResolver {
     input.userId = currentUser.id;
     return this.activityRoutesService.paginate(input, currentUser);
   }
+
+  @UseGuards(UserAuthGuard)
+  @Query(() => [StatsActivities])
+  myActivityStatistics(
+    @CurrentUser() currentUser: User,
+    @Args('input', { nullable: true }) input: FindActivityRoutesInput = {},
+    @Info() info: GraphQLResolveInfo,
+  ) {
+    info.cacheControl.setCacheHint({ scope: CacheScope.Private });
+
+    // TODO: currentUser should serve as authorization filter (what is allowed to be returned)
+    // userId in input should be renamed to forUserId, and be used as a result filter (what is the client asking for)
+    input.userId = currentUser.id;
+    return this.activityRoutesService.getStats(input, currentUser);
+  }
+
 
   @UseGuards(UserAuthGuard)
   @Query(() => [ActivityRoute])
