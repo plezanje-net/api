@@ -1,30 +1,18 @@
 import DataLoader from 'dataloader';
-import { Inject, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { Comment } from '../entities/comment.entity';
 import { CommentsService } from '../services/comments.service';
 import { NestDataLoader } from '../../core/interceptors/data-loader.interceptor';
-import { CONTEXT } from '@nestjs/graphql';
-import { User } from '../../users/entities/user.entity';
 
 @Injectable()
 export class RouteCommentsLoader implements NestDataLoader<string, Comment[]> {
-  currentUser: User = null;
-
-  constructor(
-    private readonly commentsService: CommentsService,
-    @Inject(CONTEXT) private context: any,
-  ) {
-    this.currentUser = this.context.req.user;
-  }
+  constructor(private readonly commentsService: CommentsService) {}
 
   generateDataLoader(): DataLoader<string, Comment[]> {
     return new DataLoader<string, Comment[]>(async (keys) => {
-      const comments = await this.commentsService.find(
-        {
-          routeIds: keys.map((k) => k),
-        },
-        this.currentUser,
-      );
+      const comments = await this.commentsService.find({
+        routeIds: keys.map((k) => k),
+      });
 
       const routeComments: { [key: string]: Comment[] } = {};
 
