@@ -189,16 +189,10 @@ export class CragsResolver {
 
   @ResolveField('comments', () => [Comment])
   @UseGuards(UserAuthGuard)
-  async getComments(
-    @Parent() crag: Crag,
-    @CurrentUser() currentUser: User,
-  ): Promise<Comment[]> {
-    const comments = await this.commentsService.find(
-      {
-        cragId: crag.id,
-      },
-      currentUser,
-    );
+  async getComments(@Parent() crag: Crag): Promise<Comment[]> {
+    const comments = await this.commentsService.find({
+      cragId: crag.id,
+    });
 
     return comments;
   }

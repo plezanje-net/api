@@ -86,10 +86,7 @@ export class CommentsService {
     return this.commentsRepository.remove(comment).then(() => true);
   }
 
-  async find(
-    params: FindCommentsInput = {},
-    currentUser: User,
-  ): Promise<Comment[]> {
+  async find(params: FindCommentsInput = {}): Promise<Comment[]> {
     const options: FindManyOptions = {
       order: {},
       where: {},
@@ -109,15 +106,6 @@ export class CommentsService {
 
     if (params.type != null) {
       options.where['type'] = params.type;
-    }
-
-    if (!currentUser) {
-      options.relations = {
-        crag: true,
-      };
-      options.where['crag'] = {
-        isHidden: false,
-      };
     }
 
     options.order = { created: 'DESC' };
