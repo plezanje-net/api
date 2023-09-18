@@ -515,7 +515,7 @@ export class ActivityRoutesService {
     const builder = this.activityRoutesRepository
       .createQueryBuilder('ar')
       .select('EXTRACT(YEAR FROM ar.date)', 'year')
-      .addSelect('r.difficulty', 'difficulty')
+      .addSelect('coalesce(p.difficulty, r.difficulty)', 'difficulty')
       .addSelect('ar.ascent_type', 'ascent_type')
       .addSelect('count(ar.id)', 'nr_ascents')
       .addSelect('count(r.id)', 'nr_routes')
@@ -532,8 +532,8 @@ export class ActivityRoutesService {
         "(r.publish_status IN ('published', 'in_review') OR (r.publish_status = 'draft' AND ar.user_id = :userId))",
         { userId: currentUser.id },
       )
-      .groupBy("r.difficulty").addGroupBy("EXTRACT(YEAR FROM ar.date)").addGroupBy("ar.ascent_type")
-      .orderBy('r.difficulty', 'ASC')
+      .groupBy("p.difficulty").addGroupBy(("r.difficulty")).addGroupBy("EXTRACT(YEAR FROM ar.date)").addGroupBy("ar.ascent_type")
+      .orderBy('coalesce(p.difficulty, r.difficulty)', 'ASC')
       .addOrderBy('year', 'ASC');
 
       setBuilderCache(builder, 'getRawAndEntities');
