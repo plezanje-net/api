@@ -378,28 +378,28 @@ const seedDatabase = async (qr: QueryRunner, app) => {
   // Add some crags
   // published crag
   await qr.query(
-    `INSERT INTO crag (id, name, slug, country_id, default_grading_system_id, type, publish_status, is_hidden, user_id)
-    VALUES ('${mockData.crags.publishedCrag.id}', 'Kot Tečnik', '${mockData.crags.publishedCrag.slug}', '${mockData.countries.slovenia.id}', 'french', 'sport', 'published', false, '${mockData.users.basicUser1.id}')`,
+    `INSERT INTO crag (id, name, slug, country_id, default_grading_system_id, type, publish_status, is_hidden, user_id, activity_by_month)
+    VALUES ('${mockData.crags.publishedCrag.id}', 'Kot Tečnik', '${mockData.crags.publishedCrag.slug}', '${mockData.countries.slovenia.id}', 'french', 'sport', 'published', false, '${mockData.users.basicUser1.id}', '{0,0,0,0,0,0,0,0,0,0,0,0}')`,
   );
   // in review crag
   await qr.query(
-    `INSERT INTO crag (id, name, slug, country_id, default_grading_system_id, type, publish_status, is_hidden, user_id)
-    VALUES ('${mockData.crags.inReviewCrag.id}', 'Podstenčnik', 'podstencnik', '${mockData.countries.slovenia.id}', 'french', 'sport', 'in_review', false, '${mockData.users.basicUser1.id}')`,
+    `INSERT INTO crag (id, name, slug, country_id, default_grading_system_id, type, publish_status, is_hidden, user_id, activity_by_month)
+    VALUES ('${mockData.crags.inReviewCrag.id}', 'Podstenčnik', 'podstencnik', '${mockData.countries.slovenia.id}', 'french', 'sport', 'in_review', false, '${mockData.users.basicUser1.id}', '{0,0,0,0,0,0,0,0,0,0,0,0}')`,
   );
   // draft crag
   await qr.query(
-    `INSERT INTO crag (id, name, slug, country_id, default_grading_system_id, type, publish_status, is_hidden, user_id)
-    VALUES ('${mockData.crags.draftCrag.id}', 'Nova grapa', 'nova-grapa', '${mockData.countries.slovenia.id}', 'french', 'sport', 'draft', false, '${mockData.users.basicUser1.id}')`,
+    `INSERT INTO crag (id, name, slug, country_id, default_grading_system_id, type, publish_status, is_hidden, user_id, activity_by_month)
+    VALUES ('${mockData.crags.draftCrag.id}', 'Nova grapa', 'nova-grapa', '${mockData.countries.slovenia.id}', 'french', 'sport', 'draft', false, '${mockData.users.basicUser1.id}', '{0,0,0,0,0,0,0,0,0,0,0,0}')`,
   );
   // crag with multiple sectors
   await qr.query(
-    `INSERT INTO crag (id, name, slug, country_id, default_grading_system_id, type, publish_status, is_hidden, user_id)
-    VALUES ('${mockData.crags.cragWithMultipleSectors.id}', 'Cre tata', '${mockData.crags.cragWithMultipleSectors.slug}', '${mockData.countries.slovenia.id}', 'french', 'sport', 'published', false, '${mockData.users.basicUser1.id}')`,
+    `INSERT INTO crag (id, name, slug, country_id, default_grading_system_id, type, publish_status, is_hidden, user_id, activity_by_month)
+    VALUES ('${mockData.crags.cragWithMultipleSectors.id}', 'Cre tata', '${mockData.crags.cragWithMultipleSectors.slug}', '${mockData.countries.slovenia.id}', 'french', 'sport', 'published', false, '${mockData.users.basicUser1.id}', '{0,0,0,0,0,0,0,0,0,0,0,0}')`,
   );
   // simple crag
   await qr.query(
-    `INSERT INTO crag (id, name, slug, country_id, default_grading_system_id, type, publish_status, is_hidden, user_id)
-    VALUES ('${mockData.crags.simpleCrag.id}', 'Cragus simplus', '${mockData.crags.simpleCrag.slug}', '${mockData.countries.slovenia.id}', 'french', 'sport', 'published', false, '${mockData.users.basicUser1.id}')`,
+    `INSERT INTO crag (id, name, slug, country_id, default_grading_system_id, type, publish_status, is_hidden, user_id, activity_by_month)
+    VALUES ('${mockData.crags.simpleCrag.id}', 'Cragus simplus', '${mockData.crags.simpleCrag.slug}', '${mockData.countries.slovenia.id}', 'french', 'sport', 'published', false, '${mockData.users.basicUser1.id}', '{0,0,0,0,0,0,0,0,0,0,0,0}')`,
   );
 
   // Add some sectors
