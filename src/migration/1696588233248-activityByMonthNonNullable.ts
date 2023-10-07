@@ -9,9 +9,15 @@ export class activityByMonthNonNullable1696588233248
     await queryRunner.query(
       `ALTER TABLE "crag" ALTER COLUMN "activity_by_month" SET NOT NULL`,
     );
+    await queryRunner.query(
+      `ALTER TABLE "crag" ALTER COLUMN "activity_by_month" SET DEFAULT '{0,0,0,0,0,0,0,0,0,0,0,0}'`,
+    );
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
+    await queryRunner.query(
+      `ALTER TABLE "crag" ALTER COLUMN "activity_by_month" DROP DEFAULT`,
+    );
     await queryRunner.query(
       `ALTER TABLE "crag" ALTER COLUMN "activity_by_month" DROP NOT NULL`,
     );
