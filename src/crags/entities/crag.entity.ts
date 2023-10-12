@@ -11,7 +11,13 @@ import {
   JoinTable,
   Index,
 } from 'typeorm';
-import { ObjectType, Field, Int, Float } from '@nestjs/graphql';
+import {
+  ObjectType,
+  Field,
+  Int,
+  Float,
+  registerEnumType,
+} from '@nestjs/graphql';
 import { Country } from './country.entity';
 import { Sector } from './sector.entity';
 import { Area } from './area.entity';
@@ -30,6 +36,40 @@ export enum CragType {
   SPORT = 'sport',
   ALPINE = 'alpine',
 }
+
+export enum Orientation {
+  NORTH = 'north',
+  NORTHEAST = 'northeast',
+  EAST = 'east',
+  SOUTHEAST = 'southeast',
+  SOUTH = 'south',
+  SOUTHWEST = 'southwest',
+  WEST = 'west',
+  NORTHWEST = 'northwest',
+}
+registerEnumType(Orientation, {
+  name: 'Orientation',
+});
+
+export enum WallAngle {
+  SLAB = 'slab',
+  VERTICAL = 'vertical',
+  OVERHANG = 'overhang',
+  ROOF = 'roof',
+}
+registerEnumType(WallAngle, {
+  name: 'WallAngle',
+});
+
+export enum Season {
+  SPRING = 'spring',
+  SUMMER = 'summer',
+  AUTUMN = 'autumn',
+  WINTER = 'winter',
+}
+registerEnumType(Season, {
+  name: 'Season',
+});
 
 @Entity()
 @Index(['publishStatus'])
@@ -181,4 +221,39 @@ export class Crag extends BaseEntity {
   })
   @Field(() => [Int])
   activityByMonth: number[];
+
+  @Column({
+    type: 'enum',
+    enum: Orientation,
+    array: true,
+    nullable: true,
+  })
+  @Field(() => [Orientation], { nullable: true })
+  orientations: Orientation[];
+
+  @Column({ nullable: true })
+  @Field(() => Int, { nullable: true })
+  approachTime: number;
+
+  @Column({
+    type: 'enum',
+    enum: WallAngle,
+    array: true,
+    nullable: true,
+  })
+  @Field(() => [WallAngle], { nullable: true })
+  wallAngles: WallAngle[];
+
+  @Column({
+    type: 'enum',
+    enum: Season,
+    array: true,
+    nullable: true,
+  })
+  @Field(() => [Season], { nullable: true })
+  seasons: Season[];
+
+  @Column({ nullable: true })
+  @Field({ nullable: true })
+  rainProof: boolean;
 }
