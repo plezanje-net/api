@@ -7,6 +7,8 @@ import {
   BaseEntity,
   ManyToOne,
   OneToMany,
+  ManyToMany,
+  JoinTable,
 } from 'typeorm';
 import { ObjectType, Field } from '@nestjs/graphql';
 import { Crag } from '../../crags/entities/crag.entity';
@@ -14,6 +16,7 @@ import { Route } from '../../crags/entities/route.entity';
 import { User } from '../../users/entities/user.entity';
 import { EntityStatus } from './enums/entity-status.enum';
 import { PublishStatus } from './enums/publish-status.enum';
+import { Parking } from './parking.entity';
 
 @Entity()
 @ObjectType()
@@ -84,4 +87,8 @@ export class Sector extends BaseEntity {
   user: Promise<User>;
   @Column({ name: 'user_id', nullable: true })
   userId: string;
+
+  @ManyToMany(() => Parking, (parking) => parking.sectors)
+  @JoinTable()
+  parkings: Parking[];
 }

@@ -10,6 +10,8 @@ import {
   ManyToMany,
   JoinTable,
   Index,
+  OneToOne,
+  JoinColumn,
 } from 'typeorm';
 import {
   ObjectType,
@@ -256,4 +258,9 @@ export class Crag extends BaseEntity {
   @Column({ nullable: true })
   @Field({ nullable: true })
   rainProof: boolean;
+
+  @OneToOne(() => Image, { nullable: true })
+  @JoinColumn()
+  @Field(() => Image, { nullable: true })
+  coverImage: Promise<Image>;
 }

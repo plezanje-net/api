@@ -26,7 +26,6 @@ import { UserAuthGuard } from '../../auth/guards/user-auth.guard';
 import { ForeignKeyConstraintFilter } from '../filters/foreign-key-constraint.filter';
 import { CurrentUser } from '../../auth/decorators/current-user.decorator';
 import { User } from '../../users/entities/user.entity';
-import { RoutesService } from '../services/routes.service';
 import { NotificationService } from '../../notification/services/notification.service';
 import { SectorRoutesLoader } from '../loaders/sector-routes.loader';
 import DataLoader from 'dataloader';
@@ -36,6 +35,8 @@ import {
 } from '../../core/interceptors/data-loader.interceptor';
 import { CragsService } from '../services/crags.service';
 import { UserLoader } from '../../users/loaders/user.loader';
+import { Parking } from '../entities/parking.entity';
+import { ParkingsService } from '../services/parkings.service';
 
 @Resolver(() => Sector)
 @UseInterceptors(DataLoaderInterceptor)
@@ -43,8 +44,8 @@ export class SectorsResolver {
   constructor(
     private cragsService: CragsService,
     private sectorsService: SectorsService,
-    private routesService: RoutesService,
     private notificationService: NotificationService,
+    private parkingsService: ParkingsService,
   ) {}
 
   /* QUERIES */
@@ -194,5 +195,10 @@ export class SectorsResolver {
     loader: DataLoader<Sector['userId'], User>,
   ): Promise<User> {
     return sector.userId ? loader.load(sector.userId) : null;
+  }
+
+  @ResolveField('parkings', () => [Parking])
+  async getParkings(@Parent() sector: Sector): Promise<Parking[]> {
+    return this.parkingsService.getParkings(sector.id);
   }
 }
