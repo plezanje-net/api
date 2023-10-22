@@ -68,6 +68,8 @@ import { SummaryQueueConsumer } from './consumers/summary-queue.consumer';
 import { CragLoader } from './loaders/crag.loader';
 import { RouteLoader } from './loaders/route.loader';
 import { RouteEvent } from './entities/route-event.entity';
+import { Parking } from './entities/parking.entity';
+import { ParkingsService } from './services/parkings.service';
 
 @Module({
   imports: [
@@ -94,6 +96,7 @@ import { RouteEvent } from './entities/route-event.entity';
       CragProperty,
       IceFallProperty,
       StarRatingVote,
+      Parking,
     ]),
     forwardRef(() => AuditModule),
     BullModule.registerQueue({
@@ -142,6 +145,7 @@ import { RouteEvent } from './entities/route-event.entity';
     ConfigService,
     CragLoader,
     RouteLoader,
+    ParkingsService,
   ],
   controllers: [UploadController],
   exports: [

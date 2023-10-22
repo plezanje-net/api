@@ -43,6 +43,7 @@ import { PropertyType } from './crags/entities/property-type.entity';
 import EntityCacheSubscriber from './core/utils/entity-cache/entity-cache.subscriber';
 import { SnakeNamingStrategy } from 'typeorm-naming-strategies';
 import { BullModule } from '@nestjs/bull';
+import { Parking } from './crags/entities/parking.entity';
 
 @Module({
   imports: [
@@ -98,6 +99,7 @@ import { BullModule } from '@nestjs/bull';
           CragProperty,
           IceFallProperty,
           PropertyType,
+          Parking,
         ],
         // subscribers: [EntityCacheSubscriber],
         // logging: ['query', 'error'],
