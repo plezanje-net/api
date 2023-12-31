@@ -35,7 +35,7 @@ export class Area extends BaseEntity {
   @Field()
   name: string;
 
-  @Column({ nullable: true })
+  @Column()
   @Field()
   slug: string;
 
