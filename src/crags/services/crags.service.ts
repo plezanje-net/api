@@ -67,6 +67,12 @@ export class CragsService {
     return crags;
   }
 
+  async findAll(): Promise<Crag[]> {
+    const qb = this.cragsRepository.createQueryBuilder('c');
+    const result = qb.getMany();
+    return result;
+  }
+
   async processAllCrags() {
     (
       await this.cragsRepository.find({
@@ -257,7 +263,7 @@ export class CragsService {
         routeTypeId: params.routeTypeId,
       });
     }
-
+    console.log(builder.getSql());
     setBuilderCache(builder);
 
     return builder;

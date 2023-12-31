@@ -84,6 +84,13 @@ export class CragsResolver {
     });
   }
 
+  @UseGuards(UserAuthGuard)
+  // TODO: add conditions for showing 'public' crags to everyone (in service)
+  @Query(() => [Crag])
+  async crags(): Promise<Crag[]> {
+    return this.cragsService.findAll();
+  }
+
   /* MUTATIONS */
 
   @UseGuards(UserAuthGuard)
