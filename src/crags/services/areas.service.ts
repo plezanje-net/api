@@ -6,6 +6,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { FindManyOptions, IsNull, MoreThan, Repository } from 'typeorm';
 import { Country } from '../entities/country.entity';
 import { FindAreasInput } from '../dtos/find-areas.input';
+import slugify from 'slugify';
 
 @Injectable()
 export class AreasService {
@@ -61,6 +62,8 @@ export class AreasService {
       await this.countryRepository.findOneByOrFail({ id: data.countryId }),
     );
 
+    area.slug = await this.generateAreaSlug(area.name);
+
     return this.areasRepository.save(area);
   }
 
@@ -80,5 +83,23 @@ export class AreasService {
     const area = await this.areasRepository.findOneByOrFail({ id });
 
     return this.areasRepository.remove(area).then(() => true);
+  }
+
+  private async generateAreaSlug(areaName: string) {
+    let slug = slugify(areaName, { lower: true });
+    let suffixCounter = 0;
+    let suffix = '';
+
+    while (
+      await this.areasRepository.findOne({
+        where: { slug: slug + suffix },
+      })
+    ) {
+      suffixCounter++;
+      suffix = '-' + suffixCounter;
+    }
+    slug += suffix;
+
+    return slug;
   }
 }
