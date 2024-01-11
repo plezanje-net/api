@@ -257,7 +257,7 @@ export class Crag extends BaseEntity {
 
   @Column({ nullable: true })
   @Field({ nullable: true })
-  rainProof: boolean;
+  rainproof: boolean;
 
   @OneToOne(() => Image, { nullable: true })
   @JoinColumn()
