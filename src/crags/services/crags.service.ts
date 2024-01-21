@@ -263,7 +263,7 @@ export class CragsService {
         routeTypeId: params.routeTypeId,
       });
     }
-    console.log(builder.getSql());
+
     setBuilderCache(builder);
 
     return builder;

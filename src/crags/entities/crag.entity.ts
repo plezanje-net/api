@@ -33,6 +33,7 @@ import { GradingSystem } from './grading-system.entity';
 import { User } from '../../users/entities/user.entity';
 import { EntityStatus } from './enums/entity-status.enum';
 import { PublishStatus } from './enums/publish-status.enum';
+import GraphQLJSON from 'graphql-type-json';
 
 export enum CragType {
   SPORT = 'sport',
@@ -263,4 +264,8 @@ export class Crag extends BaseEntity {
   @JoinColumn()
   @Field(() => Image, { nullable: true })
   coverImage: Promise<Image>;
+
+  @Column({ type: 'jsonb', nullable: true })
+  @Field((type) => GraphQLJSON, { nullable: true })
+  nrRoutesByGrade: JSON;
 }
