@@ -44,6 +44,8 @@ import { NotificationService } from '../../notification/services/notification.se
 import { ForeignKeyConstraintFilter } from '../filters/foreign-key-constraint.filter';
 import { ImagesService } from '../services/images.service';
 import { Roles } from '../../auth/decorators/roles.decorator';
+import { Area } from '../entities/area.entity';
+import { AreaLoader } from '../loaders/area.loader';
 
 @Resolver(() => Crag)
 @UseInterceptors(DataLoaderInterceptor)
@@ -216,6 +218,15 @@ export class CragsResolver {
     loader: DataLoader<Country['id'], Country>,
   ): Promise<Country> {
     return loader.load(crag.countryId);
+  }
+
+  @ResolveField('area', () => Area, { nullable: true })
+  async getArea(
+    @Parent() crag: Area,
+    @Loader(AreaLoader)
+    loader: DataLoader<Area['id'], Area>,
+  ): Promise<Area> {
+    return crag.areaId ? loader.load(crag.areaId) : null;
   }
 
   @Mutation(() => Boolean)

@@ -25,6 +25,11 @@ export class AreasService {
     return this.areasRepository.findOneByOrFail({ slug });
   }
 
+  findByIds(ids: string[]): Promise<Area[]> {
+    const qb = this.areasRepository.createQueryBuilder('area');
+    return qb.whereInIds(ids).getMany();
+  }
+
   find(params: FindAreasInput = {}): Promise<Area[]> {
     const options: FindManyOptions = {
       order: {},
