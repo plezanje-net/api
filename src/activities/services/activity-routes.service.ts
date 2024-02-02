@@ -532,6 +532,9 @@ export class ActivityRoutesService {
         "(r.publish_status IN ('published', 'in_review') OR (r.publish_status = 'draft' AND ar.user_id = :userId))",
         { userId: currentUser.id },
       )
+      .andWhere(
+        "coalesce(p.difficulty, r.difficulty) is not null"
+      )
       .groupBy("p.difficulty").addGroupBy(("r.difficulty")).addGroupBy("EXTRACT(YEAR FROM ar.date)").addGroupBy("ar.ascent_type")
       .orderBy('coalesce(p.difficulty, r.difficulty)', 'ASC')
       .addOrderBy('year', 'ASC');
