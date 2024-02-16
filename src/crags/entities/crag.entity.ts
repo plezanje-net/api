@@ -268,4 +268,16 @@ export class Crag extends BaseEntity {
   @Column({ type: 'jsonb', nullable: true })
   @Field((type) => GraphQLJSON, { nullable: true })
   nrRoutesByGrade: JSON;
+
+  @Column({ default: false })
+  @Field()
+  hasSport: boolean;
+
+  @Column({ default: false })
+  @Field()
+  hasBoulder: boolean;
+
+  @Column({ default: false })
+  @Field()
+  hasMultipitch: boolean;
 }
