@@ -511,7 +511,6 @@ export class ActivityRoutesService {
     params: FindActivityRoutesInput = {},
     currentUser: User = null,
   ): Promise<StatsActivities[]> {
-
     const builder = this.activityRoutesRepository
       .createQueryBuilder('ar')
       .select('EXTRACT(YEAR FROM ar.date)', 'year')
@@ -532,25 +531,32 @@ export class ActivityRoutesService {
         "(r.publish_status IN ('published', 'in_review') OR (r.publish_status = 'draft' AND ar.user_id = :userId))",
         { userId: currentUser.id },
       )
-      .andWhere(
-        "coalesce(p.difficulty, r.difficulty) is not null"
-      )
-      .groupBy("p.difficulty").addGroupBy(("r.difficulty")).addGroupBy("EXTRACT(YEAR FROM ar.date)").addGroupBy("ar.ascent_type")
+      .andWhere('coalesce(p.difficulty, r.difficulty) is not null')
+      .groupBy('p.difficulty')
+      .addGroupBy('r.difficulty')
+      .addGroupBy('EXTRACT(YEAR FROM ar.date)')
+      .addGroupBy('ar.ascent_type')
       .orderBy('coalesce(p.difficulty, r.difficulty)', 'ASC')
       .addOrderBy('year', 'ASC');
 
-      setBuilderCache(builder, 'getRawAndEntities');
-
-      const raw = await builder.getRawMany()
-      const myStats = raw.map((element, index) => {
-        return {
-          year: element.year,
-          difficulty: element.difficulty,
-          ascent_type: element.ascent_type,
-          nr_routes: element.nr_routes,
-        };
+    if (params.routeTypes != null) {
+      builder.andWhere('r.route_type_id IN(:...routeTypes)', {
+        routeTypes: params.routeTypes,
       });
-      return myStats;
+    }
+
+    setBuilderCache(builder, 'getRawAndEntities');
+
+    const raw = await builder.getRawMany();
+    const myStats = raw.map((element, index) => {
+      return {
+        year: element.year,
+        difficulty: element.difficulty,
+        ascent_type: element.ascent_type,
+        nr_routes: element.nr_routes,
+      };
+    });
+    return myStats;
   }
 
   async find(

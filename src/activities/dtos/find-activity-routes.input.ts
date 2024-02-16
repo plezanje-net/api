@@ -35,6 +35,10 @@ export class FindActivityRoutesInput {
 
   @Field(() => [String], { nullable: true })
   @IsOptional()
+  routeTypes?: string[];
+
+  @Field(() => [String], { nullable: true })
+  @IsOptional()
   publish?: PublishType[];
 
   @Field({ nullable: true })
