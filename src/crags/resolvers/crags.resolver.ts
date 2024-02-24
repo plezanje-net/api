@@ -46,6 +46,7 @@ import { ImagesService } from '../services/images.service';
 import { Roles } from '../../auth/decorators/roles.decorator';
 import { Area } from '../entities/area.entity';
 import { AreaLoader } from '../loaders/area.loader';
+import { FindCragsServiceInput } from '../dtos/find-crags-service.input';
 
 @Resolver(() => Crag)
 @UseInterceptors(DataLoaderInterceptor)
@@ -86,11 +87,17 @@ export class CragsResolver {
     });
   }
 
+  @AllowAny()
   @UseGuards(UserAuthGuard)
-  // TODO: add conditions for showing 'public' crags to everyone (in service)
   @Query(() => [Crag])
-  async crags(): Promise<Crag[]> {
-    return this.cragsService.findAll();
+  async crags(
+    @CurrentUser() user: User,
+    @Args('input', { nullable: true }) input: FindCragsServiceInput = {},
+  ): Promise<Crag[]> {
+    return this.cragsService.find({
+      ...input,
+      user,
+    });
   }
 
   /* MUTATIONS */
