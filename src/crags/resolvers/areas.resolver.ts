@@ -1,4 +1,11 @@
-import { Resolver, Mutation, Args, Query } from '@nestjs/graphql';
+import {
+  Resolver,
+  Mutation,
+  Args,
+  Query,
+  ResolveField,
+  Parent,
+} from '@nestjs/graphql';
 import { Area } from '../entities/area.entity';
 import { Roles } from '../../auth/decorators/roles.decorator';
 import { UseFilters, UseInterceptors } from '@nestjs/common';
@@ -8,6 +15,11 @@ import { CreateAreaInput } from '../dtos/create-area.input';
 import { AreasService } from '../services/areas.service';
 import { AllowAny } from '../../auth/decorators/allow-any.decorator';
 import { NotFoundFilter } from '../filters/not-found.filter';
+import { Country } from '../entities/country.entity';
+import { Loader } from '../../core/interceptors/data-loader.interceptor';
+import { CountryLoader } from '../loaders/country.loader';
+import { Crag } from '../entities/crag.entity';
+import DataLoader from 'dataloader';
 
 @Resolver(() => Area)
 export class AreasResolver {
@@ -43,5 +55,14 @@ export class AreasResolver {
   @Mutation(() => Boolean)
   async deleteArea(@Args('id') id: string): Promise<boolean> {
     return this.areasService.delete(id);
+  }
+
+  @ResolveField('country', () => Country)
+  async getCountry(
+    @Parent() crag: Crag,
+    @Loader(CountryLoader)
+    loader: DataLoader<Country['id'], Country>,
+  ): Promise<Country> {
+    return loader.load(crag.countryId);
   }
 }
