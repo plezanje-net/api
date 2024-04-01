@@ -70,6 +70,7 @@ import { RouteLoader } from './loaders/route.loader';
 import { RouteEvent } from './entities/route-event.entity';
 import { Parking } from './entities/parking.entity';
 import { ParkingsService } from './services/parkings.service';
+import { AreaLoader } from './loaders/area.loader';
 
 @Module({
   imports: [
@@ -143,6 +144,7 @@ import { ParkingsService } from './services/parkings.service';
     MailService,
     SummaryQueueConsumer,
     ConfigService,
+    AreaLoader,
     CragLoader,
     RouteLoader,
     ParkingsService,
