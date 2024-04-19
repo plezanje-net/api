@@ -524,9 +524,6 @@ export class ActivityRoutesService {
       .where('ar.user_id = :userId', {
         userId: currentUser.id,
       })
-      .andWhere('ar.ascent_type IN (:...ascentType)', {
-        ascentType: ['onsight', 'redpoint', 'flash'],
-      })
       .andWhere(
         "(r.publish_status IN ('published', 'in_review') OR (r.publish_status = 'draft' AND ar.user_id = :userId))",
         { userId: currentUser.id },
@@ -536,7 +533,7 @@ export class ActivityRoutesService {
       .addGroupBy('r.difficulty')
       .addGroupBy('EXTRACT(YEAR FROM ar.date)')
       .addGroupBy('ar.ascent_type')
-      .orderBy('coalesce(p.difficulty, r.difficulty)', 'ASC')
+      .orderBy('coalesce(p.difficulty, r.difficulty)', 'DESC')
       .addOrderBy('year', 'ASC');
 
     if (params.routeTypes != null) {
