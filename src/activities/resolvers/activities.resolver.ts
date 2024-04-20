@@ -38,6 +38,7 @@ import {
 } from '../../core/interceptors/data-loader.interceptor';
 import { UserLoader } from '../../users/loaders/user.loader';
 import DataLoader from 'dataloader';
+import { StatsActivities } from '../utils/stats-activities.class';
 
 @Resolver(() => Activity)
 @UseInterceptors(DataLoaderInterceptor)
@@ -59,6 +60,19 @@ export class ActivitiesResolver {
 
     return this.activitiesService.paginate(input, currentUser);
   }
+
+  @UseGuards(UserAuthGuard)
+  @Query(() => [StatsActivities])
+  myActivitiesStatistics(
+    @CurrentUser() currentUser: User,
+    @Args('input', { nullable: true }) input: FindActivitiesInput = {},
+    @Info() info: GraphQLResolveInfo,
+  )  {
+    info.cacheControl.setCacheHint({ scope: CacheScope.Private });
+    input.userId = currentUser.id;
+
+    return this.activitiesService.getStats(input, currentUser);
+  }  
 
   @UseGuards(UserAuthGuard)
   @Query(() => Activity)

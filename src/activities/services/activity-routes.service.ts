@@ -44,7 +44,7 @@ import {
   calculateScore,
   recalculateActivityRoutesScores,
 } from '../../crags/utils/calculate-scores';
-import { StatsActivities } from '../utils/stats-activities.class';
+import { StatsRoutes } from '../utils/stats-routes.class';
 
 @Injectable()
 export class ActivityRoutesService {
@@ -510,7 +510,7 @@ export class ActivityRoutesService {
   async getStats(
     params: FindActivityRoutesInput = {},
     currentUser: User = null,
-  ): Promise<StatsActivities[]> {
+  ): Promise<StatsRoutes[]> {
     const builder = this.activityRoutesRepository
       .createQueryBuilder('ar')
       .select('EXTRACT(YEAR FROM ar.date)', 'year')

@@ -17,6 +17,7 @@ import { setBuilderCache } from '../../core/utils/entity-cache/entity-cache-help
 import { getPublishStatusParams } from '../../core/utils/contributable-helpers';
 import { InjectQueue } from '@nestjs/bull';
 import { Queue } from 'bull';
+import { StatsActivities } from '../utils/stats-activities.class';
 
 @Injectable()
 export class ActivitiesService {
@@ -212,6 +213,41 @@ export class ActivitiesService {
       items: await query.getMany(),
       meta: pagination,
     });
+  }
+
+  async getStats(
+    params: FindActivitiesInput = {},
+    currentUser: User = null,
+  ): Promise<StatsActivities[]> {
+
+    const builder = this.activitiesRepository
+      .createQueryBuilder('ac')
+      .select('EXTRACT(YEAR FROM ac.date)', 'year')
+      .addSelect('ac.type', 'activity_type')
+      .addSelect('count(*)', 'nr_activities')
+      .where('ac.user_id = :userId', {
+        userId: currentUser.id,
+      })
+
+      .groupBy('EXTRACT(YEAR FROM ac.date)')
+      .addGroupBy('ac.type')
+      .orderBy('year', 'ASC');
+
+    if (params.activityTypes != null) {
+      builder.andWhere('ac.type_id IN(:...activityTypes)', {
+        routeTypes: params.activityTypes,
+      });
+    }
+    const raw = await builder.getRawMany();
+    const myStats = raw.map((element) => {
+      return {
+        year: element.year,
+        nr_activities: element.nr_activities,
+        type: element.activity_type,
+      } as StatsActivities;
+    });
+    return myStats;
+
   }
 
   async find(params: FindActivitiesInput = {}): Promise<Activity[]> {
