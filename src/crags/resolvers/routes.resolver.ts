@@ -52,6 +52,8 @@ import { SectorsService } from '../services/sectors.service';
 import { PaginatedActivityRoutes } from '../../activities/utils/paginated-activity-routes.class';
 import { ActivityRoutesService } from '../../activities/services/activity-routes.service';
 import { FindActivityRoutesInput } from '../../activities/dtos/find-activity-routes.input';
+import { StarRatingVotesService } from '../services/star-rating-votes.service';
+import { StarRatingVote } from '../entities/star-rating-vote.entity';
 
 @Resolver(() => Route)
 @UseInterceptors(DataLoaderInterceptor)
@@ -60,6 +62,7 @@ export class RoutesResolver {
     private routesService: RoutesService,
     private sectorsService: SectorsService,
     private difficultyVotesService: DifficultyVotesService,
+    private starRatingVotesService: StarRatingVotesService,
     private entityPropertiesService: EntityPropertiesService,
     private notificationService: NotificationService,
     private activityRoutesService: ActivityRoutesService,
@@ -255,6 +258,11 @@ export class RoutesResolver {
   @ResolveField('difficultyVotes', () => [DifficultyVote])
   async difficultyVotes(@Parent() route: Route): Promise<DifficultyVote[]> {
     return this.difficultyVotesService.findByRouteId(route.id);
+  }
+
+  @ResolveField('starRatingVotes', () => [StarRatingVote])
+  async starRatingVotes(@Parent() route: Route): Promise<StarRatingVote[]> {
+    return this.starRatingVotesService.findByRouteId(route.id);
   }
 
   @ResolveField('crag', () => Crag)
