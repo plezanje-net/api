@@ -49,6 +49,9 @@ import { LatestDifficultyVotesInput } from '../dtos/latest-difficulty-votes.inpu
 import { PaginatedDifficultyVotes } from '../utils/paginated-difficulty-votes';
 import { MoveRouteToSectorInput } from '../dtos/move-route-to-sector.input';
 import { SectorsService } from '../services/sectors.service';
+import { PaginatedActivityRoutes } from '../../activities/utils/paginated-activity-routes.class';
+import { ActivityRoutesService } from '../../activities/services/activity-routes.service';
+import { FindActivityRoutesInput } from '../../activities/dtos/find-activity-routes.input';
 
 @Resolver(() => Route)
 @UseInterceptors(DataLoaderInterceptor)
@@ -59,12 +62,15 @@ export class RoutesResolver {
     private difficultyVotesService: DifficultyVotesService,
     private entityPropertiesService: EntityPropertiesService,
     private notificationService: NotificationService,
+    private activityRoutesService: ActivityRoutesService,
   ) {}
 
   /* QUERIES */
 
   @Query(() => Route)
   @UseFilters(NotFoundFilter)
+  @AllowAny()
+  @UseGuards(UserAuthGuard)
   async route(@Args('id') id: string): Promise<Route> {
     return this.routesService.findOneById(id);
   }
@@ -285,5 +291,18 @@ export class RoutesResolver {
     loader: DataLoader<RouteType['id'], RouteType>,
   ): Promise<RouteType> {
     return loader.load(route.routeTypeId);
+  }
+
+  @ResolveField('activityRoutes', () => PaginatedActivityRoutes)
+  @UseGuards(UserAuthGuard)
+  async activityRoutes(
+    @Parent() route: Route,
+    @Args('input', { nullable: true }) input: FindActivityRoutesInput = {},
+    @CurrentUser() currentUser: User,
+  ): Promise<PaginatedActivityRoutes> {
+    return this.activityRoutesService.paginate(
+      { ...input, routeId: route.id },
+      currentUser,
+    );
   }
 }
