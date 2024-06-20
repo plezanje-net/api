@@ -34,7 +34,7 @@ import { Activity } from '../entities/activity.entity';
 import { ActivityLoader } from '../loaders/activity.loader';
 import { ActivityRoutesService } from '../services/activity-routes.service';
 import { PaginatedActivityRoutes } from '../utils/paginated-activity-routes.class';
-import { StatsActivities } from '../utils/stats-activities.class';
+import { StatsRoutes } from '../utils/stats-routes.class';
 import { GraphQLResolveInfo } from 'graphql';
 import { CacheScope } from 'apollo-server-types';
 import { CreateActivityRouteInput } from '../dtos/create-activity-route.input';
@@ -117,8 +117,8 @@ export class ActivityRoutesResolver {
   }
 
   @UseGuards(UserAuthGuard)
-  @Query(() => [StatsActivities])
-  myActivityStatistics(
+  @Query(() => [StatsRoutes])
+  myRoutesStatistics(
     @CurrentUser() currentUser: User,
     @Args('input', { nullable: true }) input: FindActivityRoutesInput = {},
     @Info() info: GraphQLResolveInfo,

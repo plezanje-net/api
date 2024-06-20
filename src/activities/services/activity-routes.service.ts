@@ -44,7 +44,7 @@ import {
   calculateScore,
   recalculateActivityRoutesScores,
 } from '../../crags/utils/calculate-scores';
-import { StatsActivities } from '../utils/stats-activities.class';
+import { StatsRoutes } from '../utils/stats-routes.class';
 
 @Injectable()
 export class ActivityRoutesService {
@@ -510,7 +510,7 @@ export class ActivityRoutesService {
   async getStats(
     params: FindActivityRoutesInput = {},
     currentUser: User = null,
-  ): Promise<StatsActivities[]> {
+  ): Promise<StatsRoutes[]> {
     const builder = this.activityRoutesRepository
       .createQueryBuilder('ar')
       .select('EXTRACT(YEAR FROM ar.date)', 'year')
@@ -524,9 +524,6 @@ export class ActivityRoutesService {
       .where('ar.user_id = :userId', {
         userId: currentUser.id,
       })
-      .andWhere('ar.ascent_type IN (:...ascentType)', {
-        ascentType: ['onsight', 'redpoint', 'flash'],
-      })
       .andWhere(
         "(r.publish_status IN ('published', 'in_review') OR (r.publish_status = 'draft' AND ar.user_id = :userId))",
         { userId: currentUser.id },
@@ -536,7 +533,7 @@ export class ActivityRoutesService {
       .addGroupBy('r.difficulty')
       .addGroupBy('EXTRACT(YEAR FROM ar.date)')
       .addGroupBy('ar.ascent_type')
-      .orderBy('coalesce(p.difficulty, r.difficulty)', 'ASC')
+      .orderBy('coalesce(p.difficulty, r.difficulty)', 'DESC')
       .addOrderBy('year', 'ASC');
 
     if (params.routeTypes != null) {
@@ -649,7 +646,7 @@ export class ActivityRoutesService {
     if (!currentUser) {
       // Allow showing only public ascents to guests
       builder.andWhere('ar."publish" IN (:...publish)', {
-        publish: ['log', 'public'],
+        publish: ['public'],
       });
 
       // Allow showing only published routes (no drafts or in_reviews)
@@ -660,7 +657,7 @@ export class ActivityRoutesService {
         '(ar.user_id = :userId OR ar."publish" IN (:...publish))',
         {
           userId: currentUser.id,
-          publish: ['log', 'public'],
+          publish: ['public'],
         },
       );
       // TODO: should also allow showing club ascents

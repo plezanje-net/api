@@ -71,6 +71,10 @@ import { RouteEvent } from './entities/route-event.entity';
 import { Parking } from './entities/parking.entity';
 import { ParkingsService } from './services/parkings.service';
 import { AreaLoader } from './loaders/area.loader';
+import { ActivityRoutesService } from '../activities/services/activity-routes.service';
+import { ActivitiesModule } from '../activities/activities.module';
+import { ClubMember } from '../users/entities/club-member.entity';
+import { Club } from '../users/entities/club.entity';
 
 @Module({
   imports: [
@@ -98,7 +102,10 @@ import { AreaLoader } from './loaders/area.loader';
       IceFallProperty,
       StarRatingVote,
       Parking,
+      Club,
+      ClubMember,
     ]),
+    forwardRef(() => ActivitiesModule),
     forwardRef(() => AuditModule),
     BullModule.registerQueue({
       name: 'summary',
@@ -148,6 +155,7 @@ import { AreaLoader } from './loaders/area.loader';
     CragLoader,
     RouteLoader,
     ParkingsService,
+    ActivityRoutesService,
   ],
   controllers: [UploadController],
   exports: [

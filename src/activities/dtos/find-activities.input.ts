@@ -18,6 +18,10 @@ export class FindActivitiesInput {
   @IsOptional()
   type?: ActivityType[];
 
+  @Field(() => [String], { nullable: true })
+  @IsOptional()
+  activityTypes?: string[];
+
   @Field({ nullable: true })
   @IsOptional()
   dateFrom?: Date;
