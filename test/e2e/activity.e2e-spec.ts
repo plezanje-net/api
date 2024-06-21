@@ -276,7 +276,7 @@ describe('Activity', () => {
     expect(activitiesIds).not.toContain(mockData.activities.nonCragActivity.id);
   });
 
-  it('should get only public (or log) activity routes and only activities containing at least one public (or log) activity route when fetching as a guest', async () => {
+  it('should get only public activity routes and only activities containing at least one public activity route when fetching as a guest', async () => {
     const response = await request(app.getHttpServer())
       .post('/graphql')
       .send({
@@ -304,14 +304,13 @@ describe('Activity', () => {
     const numOfNonPublicActivityRoutes =
       response.body.data.activities.items.filter(
         (a) =>
-          a.routes.filter((ar) => !['log', 'public'].includes(ar.publish))
-            .length > 0,
+          a.routes.filter((ar) => !['public'].includes(ar.publish)).length > 0,
       ).length;
     expect(numOfNonPublicActivityRoutes).toEqual(0);
 
     const numOfActivitiesWithNoPublicActivityRoutes =
       response.body.data.activities.items.filter(
-        (a) => !a.routes.some((ar) => ['log', 'public'].includes(ar.publish)),
+        (a) => !a.routes.some((ar) => ['public'].includes(ar.publish)),
       ).length;
     expect(numOfActivitiesWithNoPublicActivityRoutes).toEqual(0);
 
@@ -320,7 +319,7 @@ describe('Activity', () => {
     const returnedActivitiesIds = response.body.data.activities.items.map(
       (a) => a.id,
     );
-    expect(returnedActivitiesIds).toContain(
+    expect(returnedActivitiesIds).not.toContain(
       mockData.activities.activityWithLogRoutes.id,
     );
     expect(returnedActivitiesIds).toContain(
@@ -340,7 +339,7 @@ describe('Activity', () => {
       mockData.activities.activityWithPublicRoutes.activityRoutes
         .publicActivityRoute.id,
     );
-    expect(returnedActivityRoutesIds).toContain(
+    expect(returnedActivityRoutesIds).not.toContain(
       mockData.activities.activityWithLogRoutes.activityRoutes.logActivityRoute
         .id,
     );
@@ -348,7 +347,7 @@ describe('Activity', () => {
       mockData.activities.activityWithMixedRoutes.activityRoutes
         .publicActivityRoute.id,
     );
-    expect(returnedActivityRoutesIds).toContain(
+    expect(returnedActivityRoutesIds).not.toContain(
       mockData.activities.activityWithMixedRoutes.activityRoutes
         .logActivityRoute.id,
     );

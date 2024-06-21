@@ -18,4 +18,11 @@ export class StarRatingVotesService {
       .andWhere('srv.route_id IN (:...routeIds)', { routeIds })
       .getMany();
   }
+
+  async findByRouteId(routeId: string): Promise<StarRatingVote[]> {
+    return this.starRatingVoteRepository.find({
+      where: { routeId: routeId },
+      order: { stars: 'ASC' },
+    });
+  }
 }
