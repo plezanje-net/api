@@ -49,6 +49,13 @@ import { LatestDifficultyVotesInput } from '../dtos/latest-difficulty-votes.inpu
 import { PaginatedDifficultyVotes } from '../utils/paginated-difficulty-votes';
 import { MoveRouteToSectorInput } from '../dtos/move-route-to-sector.input';
 import { SectorsService } from '../services/sectors.service';
+import { PaginatedActivityRoutes } from '../../activities/utils/paginated-activity-routes.class';
+import { ActivityRoutesService } from '../../activities/services/activity-routes.service';
+import { FindActivityRoutesInput } from '../../activities/dtos/find-activity-routes.input';
+import { StarRatingVotesService } from '../services/star-rating-votes.service';
+import { StarRatingVote } from '../entities/star-rating-vote.entity';
+import { FindDifficultyVotesInput } from '../dtos/find-difficulty-votes.input';
+import { FindStarRatingVotesInput } from '../dtos/find-star-rating-votes.input';
 
 @Resolver(() => Route)
 @UseInterceptors(DataLoaderInterceptor)
@@ -57,14 +64,18 @@ export class RoutesResolver {
     private routesService: RoutesService,
     private sectorsService: SectorsService,
     private difficultyVotesService: DifficultyVotesService,
+    private starRatingVotesService: StarRatingVotesService,
     private entityPropertiesService: EntityPropertiesService,
     private notificationService: NotificationService,
+    private activityRoutesService: ActivityRoutesService,
   ) {}
 
   /* QUERIES */
 
   @Query(() => Route)
   @UseFilters(NotFoundFilter)
+  @AllowAny()
+  @UseGuards(UserAuthGuard)
   async route(@Args('id') id: string): Promise<Route> {
     return this.routesService.findOneById(id);
   }
@@ -247,8 +258,19 @@ export class RoutesResolver {
   }
 
   @ResolveField('difficultyVotes', () => [DifficultyVote])
-  async difficultyVotes(@Parent() route: Route): Promise<DifficultyVote[]> {
-    return this.difficultyVotesService.findByRouteId(route.id);
+  async difficultyVotes(
+    @Parent() route: Route,
+    @Args('input', { nullable: true }) input: FindDifficultyVotesInput = {},
+  ): Promise<DifficultyVote[]> {
+    return this.difficultyVotesService.findByRouteId(route.id, input);
+  }
+
+  @ResolveField('starRatingVotes', () => [StarRatingVote])
+  async starRatingVotes(
+    @Parent() route: Route,
+    @Args('input', { nullable: true }) input: FindStarRatingVotesInput = {},
+  ): Promise<StarRatingVote[]> {
+    return this.starRatingVotesService.findByRouteId(route.id, input);
   }
 
   @ResolveField('crag', () => Crag)
@@ -285,5 +307,18 @@ export class RoutesResolver {
     loader: DataLoader<RouteType['id'], RouteType>,
   ): Promise<RouteType> {
     return loader.load(route.routeTypeId);
+  }
+
+  @ResolveField('activityRoutes', () => PaginatedActivityRoutes)
+  @UseGuards(UserAuthGuard)
+  async activityRoutes(
+    @Parent() route: Route,
+    @Args('input', { nullable: true }) input: FindActivityRoutesInput = {},
+    @CurrentUser() currentUser: User,
+  ): Promise<PaginatedActivityRoutes> {
+    return this.activityRoutesService.paginate(
+      { ...input, routeId: route.id },
+      currentUser,
+    );
   }
 }

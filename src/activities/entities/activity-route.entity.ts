@@ -8,7 +8,7 @@ import {
   ManyToOne,
   Index,
 } from 'typeorm';
-import { ObjectType, Field } from '@nestjs/graphql';
+import { ObjectType, Field, registerEnumType } from '@nestjs/graphql';
 import { Route } from '../../crags/entities/route.entity';
 import { Activity } from './activity.entity';
 import { Pitch } from '../../crags/entities/pitch.entity';
@@ -31,6 +31,9 @@ export enum AscentType {
   T_ATTEMPT = 't_attempt',
   TICK = 'tick',
 }
+registerEnumType(AscentType, {
+  name: 'AscentType',
+});
 
 export const tickAscentTypes = new Set([
   AscentType.ONSIGHT,
@@ -64,6 +67,9 @@ export enum PublishType {
   LOG = 'log',
   PRIVATE = 'private',
 }
+registerEnumType(PublishType, {
+  name: 'PublishType',
+});
 
 /**
  * Has Triggers:
@@ -111,7 +117,7 @@ export class ActivityRoute extends BaseEntity {
     enum: AscentType,
     default: AscentType.REDPOINT,
   })
-  @Field()
+  @Field((type) => AscentType)
   ascentType: AscentType;
 
   @Column({
@@ -119,7 +125,7 @@ export class ActivityRoute extends BaseEntity {
     enum: PublishType,
     default: PublishType.PRIVATE,
   })
-  @Field()
+  @Field((type) => PublishType)
   publish: PublishType;
 
   @Column({ nullable: true })
