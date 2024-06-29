@@ -54,6 +54,8 @@ import { ActivityRoutesService } from '../../activities/services/activity-routes
 import { FindActivityRoutesInput } from '../../activities/dtos/find-activity-routes.input';
 import { StarRatingVotesService } from '../services/star-rating-votes.service';
 import { StarRatingVote } from '../entities/star-rating-vote.entity';
+import { FindDifficultyVotesInput } from '../dtos/find-difficulty-votes.input';
+import { FindStarRatingVotesInput } from '../dtos/find-star-rating-votes.input';
 
 @Resolver(() => Route)
 @UseInterceptors(DataLoaderInterceptor)
@@ -256,13 +258,19 @@ export class RoutesResolver {
   }
 
   @ResolveField('difficultyVotes', () => [DifficultyVote])
-  async difficultyVotes(@Parent() route: Route): Promise<DifficultyVote[]> {
-    return this.difficultyVotesService.findByRouteId(route.id);
+  async difficultyVotes(
+    @Parent() route: Route,
+    @Args('input', { nullable: true }) input: FindDifficultyVotesInput = {},
+  ): Promise<DifficultyVote[]> {
+    return this.difficultyVotesService.findByRouteId(route.id, input);
   }
 
   @ResolveField('starRatingVotes', () => [StarRatingVote])
-  async starRatingVotes(@Parent() route: Route): Promise<StarRatingVote[]> {
-    return this.starRatingVotesService.findByRouteId(route.id);
+  async starRatingVotes(
+    @Parent() route: Route,
+    @Args('input', { nullable: true }) input: FindStarRatingVotesInput = {},
+  ): Promise<StarRatingVote[]> {
+    return this.starRatingVotesService.findByRouteId(route.id, input);
   }
 
   @ResolveField('crag', () => Crag)
