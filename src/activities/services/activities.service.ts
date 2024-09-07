@@ -219,7 +219,6 @@ export class ActivitiesService {
     params: FindActivitiesInput = {},
     currentUser: User = null,
   ): Promise<StatsActivities[]> {
-
     const builder = this.activitiesRepository
       .createQueryBuilder('ac')
       .select('EXTRACT(YEAR FROM ac.date)', 'year')
@@ -247,7 +246,6 @@ export class ActivitiesService {
       } as StatsActivities;
     });
     return myStats;
-
   }
 
   async find(params: FindActivitiesInput = {}): Promise<Activity[]> {
@@ -326,7 +324,7 @@ export class ActivitiesService {
         ActivityRoute,
         'ar',
         'ar.activity_id = a.id AND (ar."publish" IN (:...publish))',
-        { publish: ['log', 'public'] },
+        { publish: ['public'] },
       );
 
       // Allow/disallow based on publishStatus of contained activity routes

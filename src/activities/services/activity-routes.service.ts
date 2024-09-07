@@ -646,7 +646,7 @@ export class ActivityRoutesService {
     if (!currentUser) {
       // Allow showing only public ascents to guests
       builder.andWhere('ar."publish" IN (:...publish)', {
-        publish: ['log', 'public'],
+        publish: ['public'],
       });
 
       // Allow showing only published routes (no drafts or in_reviews)
@@ -657,7 +657,7 @@ export class ActivityRoutesService {
         '(ar.user_id = :userId OR ar."publish" IN (:...publish))',
         {
           userId: currentUser.id,
-          publish: ['log', 'public'],
+          publish: ['public'],
         },
       );
       // TODO: should also allow showing club ascents
