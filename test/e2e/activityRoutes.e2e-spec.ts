@@ -182,7 +182,7 @@ describe('Activity', () => {
       queryResponse.body.data.activity.routes.filter(
         (r) =>
           r.route.id == mockRoutes[0].id &&
-          !(r.ascentType == AscentType.REPEAT),
+          !(r.ascentType.toLowerCase() == AscentType.REPEAT),
       )[0].orderScore,
     ).toBe(mockRoutes[0].difficulty + 100);
     expect(
@@ -207,13 +207,15 @@ describe('Activity', () => {
     expect(
       queryResponse.body.data.activity.routes.filter(
         (r) =>
-          r.route.id == mockRoutes[2].id && r.AscentType != AscentType.REPEAT,
+          r.route.id == mockRoutes[2].id &&
+          r.ascentType.toLowerCase() != AscentType.REPEAT,
       )[0].orderScore,
     ).toBe(mockRoutes[2].difficulty);
     expect(
       queryResponse.body.data.activity.routes.filter(
         (r) =>
-          r.route.id == mockRoutes[2].id && r.AscentType != AscentType.REPEAT,
+          r.route.id == mockRoutes[2].id &&
+          r.ascentType.toLowerCase() != AscentType.REPEAT,
       )[0].rankingScore,
     ).toBe(mockRoutes[2].difficulty);
 
@@ -221,13 +223,15 @@ describe('Activity', () => {
     expect(
       queryResponse.body.data.activity.routes.filter(
         (r) =>
-          r.route.id == mockRoutes[2].id && r.ascentType == AscentType.REPEAT,
+          r.route.id == mockRoutes[2].id &&
+          r.ascentType.toLowerCase() == AscentType.REPEAT,
       )[0].orderScore,
     ).toBe(mockRoutes[2].difficulty - 10);
     expect(
       queryResponse.body.data.activity.routes.filter(
         (r) =>
-          r.route.id == mockRoutes[2].id && r.ascentType == AscentType.REPEAT,
+          r.route.id == mockRoutes[2].id &&
+          r.ascentType.toLowerCase() == AscentType.REPEAT,
       )[0].rankingScore,
     ).toBe(0);
 
@@ -295,13 +299,15 @@ describe('Activity', () => {
     expect(
       queryResponse.body.data.activity.routes.filter(
         (r) =>
-          r.route.id == mockRoutes[8].id && r.AscentType != AscentType.T_REPEAT,
+          r.route.id == mockRoutes[8].id &&
+          r.ascentType.toLowerCase() != AscentType.T_REPEAT,
       )[0].orderScore,
     ).toBe(mockRoutes[8].difficulty * 0.0001);
     expect(
       queryResponse.body.data.activity.routes.filter(
         (r) =>
-          r.route.id == mockRoutes[8].id && r.AscentType != AscentType.T_REPEAT,
+          r.route.id == mockRoutes[8].id &&
+          r.ascentType.toLowerCase() != AscentType.T_REPEAT,
       )[0].rankingScore,
     ).toBe(0);
 
@@ -309,13 +315,15 @@ describe('Activity', () => {
     expect(
       queryResponse.body.data.activity.routes.filter(
         (r) =>
-          r.route.id == mockRoutes[8].id && r.ascentType == AscentType.T_REPEAT,
+          r.route.id == mockRoutes[8].id &&
+          r.ascentType.toLowerCase() == AscentType.T_REPEAT,
       )[0].orderScore,
     ).toBe((mockRoutes[8].difficulty - 10) * 0.0001);
     expect(
       queryResponse.body.data.activity.routes.filter(
         (r) =>
-          r.route.id == mockRoutes[8].id && r.ascentType == AscentType.T_REPEAT,
+          r.route.id == mockRoutes[8].id &&
+          r.ascentType.toLowerCase() == AscentType.T_REPEAT,
       )[0].rankingScore,
     ).toBe(0);
 

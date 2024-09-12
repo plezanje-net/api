@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from '../../users/entities/user.entity';
 import { StarRatingVote } from '../entities/star-rating-vote.entity';
+import { FindStarRatingVotesInput } from '../dtos/find-star-rating-votes.input';
 
 @Injectable()
 export class StarRatingVotesService {
@@ -19,9 +20,17 @@ export class StarRatingVotesService {
       .getMany();
   }
 
-  async findByRouteId(routeId: string): Promise<StarRatingVote[]> {
+  async findByRouteId(
+    routeId: string,
+    input: FindStarRatingVotesInput = {},
+  ): Promise<StarRatingVote[]> {
+    const where = {
+      ...(input.userId && { userId: input.userId }),
+      ...{ routeId },
+    };
+
     return this.starRatingVoteRepository.find({
-      where: { routeId: routeId },
+      where,
       order: { stars: 'ASC' },
     });
   }

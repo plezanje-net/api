@@ -6,7 +6,10 @@ import { MailService } from '../../src/notification/services/mail.service';
 import { initializeDbConn, prepareEnvironment, seedDatabase } from './helpers';
 import { UsersModule } from '../../src/users/users.module';
 import { CragsModule } from '../../src/crags/crags.module';
-import { AscentType } from '../../src/activities/entities/activity-route.entity';
+import {
+  AscentType,
+  PublishType,
+} from '../../src/activities/entities/activity-route.entity';
 import {
   Activity,
   ActivityType,
@@ -304,13 +307,18 @@ describe('Activity', () => {
     const numOfNonPublicActivityRoutes =
       response.body.data.activities.items.filter(
         (a) =>
-          a.routes.filter((ar) => !['public'].includes(ar.publish)).length > 0,
+          a.routes.filter(
+            (ar) => ![PublishType.PUBLIC].includes(ar.publish.toLowerCase()),
+          ).length > 0,
       ).length;
     expect(numOfNonPublicActivityRoutes).toEqual(0);
 
     const numOfActivitiesWithNoPublicActivityRoutes =
       response.body.data.activities.items.filter(
-        (a) => !a.routes.some((ar) => ['public'].includes(ar.publish)),
+        (a) =>
+          !a.routes.some((ar) =>
+            [PublishType.PUBLIC].includes(ar.publish.toLowerCase()),
+          ),
       ).length;
     expect(numOfActivitiesWithNoPublicActivityRoutes).toEqual(0);
 
