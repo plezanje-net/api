@@ -61,85 +61,85 @@ describe('Activity', () => {
               routes: [
                 {
                   ascentType: "${AscentType.onsight}",
-                  publish: "${PublishType.PUBLIC}",
+                  publish: "${PublishType.public}",
                   date: "2017-03-07",
                   routeId: "${mockRoutes[0].id}"
                 },
                 {
                   ascentType: "${AscentType.flash}",
-                  publish: "${PublishType.PUBLIC}",
+                  publish: "${PublishType.public}",
                   date: "2017-03-07",
                   routeId: "${mockRoutes[1].id}"
                 },
                 {
                   ascentType: "${AscentType.redpoint}",
-                  publish: "${PublishType.PUBLIC}",
+                  publish: "${PublishType.public}",
                   date: "2017-03-07",
                   routeId: "${mockRoutes[2].id}"                
                 },
                 {
                   ascentType: "${AscentType.repeat}",
-                  publish: "${PublishType.PUBLIC}",
+                  publish: "${PublishType.public}",
                   date: "2017-03-07",
                   routeId: "${mockRoutes[2].id}"
                 }
                 {
                   ascentType: "${AscentType.allfree}",
-                  publish: "${PublishType.PUBLIC}",
+                  publish: "${PublishType.public}",
                   date: "2017-03-07",
                   routeId: "${mockRoutes[3].id}"
                 },
                 {
                   ascentType: "${AscentType.aid}",
-                  publish: "${PublishType.PUBLIC}",
+                  publish: "${PublishType.public}",
                   date: "2017-03-07",
                   routeId: "${mockRoutes[4].id}"
                 },
                 {
                   ascentType: "${AscentType.attempt}",
-                  publish: "${PublishType.PUBLIC}",
+                  publish: "${PublishType.public}",
                   date: "2017-03-07",
                   routeId: "${mockRoutes[5].id}"
                 },
                 {
                   ascentType: "${AscentType.t_onsight}",
-                  publish: "${PublishType.PUBLIC}",
+                  publish: "${PublishType.public}",
                   date: "2017-03-07",
                   routeId: "${mockRoutes[6].id}"
                 },
                 {
                   ascentType: "${AscentType.t_flash}",
-                  publish: "${PublishType.PUBLIC}",
+                  publish: "${PublishType.public}",
                   date: "2017-03-07",
                   routeId: "${mockRoutes[7].id}"
                 },
                 {
                   ascentType: "${AscentType.t_redpoint}",
-                  publish: "${PublishType.PUBLIC}",
+                  publish: "${PublishType.public}",
                   date: "2017-03-07",
                   routeId: "${mockRoutes[8].id}"
                 },
                 {
                   ascentType: "${AscentType.t_repeat}",
-                  publish: "${PublishType.PUBLIC}",
+                  publish: "${PublishType.public}",
                   date: "2017-03-07",
                   routeId: "${mockRoutes[8].id}"
                 },
                 {
                   ascentType: "${AscentType.t_allfree}",
-                  publish: "${PublishType.PUBLIC}",
+                  publish: "${PublishType.public}",
                   date: "2017-03-07",
                   routeId: "${mockRoutes[9].id}"
                 },
                 {
                   ascentType: "${AscentType.t_aid}",
-                  publish: "${PublishType.PUBLIC}",
+                  publish: "${PublishType.public}",
                   date: "2017-03-07",
                   routeId: "${mockRoutes[10].id}"
                 }
                 {
                   ascentType: "${AscentType.t_attempt}",
-                  publish: "${PublishType.PUBLIC}",
+                  publish: "${PublishType.public}",
                   date: "2017-03-07",
                   routeId: "${mockRoutes[11].id}"
                 }                                

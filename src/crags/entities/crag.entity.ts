@@ -41,34 +41,34 @@ export enum CragType {
 }
 
 export enum Orientation {
-  NORTH = 'north',
-  NORTHEAST = 'northeast',
-  EAST = 'east',
-  SOUTHEAST = 'southeast',
-  SOUTH = 'south',
-  SOUTHWEST = 'southwest',
-  WEST = 'west',
-  NORTHWEST = 'northwest',
+  north = 'north',
+  northeast = 'northeast',
+  east = 'east',
+  southeast = 'southeast',
+  south = 'south',
+  southwest = 'southwest',
+  west = 'west',
+  northwest = 'northwest',
 }
 registerEnumType(Orientation, {
   name: 'Orientation',
 });
 
 export enum WallAngle {
-  SLAB = 'slab',
-  VERTICAL = 'vertical',
-  OVERHANG = 'overhang',
-  ROOF = 'roof',
+  slab = 'slab',
+  vertical = 'vertical',
+  overhang = 'overhang',
+  roof = 'roof',
 }
 registerEnumType(WallAngle, {
   name: 'WallAngle',
 });
 
 export enum Season {
-  SPRING = 'spring',
-  SUMMER = 'summer',
-  AUTUMN = 'autumn',
-  WINTER = 'winter',
+  spring = 'spring',
+  summer = 'summer',
+  autumn = 'autumn',
+  winter = 'winter',
 }
 registerEnumType(Season, {
   name: 'Season',

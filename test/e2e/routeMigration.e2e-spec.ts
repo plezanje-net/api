@@ -233,7 +233,7 @@ describe('RouteMigration', () => {
               routes: [
                 {
                   ascentType: "${AscentType.onsight}",
-                  publish: "${PublishType.PUBLIC}",
+                  publish: "${PublishType.public}",
                   date: "2017-03-07",
                   routeId: "${mockRoutes[0].id}"
                 }                
@@ -316,7 +316,7 @@ describe('RouteMigration', () => {
               routes: [
                 {
                   ascentType: "${AscentType.redpoint}",
-                  publish: "${PublishType.PUBLIC}",
+                  publish: "${PublishType.public}",
                   date: "2017-03-07",
                   routeId: "${mockRoutes[1].id}"
                 }                

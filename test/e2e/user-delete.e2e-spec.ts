@@ -57,14 +57,14 @@ describe('UserDelete', () => {
         {
           route: mockData.crags.simpleCrag.sectors.simpleSector1.routes[0],
           ascentType: AscentType.redpoint,
-          publishType: PublishType.PRIVATE,
+          publishType: PublishType.private,
           votedDifficulty: 1100,
           votedStarRating: 2,
         },
         {
           route: mockData.crags.simpleCrag.sectors.simpleSector1.routes[1],
           ascentType: AscentType.onsight,
-          publishType: PublishType.PUBLIC,
+          publishType: PublishType.public,
         },
       ],
     );
@@ -82,7 +82,7 @@ describe('UserDelete', () => {
       {
         route: mockData.crags.simpleCrag.sectors.simpleSector1.routes[0],
         ascentType: AscentType.redpoint,
-        publishType: PublishType.PRIVATE,
+        publishType: PublishType.private,
         votedDifficulty: 1200,
         votedStarRating: 2,
       },
@@ -91,7 +91,7 @@ describe('UserDelete', () => {
       {
         route: mockData.crags.simpleCrag.sectors.simpleSector1.routes[0],
         ascentType: AscentType.redpoint,
-        publishType: PublishType.PRIVATE,
+        publishType: PublishType.private,
         votedDifficulty: 1300,
         votedStarRating: 2,
       },
@@ -103,7 +103,7 @@ describe('UserDelete', () => {
       {
         route: mockData.crags.simpleCrag.sectors.simpleSector1.routes[0],
         ascentType: AscentType.redpoint,
-        publishType: PublishType.PRIVATE,
+        publishType: PublishType.private,
         votedStarRating: 2,
       },
     ]);
@@ -111,7 +111,7 @@ describe('UserDelete', () => {
       {
         route: mockData.crags.simpleCrag.sectors.simpleSector1.routes[0],
         ascentType: AscentType.redpoint,
-        publishType: PublishType.PRIVATE,
+        publishType: PublishType.private,
         votedStarRating: 2,
       },
     ]);

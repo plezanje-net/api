@@ -62,10 +62,10 @@ export const firstTrTickAscentTypes = new Set([
 ]);
 
 export enum PublishType {
-  PUBLIC = 'public',
-  CLUB = 'club',
-  LOG = 'log',
-  PRIVATE = 'private',
+  public = 'public',
+  club = 'club',
+  log = 'log',
+  private = 'private',
 }
 registerEnumType(PublishType, {
   name: 'PublishType',
@@ -123,7 +123,7 @@ export class ActivityRoute extends BaseEntity {
   @Column({
     type: 'enum',
     enum: PublishType,
-    default: PublishType.PRIVATE,
+    default: PublishType.private,
   })
   @Field((type) => PublishType)
   publish: PublishType;

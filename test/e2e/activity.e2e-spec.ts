@@ -308,7 +308,7 @@ describe('Activity', () => {
       response.body.data.activities.items.filter(
         (a) =>
           a.routes.filter(
-            (ar) => ![PublishType.PUBLIC].includes(ar.publish.toLowerCase()),
+            (ar) => ![PublishType.public].includes(ar.publish.toLowerCase()),
           ).length > 0,
       ).length;
     expect(numOfNonPublicActivityRoutes).toEqual(0);
@@ -317,7 +317,7 @@ describe('Activity', () => {
       response.body.data.activities.items.filter(
         (a) =>
           !a.routes.some((ar) =>
-            [PublishType.PUBLIC].includes(ar.publish.toLowerCase()),
+            [PublishType.public].includes(ar.publish.toLowerCase()),
           ),
       ).length;
     expect(numOfActivitiesWithNoPublicActivityRoutes).toEqual(0);
