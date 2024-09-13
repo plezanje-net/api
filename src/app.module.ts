@@ -134,7 +134,8 @@ import { env } from 'process';
       inject: [ConfigService],
     }),
     BullModule.registerQueue({
-      name: `${env.ENVIRONMENT}-summary`,
+      name: 'summary',
+      prefix: `bull:${env.ENVIRONMENT}`,
     }),
   ],
   providers: [],

@@ -102,7 +102,8 @@ import { env } from 'process';
     ]),
     forwardRef(() => AuditModule),
     BullModule.registerQueue({
-      name: `${env.ENVIRONMENT}-summary`,
+      name: 'summary',
+      prefix: `bull:${env.ENVIRONMENT}`,
     }),
   ],
   providers: [

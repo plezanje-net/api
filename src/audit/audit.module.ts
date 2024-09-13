@@ -41,7 +41,8 @@ import { env } from 'process';
     ]),
     AuthModule,
     BullModule.registerQueue({
-      name: `${env.ENVIRONMENT}-summary`,
+      name: 'summary',
+      prefix: `bull:${env.ENVIRONMENT}`,
     }),
     forwardRef(() => UsersModule),
     forwardRef(() => CragsModule),

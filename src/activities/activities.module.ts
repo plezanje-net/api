@@ -40,7 +40,8 @@ import { env } from 'process';
     forwardRef(() => AuditModule), // because audit module is imported in usersmodule and this constitutes a circular dependency (users->audit->activities->users...)
     forwardRef(() => UsersModule),
     BullModule.registerQueue({
-      name: `${env.ENVIRONMENT}-summary`,
+      name: 'summary',
+      prefix: `bull:${env.ENVIRONMENT}`,
     }),
     CragsModule,
   ],
