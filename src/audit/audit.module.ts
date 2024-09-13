@@ -21,6 +21,7 @@ import { ActivityRoute } from '../activities/entities/activity-route.entity';
 import { BullModule } from '@nestjs/bull';
 import { UsersModule } from '../users/users.module';
 import { CragsModule } from '../crags/crags.module';
+import { env } from 'process';
 
 @Module({
   imports: [
@@ -40,7 +41,7 @@ import { CragsModule } from '../crags/crags.module';
     ]),
     AuthModule,
     BullModule.registerQueue({
-      name: 'summary',
+      name: `${env.ENVIRONMENT}-summary`,
     }),
     forwardRef(() => UsersModule),
     forwardRef(() => CragsModule),

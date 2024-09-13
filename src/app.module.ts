@@ -44,6 +44,7 @@ import EntityCacheSubscriber from './core/utils/entity-cache/entity-cache.subscr
 import { SnakeNamingStrategy } from 'typeorm-naming-strategies';
 import { BullModule } from '@nestjs/bull';
 import { Parking } from './crags/entities/parking.entity';
+import { env } from 'process';
 
 @Module({
   imports: [
@@ -133,7 +134,7 @@ import { Parking } from './crags/entities/parking.entity';
       inject: [ConfigService],
     }),
     BullModule.registerQueue({
-      name: 'summary',
+      name: `${env.ENVIRONMENT}-summary`,
     }),
   ],
   providers: [],

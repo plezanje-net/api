@@ -20,6 +20,7 @@ import { Sector } from '../crags/entities/sector.entity';
 import { Country } from '../crags/entities/country.entity';
 import { BullModule } from '@nestjs/bull';
 import { CragsModule } from '../crags/crags.module';
+import { env } from 'process';
 
 @Module({
   imports: [
@@ -39,7 +40,7 @@ import { CragsModule } from '../crags/crags.module';
     forwardRef(() => AuditModule), // because audit module is imported in usersmodule and this constitutes a circular dependency (users->audit->activities->users...)
     forwardRef(() => UsersModule),
     BullModule.registerQueue({
-      name: 'summary',
+      name: `${env.ENVIRONMENT}-summary`,
     }),
     CragsModule,
   ],

@@ -71,6 +71,7 @@ import { RouteEvent } from './entities/route-event.entity';
 import { Parking } from './entities/parking.entity';
 import { ParkingsService } from './services/parkings.service';
 import { AreaLoader } from './loaders/area.loader';
+import { env } from 'process';
 
 @Module({
   imports: [
@@ -101,7 +102,7 @@ import { AreaLoader } from './loaders/area.loader';
     ]),
     forwardRef(() => AuditModule),
     BullModule.registerQueue({
-      name: 'summary',
+      name: `${env.ENVIRONMENT}-summary`,
     }),
   ],
   providers: [
