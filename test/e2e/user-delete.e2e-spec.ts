@@ -56,14 +56,14 @@ describe('UserDelete', () => {
       [
         {
           route: mockData.crags.simpleCrag.sectors.simpleSector1.routes[0],
-          ascentType: AscentType.REDPOINT,
+          ascentType: AscentType.redpoint,
           publishType: PublishType.PRIVATE,
           votedDifficulty: 1100,
           votedStarRating: 2,
         },
         {
           route: mockData.crags.simpleCrag.sectors.simpleSector1.routes[1],
-          ascentType: AscentType.ONSIGHT,
+          ascentType: AscentType.onsight,
           publishType: PublishType.PUBLIC,
         },
       ],
@@ -81,7 +81,7 @@ describe('UserDelete', () => {
     await logRoutes(app, mockData.users.basicUser2, mockData.crags.simpleCrag, [
       {
         route: mockData.crags.simpleCrag.sectors.simpleSector1.routes[0],
-        ascentType: AscentType.REDPOINT,
+        ascentType: AscentType.redpoint,
         publishType: PublishType.PRIVATE,
         votedDifficulty: 1200,
         votedStarRating: 2,
@@ -90,7 +90,7 @@ describe('UserDelete', () => {
     await logRoutes(app, mockData.users.basicUser3, mockData.crags.simpleCrag, [
       {
         route: mockData.crags.simpleCrag.sectors.simpleSector1.routes[0],
-        ascentType: AscentType.REDPOINT,
+        ascentType: AscentType.redpoint,
         publishType: PublishType.PRIVATE,
         votedDifficulty: 1300,
         votedStarRating: 2,
@@ -102,7 +102,7 @@ describe('UserDelete', () => {
     await logRoutes(app, mockData.users.basicUser4, mockData.crags.simpleCrag, [
       {
         route: mockData.crags.simpleCrag.sectors.simpleSector1.routes[0],
-        ascentType: AscentType.REDPOINT,
+        ascentType: AscentType.redpoint,
         publishType: PublishType.PRIVATE,
         votedStarRating: 2,
       },
@@ -110,7 +110,7 @@ describe('UserDelete', () => {
     await logRoutes(app, mockData.users.basicUser5, mockData.crags.simpleCrag, [
       {
         route: mockData.crags.simpleCrag.sectors.simpleSector1.routes[0],
-        ascentType: AscentType.REDPOINT,
+        ascentType: AscentType.redpoint,
         publishType: PublishType.PRIVATE,
         votedStarRating: 2,
       },

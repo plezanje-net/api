@@ -50,35 +50,35 @@ function calculateScore(
   const scoreTypeFactor = scoreType === 'order' ? 1 : 0;
 
   switch (ascentType) {
-    case AscentType.ONSIGHT:
+    case AscentType.onsight:
       return difficulty + 100;
-    case AscentType.FLASH:
+    case AscentType.flash:
       return difficulty + 50;
-    case AscentType.REDPOINT:
+    case AscentType.redpoint:
       return difficulty;
-    case AscentType.REPEAT:
+    case AscentType.repeat:
       return (difficulty - 10) * scoreTypeFactor;
-    case AscentType.ALLFREE:
+    case AscentType.allfree:
       return difficulty * 0.01 * scoreTypeFactor;
-    case AscentType.AID:
+    case AscentType.aid:
       return difficulty * 0.001 * scoreTypeFactor;
-    case AscentType.ATTEMPT:
+    case AscentType.attempt:
       return difficulty * 0.0001 * scoreTypeFactor;
-    case AscentType.T_ONSIGHT:
+    case AscentType.t_onsight:
       return (difficulty + 100) * 0.0001 * scoreTypeFactor;
-    case AscentType.T_FLASH:
+    case AscentType.t_flash:
       return (difficulty + 50) * 0.0001 * scoreTypeFactor;
-    case AscentType.T_REDPOINT:
+    case AscentType.t_redpoint:
       return difficulty * 0.0001 * scoreTypeFactor;
-    case AscentType.T_REPEAT:
+    case AscentType.t_repeat:
       return (difficulty - 10) * 0.0001 * scoreTypeFactor;
-    case AscentType.T_ALLFREE:
+    case AscentType.t_allfree:
       return difficulty * 0.01 * 0.0001 * scoreTypeFactor;
-    case AscentType.T_AID:
+    case AscentType.t_aid:
       return difficulty * 0.001 * 0.0001 * scoreTypeFactor;
-    case AscentType.T_ATTEMPT:
+    case AscentType.t_attempt:
       return difficulty * 0.0001 * 0.0001 * scoreTypeFactor;
-    case AscentType.TICK:
+    case AscentType.tick:
       // TODO: what is TICK ascent type, and is it even used?? prob not, 1 ar in db... suggest removal, discuss
       return 0;
   }

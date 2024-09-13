@@ -59,8 +59,8 @@ describe('RouteMigration', () => {
     await queryRunner.query(
       `INSERT INTO activity_route (ascent_type, publish, activity_id, route_id, user_id, date, order_score, ranking_score)
         VALUES
-          ('${AscentType.ONSIGHT}', 'log', '${mockData.activities.activityAcrossSectors.id}', '${mockData.crags.cragWithMultipleSectors.sectors.firstSector.routes.firstRoute.id}', '${mockData.users.basicUser1.id}', '${mockData.activities.activityAcrossSectors.date}', 1000, 1000),
-          ('${AscentType.ONSIGHT}', 'log', '${mockData.activities.activityWithDuplicateRoute.id}', '${mockData.crags.cragWithMultipleSectors.sectors.secondSector.routes.firstRoute.id}', '${mockData.users.basicUser1.id}', '${mockData.activities.activityWithDuplicateRoute.date}', 1000, 1000)
+          ('${AscentType.onsight}', 'log', '${mockData.activities.activityAcrossSectors.id}', '${mockData.crags.cragWithMultipleSectors.sectors.firstSector.routes.firstRoute.id}', '${mockData.users.basicUser1.id}', '${mockData.activities.activityAcrossSectors.date}', 1000, 1000),
+          ('${AscentType.onsight}', 'log', '${mockData.activities.activityWithDuplicateRoute.id}', '${mockData.crags.cragWithMultipleSectors.sectors.secondSector.routes.firstRoute.id}', '${mockData.users.basicUser1.id}', '${mockData.activities.activityWithDuplicateRoute.date}', 1000, 1000)
           `,
     );
 
@@ -164,7 +164,7 @@ describe('RouteMigration', () => {
 
   it('should change ascent types if invalid state happens after merge', async () => {
     const onsightAscentsOfRoute = await queryRunner.query(
-      `SELECT * FROM activity_route WHERE route_id = '${mockData.crags.cragWithMultipleSectors.sectors.firstSector.routes.firstRoute.id}' AND user_id = '${mockData.users.basicUser1.id}' AND ascent_type = '${AscentType.ONSIGHT}'`,
+      `SELECT * FROM activity_route WHERE route_id = '${mockData.crags.cragWithMultipleSectors.sectors.firstSector.routes.firstRoute.id}' AND user_id = '${mockData.users.basicUser1.id}' AND ascent_type = '${AscentType.onsight}'`,
     );
     expect(onsightAscentsOfRoute.length).toBe(1);
   });
@@ -232,7 +232,7 @@ describe('RouteMigration', () => {
               },
               routes: [
                 {
-                  ascentType: "${AscentType.ONSIGHT}",
+                  ascentType: "${AscentType.onsight}",
                   publish: "${PublishType.PUBLIC}",
                   date: "2017-03-07",
                   routeId: "${mockRoutes[0].id}"
@@ -315,7 +315,7 @@ describe('RouteMigration', () => {
               },
               routes: [
                 {
-                  ascentType: "${AscentType.REDPOINT}",
+                  ascentType: "${AscentType.redpoint}",
                   publish: "${PublishType.PUBLIC}",
                   date: "2017-03-07",
                   routeId: "${mockRoutes[1].id}"

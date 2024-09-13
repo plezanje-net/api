@@ -104,7 +104,7 @@ describe('ActivityMutations', () => {
               },
               routes: [
                 {
-                  ascentType: "${AscentType.ONSIGHT}",
+                  ascentType: "${AscentType.onsight}",
                   publish: "${PublishType.PUBLIC}",
                   date: "2017-03-07",
                   routeId: "${mockData.crags.publishedCrag.sectors.publishedSector.routes.publishedRoute.id}"

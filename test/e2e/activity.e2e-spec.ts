@@ -130,7 +130,7 @@ describe('Activity', () => {
 
     await queryRunner.query(
       `INSERT INTO activity_route (id, ascent_type, publish, activity_id, route_id, user_id, order_score, ranking_score)
-      VALUES ('${mockData.activities.activityWithPublicRoutes.activityRoutes.publicActivityRoute.id}', '${AscentType.ONSIGHT}', 'public', '${mockData.activities.activityWithPublicRoutes.id}', '${mockData.crags.publishedCrag.sectors.publishedSector.routes.publishedRoute.id}', '${mockData.users.basicUser1.id}', 1000, 1000)`,
+      VALUES ('${mockData.activities.activityWithPublicRoutes.activityRoutes.publicActivityRoute.id}', '${AscentType.onsight}', 'public', '${mockData.activities.activityWithPublicRoutes.id}', '${mockData.crags.publishedCrag.sectors.publishedSector.routes.publishedRoute.id}', '${mockData.users.basicUser1.id}', 1000, 1000)`,
     );
 
     // add activity with only private activity routes
@@ -141,7 +141,7 @@ describe('Activity', () => {
 
     await queryRunner.query(
       `INSERT INTO activity_route (id, ascent_type, publish, activity_id, route_id, user_id, order_score, ranking_score)
-      VALUES ('${mockData.activities.activityWithPrivateRoutes.activityRoutes.privateActivityRoute.id}', '${AscentType.REPEAT}', 'private', '${mockData.activities.activityWithPrivateRoutes.id}', '${mockData.crags.publishedCrag.sectors.publishedSector.routes.publishedRoute.id}', '${mockData.users.basicUser1.id}', 1000, 1000)`,
+      VALUES ('${mockData.activities.activityWithPrivateRoutes.activityRoutes.privateActivityRoute.id}', '${AscentType.repeat}', 'private', '${mockData.activities.activityWithPrivateRoutes.id}', '${mockData.crags.publishedCrag.sectors.publishedSector.routes.publishedRoute.id}', '${mockData.users.basicUser1.id}', 1000, 1000)`,
     );
 
     // add activity with only log activity routes
@@ -152,7 +152,7 @@ describe('Activity', () => {
 
     await queryRunner.query(
       `INSERT INTO activity_route (id, ascent_type, publish, activity_id, route_id, user_id, order_score, ranking_score)
-      VALUES ('${mockData.activities.activityWithLogRoutes.activityRoutes.logActivityRoute.id}', '${AscentType.REPEAT}', 'log', '${mockData.activities.activityWithLogRoutes.id}', '${mockData.crags.publishedCrag.sectors.publishedSector.routes.publishedRoute.id}', '${mockData.users.basicUser1.id}', 1000, 1000)`,
+      VALUES ('${mockData.activities.activityWithLogRoutes.activityRoutes.logActivityRoute.id}', '${AscentType.repeat}', 'log', '${mockData.activities.activityWithLogRoutes.id}', '${mockData.crags.publishedCrag.sectors.publishedSector.routes.publishedRoute.id}', '${mockData.users.basicUser1.id}', 1000, 1000)`,
     );
 
     // add activty with mixed activity routes (public, private, log)
@@ -163,15 +163,15 @@ describe('Activity', () => {
 
     await queryRunner.query(
       `INSERT INTO activity_route (id, ascent_type, publish, activity_id, route_id, user_id, order_score, ranking_score)
-      VALUES ('${mockData.activities.activityWithMixedRoutes.activityRoutes.publicActivityRoute.id}', '${AscentType.REPEAT}', 'public', '${mockData.activities.activityWithMixedRoutes.id}', '${mockData.crags.publishedCrag.sectors.publishedSector.routes.publishedRoute.id}', '${mockData.users.basicUser1.id}', 1000, 1000)`,
+      VALUES ('${mockData.activities.activityWithMixedRoutes.activityRoutes.publicActivityRoute.id}', '${AscentType.repeat}', 'public', '${mockData.activities.activityWithMixedRoutes.id}', '${mockData.crags.publishedCrag.sectors.publishedSector.routes.publishedRoute.id}', '${mockData.users.basicUser1.id}', 1000, 1000)`,
     );
     await queryRunner.query(
       `INSERT INTO activity_route (id, ascent_type, publish, activity_id, route_id, user_id, order_score, ranking_score)
-      VALUES ('${mockData.activities.activityWithMixedRoutes.activityRoutes.logActivityRoute.id}', '${AscentType.REPEAT}', 'log', '${mockData.activities.activityWithMixedRoutes.id}', '${mockData.crags.publishedCrag.sectors.publishedSector.routes.publishedRoute.id}', '${mockData.users.basicUser1.id}', 1000, 1000)`,
+      VALUES ('${mockData.activities.activityWithMixedRoutes.activityRoutes.logActivityRoute.id}', '${AscentType.repeat}', 'log', '${mockData.activities.activityWithMixedRoutes.id}', '${mockData.crags.publishedCrag.sectors.publishedSector.routes.publishedRoute.id}', '${mockData.users.basicUser1.id}', 1000, 1000)`,
     );
     await queryRunner.query(
       `INSERT INTO activity_route (id, ascent_type, publish, activity_id, route_id, user_id, order_score, ranking_score)
-      VALUES ('${mockData.activities.activityWithMixedRoutes.activityRoutes.privateActivityRoute.id}', '${AscentType.REPEAT}', 'private', '${mockData.activities.activityWithMixedRoutes.id}', '${mockData.crags.publishedCrag.sectors.publishedSector.routes.publishedRoute.id}', '${mockData.users.basicUser1.id}', 1000, 1000)`,
+      VALUES ('${mockData.activities.activityWithMixedRoutes.activityRoutes.privateActivityRoute.id}', '${AscentType.repeat}', 'private', '${mockData.activities.activityWithMixedRoutes.id}', '${mockData.crags.publishedCrag.sectors.publishedSector.routes.publishedRoute.id}', '${mockData.users.basicUser1.id}', 1000, 1000)`,
     );
 
     // add activity in a draft crag
@@ -181,7 +181,7 @@ describe('Activity', () => {
     );
     await queryRunner.query(
       `INSERT INTO activity_route (id, ascent_type, publish, activity_id, route_id, user_id, order_score, ranking_score)
-      VALUES ('${mockData.activities.activityInDraftCrag.activityRoutes.activityRoute1.id}', '${AscentType.REPEAT}', 'public', '${mockData.activities.activityInDraftCrag.id}', '${mockData.crags.draftCrag.sectors.draftSector.routes.draftRoute.id}', '${mockData.users.basicUser1.id}', 1000, 1000)`,
+      VALUES ('${mockData.activities.activityInDraftCrag.activityRoutes.activityRoute1.id}', '${AscentType.repeat}', 'public', '${mockData.activities.activityInDraftCrag.id}', '${mockData.crags.draftCrag.sectors.draftSector.routes.draftRoute.id}', '${mockData.users.basicUser1.id}', 1000, 1000)`,
     );
 
     // add activity in an in_review crag
@@ -191,7 +191,7 @@ describe('Activity', () => {
     );
     await queryRunner.query(
       `INSERT INTO activity_route (id, ascent_type, publish, activity_id, route_id, user_id, order_score, ranking_score)
-      VALUES ('${mockData.activities.activityInInReviewCrag.activityRoutes.activityRoute1.id}', '${AscentType.REPEAT}', 'public', '${mockData.activities.activityInInReviewCrag.id}', '${mockData.crags.inReviewCrag.sectors.inReviewSector.routes.inReviewRoute.id}', '${mockData.users.basicUser1.id}', 1000, 1000)`,
+      VALUES ('${mockData.activities.activityInInReviewCrag.activityRoutes.activityRoute1.id}', '${AscentType.repeat}', 'public', '${mockData.activities.activityInInReviewCrag.id}', '${mockData.crags.inReviewCrag.sectors.inReviewSector.routes.inReviewRoute.id}', '${mockData.users.basicUser1.id}', 1000, 1000)`,
     );
 
     // add activity in a published crag and draft sector
@@ -201,7 +201,7 @@ describe('Activity', () => {
     );
     await queryRunner.query(
       `INSERT INTO activity_route (id, ascent_type, publish, activity_id, route_id, user_id, order_score, ranking_score)
-      VALUES ('${mockData.activities.activityInPublishedCragDraftSector.activityRoutes.activityRoute1.id}', '${AscentType.REPEAT}', 'public', '${mockData.activities.activityInPublishedCragDraftSector.id}', '${mockData.crags.publishedCrag.sectors.draftSector.routes.draftRoute.id}', '${mockData.users.basicUser1.id}', 1000, 1000)`,
+      VALUES ('${mockData.activities.activityInPublishedCragDraftSector.activityRoutes.activityRoute1.id}', '${AscentType.repeat}', 'public', '${mockData.activities.activityInPublishedCragDraftSector.id}', '${mockData.crags.publishedCrag.sectors.draftSector.routes.draftRoute.id}', '${mockData.users.basicUser1.id}', 1000, 1000)`,
     );
   });
 

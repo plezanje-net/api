@@ -60,85 +60,85 @@ describe('Activity', () => {
               },
               routes: [
                 {
-                  ascentType: "${AscentType.ONSIGHT}",
+                  ascentType: "${AscentType.onsight}",
                   publish: "${PublishType.PUBLIC}",
                   date: "2017-03-07",
                   routeId: "${mockRoutes[0].id}"
                 },
                 {
-                  ascentType: "${AscentType.FLASH}",
+                  ascentType: "${AscentType.flash}",
                   publish: "${PublishType.PUBLIC}",
                   date: "2017-03-07",
                   routeId: "${mockRoutes[1].id}"
                 },
                 {
-                  ascentType: "${AscentType.REDPOINT}",
+                  ascentType: "${AscentType.redpoint}",
                   publish: "${PublishType.PUBLIC}",
                   date: "2017-03-07",
                   routeId: "${mockRoutes[2].id}"                
                 },
                 {
-                  ascentType: "${AscentType.REPEAT}",
+                  ascentType: "${AscentType.repeat}",
                   publish: "${PublishType.PUBLIC}",
                   date: "2017-03-07",
                   routeId: "${mockRoutes[2].id}"
                 }
                 {
-                  ascentType: "${AscentType.ALLFREE}",
+                  ascentType: "${AscentType.allfree}",
                   publish: "${PublishType.PUBLIC}",
                   date: "2017-03-07",
                   routeId: "${mockRoutes[3].id}"
                 },
                 {
-                  ascentType: "${AscentType.AID}",
+                  ascentType: "${AscentType.aid}",
                   publish: "${PublishType.PUBLIC}",
                   date: "2017-03-07",
                   routeId: "${mockRoutes[4].id}"
                 },
                 {
-                  ascentType: "${AscentType.ATTEMPT}",
+                  ascentType: "${AscentType.attempt}",
                   publish: "${PublishType.PUBLIC}",
                   date: "2017-03-07",
                   routeId: "${mockRoutes[5].id}"
                 },
                 {
-                  ascentType: "${AscentType.T_ONSIGHT}",
+                  ascentType: "${AscentType.t_onsight}",
                   publish: "${PublishType.PUBLIC}",
                   date: "2017-03-07",
                   routeId: "${mockRoutes[6].id}"
                 },
                 {
-                  ascentType: "${AscentType.T_FLASH}",
+                  ascentType: "${AscentType.t_flash}",
                   publish: "${PublishType.PUBLIC}",
                   date: "2017-03-07",
                   routeId: "${mockRoutes[7].id}"
                 },
                 {
-                  ascentType: "${AscentType.T_REDPOINT}",
+                  ascentType: "${AscentType.t_redpoint}",
                   publish: "${PublishType.PUBLIC}",
                   date: "2017-03-07",
                   routeId: "${mockRoutes[8].id}"
                 },
                 {
-                  ascentType: "${AscentType.T_REPEAT}",
+                  ascentType: "${AscentType.t_repeat}",
                   publish: "${PublishType.PUBLIC}",
                   date: "2017-03-07",
                   routeId: "${mockRoutes[8].id}"
                 },
                 {
-                  ascentType: "${AscentType.T_ALLFREE}",
+                  ascentType: "${AscentType.t_allfree}",
                   publish: "${PublishType.PUBLIC}",
                   date: "2017-03-07",
                   routeId: "${mockRoutes[9].id}"
                 },
                 {
-                  ascentType: "${AscentType.T_AID}",
+                  ascentType: "${AscentType.t_aid}",
                   publish: "${PublishType.PUBLIC}",
                   date: "2017-03-07",
                   routeId: "${mockRoutes[10].id}"
                 }
                 {
-                  ascentType: "${AscentType.T_ATTEMPT}",
+                  ascentType: "${AscentType.t_attempt}",
                   publish: "${PublishType.PUBLIC}",
                   date: "2017-03-07",
                   routeId: "${mockRoutes[11].id}"
@@ -182,7 +182,7 @@ describe('Activity', () => {
       queryResponse.body.data.activity.routes.filter(
         (r) =>
           r.route.id == mockRoutes[0].id &&
-          !(r.ascentType.toLowerCase() == AscentType.REPEAT),
+          !(r.ascentType == AscentType.repeat),
       )[0].orderScore,
     ).toBe(mockRoutes[0].difficulty + 100);
     expect(
@@ -207,15 +207,13 @@ describe('Activity', () => {
     expect(
       queryResponse.body.data.activity.routes.filter(
         (r) =>
-          r.route.id == mockRoutes[2].id &&
-          r.ascentType.toLowerCase() != AscentType.REPEAT,
+          r.route.id == mockRoutes[2].id && r.ascentType != AscentType.repeat,
       )[0].orderScore,
     ).toBe(mockRoutes[2].difficulty);
     expect(
       queryResponse.body.data.activity.routes.filter(
         (r) =>
-          r.route.id == mockRoutes[2].id &&
-          r.ascentType.toLowerCase() != AscentType.REPEAT,
+          r.route.id == mockRoutes[2].id && r.ascentType != AscentType.repeat,
       )[0].rankingScore,
     ).toBe(mockRoutes[2].difficulty);
 
@@ -223,15 +221,13 @@ describe('Activity', () => {
     expect(
       queryResponse.body.data.activity.routes.filter(
         (r) =>
-          r.route.id == mockRoutes[2].id &&
-          r.ascentType.toLowerCase() == AscentType.REPEAT,
+          r.route.id == mockRoutes[2].id && r.ascentType == AscentType.repeat,
       )[0].orderScore,
     ).toBe(mockRoutes[2].difficulty - 10);
     expect(
       queryResponse.body.data.activity.routes.filter(
         (r) =>
-          r.route.id == mockRoutes[2].id &&
-          r.ascentType.toLowerCase() == AscentType.REPEAT,
+          r.route.id == mockRoutes[2].id && r.ascentType == AscentType.repeat,
       )[0].rankingScore,
     ).toBe(0);
 
@@ -300,14 +296,14 @@ describe('Activity', () => {
       queryResponse.body.data.activity.routes.filter(
         (r) =>
           r.route.id == mockRoutes[8].id &&
-          r.ascentType.toLowerCase() != AscentType.T_REPEAT,
+          r.ascentType.toLowerCase() != AscentType.t_repeat,
       )[0].orderScore,
     ).toBe(mockRoutes[8].difficulty * 0.0001);
     expect(
       queryResponse.body.data.activity.routes.filter(
         (r) =>
           r.route.id == mockRoutes[8].id &&
-          r.ascentType.toLowerCase() != AscentType.T_REPEAT,
+          r.ascentType.toLowerCase() != AscentType.t_repeat,
       )[0].rankingScore,
     ).toBe(0);
 
@@ -316,14 +312,14 @@ describe('Activity', () => {
       queryResponse.body.data.activity.routes.filter(
         (r) =>
           r.route.id == mockRoutes[8].id &&
-          r.ascentType.toLowerCase() == AscentType.T_REPEAT,
+          r.ascentType.toLowerCase() == AscentType.t_repeat,
       )[0].orderScore,
     ).toBe((mockRoutes[8].difficulty - 10) * 0.0001);
     expect(
       queryResponse.body.data.activity.routes.filter(
         (r) =>
           r.route.id == mockRoutes[8].id &&
-          r.ascentType.toLowerCase() == AscentType.T_REPEAT,
+          r.ascentType.toLowerCase() == AscentType.t_repeat,
       )[0].rankingScore,
     ).toBe(0);
 
