@@ -15,57 +15,57 @@ import { Pitch } from '../../crags/entities/pitch.entity';
 import { User } from '../../users/entities/user.entity';
 
 export enum AscentType {
-  ONSIGHT = 'onsight',
-  FLASH = 'flash',
-  REDPOINT = 'redpoint',
-  REPEAT = 'repeat',
-  ALLFREE = 'allfree',
-  AID = 'aid',
-  ATTEMPT = 'attempt',
-  T_ONSIGHT = 't_onsight',
-  T_FLASH = 't_flash',
-  T_REDPOINT = 't_redpoint',
-  T_REPEAT = 't_repeat',
-  T_ALLFREE = 't_allfree',
-  T_AID = 't_aid',
-  T_ATTEMPT = 't_attempt',
-  TICK = 'tick',
+  onsight = 'onsight',
+  flash = 'flash',
+  redpoint = 'redpoint',
+  repeat = 'repeat',
+  allfree = 'allfree',
+  aid = 'aid',
+  attempt = 'attempt',
+  t_onsight = 't_onsight',
+  t_flash = 't_flash',
+  t_redpoint = 't_redpoint',
+  t_repeat = 't_repeat',
+  t_allfree = 't_allfree',
+  t_aid = 't_aid',
+  t_attempt = 't_attempt',
+  tick = 'tick',
 }
 registerEnumType(AscentType, {
   name: 'AscentType',
 });
 
 export const tickAscentTypes = new Set([
-  AscentType.ONSIGHT,
-  AscentType.FLASH,
-  AscentType.REDPOINT,
-  AscentType.REPEAT,
+  AscentType.onsight,
+  AscentType.flash,
+  AscentType.redpoint,
+  AscentType.repeat,
 ]);
 
 export const firstTickAscentTypes = new Set([
-  AscentType.ONSIGHT,
-  AscentType.FLASH,
-  AscentType.REDPOINT,
+  AscentType.onsight,
+  AscentType.flash,
+  AscentType.redpoint,
 ]);
 
 export const trTickAscentTypes = new Set([
-  AscentType.T_ONSIGHT,
-  AscentType.T_FLASH,
-  AscentType.T_REDPOINT,
-  AscentType.T_REPEAT,
+  AscentType.t_onsight,
+  AscentType.t_flash,
+  AscentType.t_redpoint,
+  AscentType.t_repeat,
 ]);
 
 export const firstTrTickAscentTypes = new Set([
-  AscentType.T_ONSIGHT,
-  AscentType.T_FLASH,
-  AscentType.T_REDPOINT,
+  AscentType.t_onsight,
+  AscentType.t_flash,
+  AscentType.t_redpoint,
 ]);
 
 export enum PublishType {
-  PUBLIC = 'public',
-  CLUB = 'club',
-  LOG = 'log',
-  PRIVATE = 'private',
+  public = 'public',
+  club = 'club',
+  log = 'log',
+  private = 'private',
 }
 registerEnumType(PublishType, {
   name: 'PublishType',
@@ -115,7 +115,7 @@ export class ActivityRoute extends BaseEntity {
   @Column({
     type: 'enum',
     enum: AscentType,
-    default: AscentType.REDPOINT,
+    default: AscentType.redpoint,
   })
   @Field((type) => AscentType)
   ascentType: AscentType;
@@ -123,7 +123,7 @@ export class ActivityRoute extends BaseEntity {
   @Column({
     type: 'enum',
     enum: PublishType,
-    default: PublishType.PRIVATE,
+    default: PublishType.private,
   })
   @Field((type) => PublishType)
   publish: PublishType;

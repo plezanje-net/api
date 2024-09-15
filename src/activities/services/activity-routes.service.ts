@@ -247,8 +247,8 @@ export class ActivityRoutesService {
     // boulders cannot be onsighted at all
     if (routeTypeId === 'boulder') {
       if (
-        ascentType === AscentType.ONSIGHT ||
-        ascentType === AscentType.T_ONSIGHT
+        ascentType === AscentType.onsight ||
+        ascentType === AscentType.t_onsight
       )
         return false;
     }
@@ -256,10 +256,10 @@ export class ActivityRoutesService {
     // already tried routes cannot be onsighted or flashed
     if (routeTried) {
       if (
-        ascentType === AscentType.ONSIGHT ||
-        ascentType === AscentType.T_ONSIGHT ||
-        ascentType === AscentType.FLASH ||
-        ascentType === AscentType.T_FLASH
+        ascentType === AscentType.onsight ||
+        ascentType === AscentType.t_onsight ||
+        ascentType === AscentType.flash ||
+        ascentType === AscentType.t_flash
       )
         return false;
     }
@@ -267,26 +267,26 @@ export class ActivityRoutesService {
     // already ticked routes cannot be redpointed (flash, sight included above)
     if (routeTicked) {
       if (
-        ascentType === AscentType.REDPOINT ||
-        ascentType === AscentType.T_REDPOINT
+        ascentType === AscentType.redpoint ||
+        ascentType === AscentType.t_redpoint
       )
         return false;
     }
 
     // routes one already 'ticked' on toprope cannot be tr redpointed
     if (routeTrTicked) {
-      if (ascentType === AscentType.T_REDPOINT) {
+      if (ascentType === AscentType.t_redpoint) {
         return false;
       }
     }
 
     // routes not ticked before cannot be repeated
-    if (ascentType === AscentType.REPEAT && !routeTicked) {
+    if (ascentType === AscentType.repeat && !routeTicked) {
       return false;
     }
 
     // routes not ticked (real or tr) before cannot be toprope repeated
-    if (ascentType === AscentType.T_REPEAT && !(routeTicked || routeTrTicked)) {
+    if (ascentType === AscentType.t_repeat && !(routeTicked || routeTrTicked)) {
       return false;
     }
 

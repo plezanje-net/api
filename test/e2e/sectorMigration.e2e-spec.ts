@@ -49,10 +49,10 @@ describe('SectorMigration', () => {
     await queryRunner.query(
       `INSERT INTO activity_route (ascent_type, publish, activity_id, route_id, user_id, order_score, ranking_score)
       VALUES 
-        ('${AscentType.ALLFREE}', 'log', '${mockData.activities.activityAcrossSectors.id}', '${mockData.crags.cragWithMultipleSectors.sectors.firstSector.routes.firstRoute.id}', '${mockData.users.basicUser1.id}', 1000, 1000),
-        ('${AscentType.ALLFREE}', 'log', '${mockData.activities.activityAcrossSectors.id}', '${mockData.crags.cragWithMultipleSectors.sectors.firstSector.routes.secondRoute.id}', '${mockData.users.basicUser1.id}', 1000, 1000),
-        ('${AscentType.ALLFREE}', 'log', '${mockData.activities.activityAcrossSectors.id}', '${mockData.crags.cragWithMultipleSectors.sectors.secondSector.routes.firstRoute.id}', '${mockData.users.basicUser1.id}', 1000, 1000),
-        ('${AscentType.ALLFREE}', 'log', '${mockData.activities.activityAcrossSectors.id}', '${mockData.crags.cragWithMultipleSectors.sectors.secondSector.routes.secondRoute.id}', '${mockData.users.basicUser1.id}', 1000, 1000)
+        ('${AscentType.allfree}', 'log', '${mockData.activities.activityAcrossSectors.id}', '${mockData.crags.cragWithMultipleSectors.sectors.firstSector.routes.firstRoute.id}', '${mockData.users.basicUser1.id}', 1000, 1000),
+        ('${AscentType.allfree}', 'log', '${mockData.activities.activityAcrossSectors.id}', '${mockData.crags.cragWithMultipleSectors.sectors.firstSector.routes.secondRoute.id}', '${mockData.users.basicUser1.id}', 1000, 1000),
+        ('${AscentType.allfree}', 'log', '${mockData.activities.activityAcrossSectors.id}', '${mockData.crags.cragWithMultipleSectors.sectors.secondSector.routes.firstRoute.id}', '${mockData.users.basicUser1.id}', 1000, 1000),
+        ('${AscentType.allfree}', 'log', '${mockData.activities.activityAcrossSectors.id}', '${mockData.crags.cragWithMultipleSectors.sectors.secondSector.routes.secondRoute.id}', '${mockData.users.basicUser1.id}', 1000, 1000)
       `,
     );
   });
