@@ -131,7 +131,6 @@ export class ActivityRoutesResolver {
     return this.activityRoutesService.getStats(input, currentUser);
   }
 
-
   @UseGuards(UserAuthGuard)
   @Query(() => [ActivityRoute])
   myCragSummary(

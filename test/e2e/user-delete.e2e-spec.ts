@@ -56,15 +56,15 @@ describe('UserDelete', () => {
       [
         {
           route: mockData.crags.simpleCrag.sectors.simpleSector1.routes[0],
-          ascentType: AscentType.REDPOINT,
-          publishType: PublishType.PRIVATE,
+          ascentType: AscentType.redpoint,
+          publishType: PublishType.private,
           votedDifficulty: 1100,
           votedStarRating: 2,
         },
         {
           route: mockData.crags.simpleCrag.sectors.simpleSector1.routes[1],
-          ascentType: AscentType.ONSIGHT,
-          publishType: PublishType.PUBLIC,
+          ascentType: AscentType.onsight,
+          publishType: PublishType.public,
         },
       ],
     );
@@ -81,8 +81,8 @@ describe('UserDelete', () => {
     await logRoutes(app, mockData.users.basicUser2, mockData.crags.simpleCrag, [
       {
         route: mockData.crags.simpleCrag.sectors.simpleSector1.routes[0],
-        ascentType: AscentType.REDPOINT,
-        publishType: PublishType.PRIVATE,
+        ascentType: AscentType.redpoint,
+        publishType: PublishType.private,
         votedDifficulty: 1200,
         votedStarRating: 2,
       },
@@ -90,8 +90,8 @@ describe('UserDelete', () => {
     await logRoutes(app, mockData.users.basicUser3, mockData.crags.simpleCrag, [
       {
         route: mockData.crags.simpleCrag.sectors.simpleSector1.routes[0],
-        ascentType: AscentType.REDPOINT,
-        publishType: PublishType.PRIVATE,
+        ascentType: AscentType.redpoint,
+        publishType: PublishType.private,
         votedDifficulty: 1300,
         votedStarRating: 2,
       },
@@ -102,16 +102,16 @@ describe('UserDelete', () => {
     await logRoutes(app, mockData.users.basicUser4, mockData.crags.simpleCrag, [
       {
         route: mockData.crags.simpleCrag.sectors.simpleSector1.routes[0],
-        ascentType: AscentType.REDPOINT,
-        publishType: PublishType.PRIVATE,
+        ascentType: AscentType.redpoint,
+        publishType: PublishType.private,
         votedStarRating: 2,
       },
     ]);
     await logRoutes(app, mockData.users.basicUser5, mockData.crags.simpleCrag, [
       {
         route: mockData.crags.simpleCrag.sectors.simpleSector1.routes[0],
-        ascentType: AscentType.REDPOINT,
-        publishType: PublishType.PRIVATE,
+        ascentType: AscentType.redpoint,
+        publishType: PublishType.private,
         votedStarRating: 2,
       },
     ]);

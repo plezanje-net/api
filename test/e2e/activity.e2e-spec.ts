@@ -6,7 +6,10 @@ import { MailService } from '../../src/notification/services/mail.service';
 import { initializeDbConn, prepareEnvironment, seedDatabase } from './helpers';
 import { UsersModule } from '../../src/users/users.module';
 import { CragsModule } from '../../src/crags/crags.module';
-import { AscentType } from '../../src/activities/entities/activity-route.entity';
+import {
+  AscentType,
+  PublishType,
+} from '../../src/activities/entities/activity-route.entity';
 import {
   Activity,
   ActivityType,
@@ -127,7 +130,7 @@ describe('Activity', () => {
 
     await queryRunner.query(
       `INSERT INTO activity_route (id, ascent_type, publish, activity_id, route_id, user_id, order_score, ranking_score)
-      VALUES ('${mockData.activities.activityWithPublicRoutes.activityRoutes.publicActivityRoute.id}', '${AscentType.ONSIGHT}', 'public', '${mockData.activities.activityWithPublicRoutes.id}', '${mockData.crags.publishedCrag.sectors.publishedSector.routes.publishedRoute.id}', '${mockData.users.basicUser1.id}', 1000, 1000)`,
+      VALUES ('${mockData.activities.activityWithPublicRoutes.activityRoutes.publicActivityRoute.id}', '${AscentType.onsight}', 'public', '${mockData.activities.activityWithPublicRoutes.id}', '${mockData.crags.publishedCrag.sectors.publishedSector.routes.publishedRoute.id}', '${mockData.users.basicUser1.id}', 1000, 1000)`,
     );
 
     // add activity with only private activity routes
@@ -138,7 +141,7 @@ describe('Activity', () => {
 
     await queryRunner.query(
       `INSERT INTO activity_route (id, ascent_type, publish, activity_id, route_id, user_id, order_score, ranking_score)
-      VALUES ('${mockData.activities.activityWithPrivateRoutes.activityRoutes.privateActivityRoute.id}', '${AscentType.REPEAT}', 'private', '${mockData.activities.activityWithPrivateRoutes.id}', '${mockData.crags.publishedCrag.sectors.publishedSector.routes.publishedRoute.id}', '${mockData.users.basicUser1.id}', 1000, 1000)`,
+      VALUES ('${mockData.activities.activityWithPrivateRoutes.activityRoutes.privateActivityRoute.id}', '${AscentType.repeat}', 'private', '${mockData.activities.activityWithPrivateRoutes.id}', '${mockData.crags.publishedCrag.sectors.publishedSector.routes.publishedRoute.id}', '${mockData.users.basicUser1.id}', 1000, 1000)`,
     );
 
     // add activity with only log activity routes
@@ -149,7 +152,7 @@ describe('Activity', () => {
 
     await queryRunner.query(
       `INSERT INTO activity_route (id, ascent_type, publish, activity_id, route_id, user_id, order_score, ranking_score)
-      VALUES ('${mockData.activities.activityWithLogRoutes.activityRoutes.logActivityRoute.id}', '${AscentType.REPEAT}', 'log', '${mockData.activities.activityWithLogRoutes.id}', '${mockData.crags.publishedCrag.sectors.publishedSector.routes.publishedRoute.id}', '${mockData.users.basicUser1.id}', 1000, 1000)`,
+      VALUES ('${mockData.activities.activityWithLogRoutes.activityRoutes.logActivityRoute.id}', '${AscentType.repeat}', 'log', '${mockData.activities.activityWithLogRoutes.id}', '${mockData.crags.publishedCrag.sectors.publishedSector.routes.publishedRoute.id}', '${mockData.users.basicUser1.id}', 1000, 1000)`,
     );
 
     // add activty with mixed activity routes (public, private, log)
@@ -160,15 +163,15 @@ describe('Activity', () => {
 
     await queryRunner.query(
       `INSERT INTO activity_route (id, ascent_type, publish, activity_id, route_id, user_id, order_score, ranking_score)
-      VALUES ('${mockData.activities.activityWithMixedRoutes.activityRoutes.publicActivityRoute.id}', '${AscentType.REPEAT}', 'public', '${mockData.activities.activityWithMixedRoutes.id}', '${mockData.crags.publishedCrag.sectors.publishedSector.routes.publishedRoute.id}', '${mockData.users.basicUser1.id}', 1000, 1000)`,
+      VALUES ('${mockData.activities.activityWithMixedRoutes.activityRoutes.publicActivityRoute.id}', '${AscentType.repeat}', 'public', '${mockData.activities.activityWithMixedRoutes.id}', '${mockData.crags.publishedCrag.sectors.publishedSector.routes.publishedRoute.id}', '${mockData.users.basicUser1.id}', 1000, 1000)`,
     );
     await queryRunner.query(
       `INSERT INTO activity_route (id, ascent_type, publish, activity_id, route_id, user_id, order_score, ranking_score)
-      VALUES ('${mockData.activities.activityWithMixedRoutes.activityRoutes.logActivityRoute.id}', '${AscentType.REPEAT}', 'log', '${mockData.activities.activityWithMixedRoutes.id}', '${mockData.crags.publishedCrag.sectors.publishedSector.routes.publishedRoute.id}', '${mockData.users.basicUser1.id}', 1000, 1000)`,
+      VALUES ('${mockData.activities.activityWithMixedRoutes.activityRoutes.logActivityRoute.id}', '${AscentType.repeat}', 'log', '${mockData.activities.activityWithMixedRoutes.id}', '${mockData.crags.publishedCrag.sectors.publishedSector.routes.publishedRoute.id}', '${mockData.users.basicUser1.id}', 1000, 1000)`,
     );
     await queryRunner.query(
       `INSERT INTO activity_route (id, ascent_type, publish, activity_id, route_id, user_id, order_score, ranking_score)
-      VALUES ('${mockData.activities.activityWithMixedRoutes.activityRoutes.privateActivityRoute.id}', '${AscentType.REPEAT}', 'private', '${mockData.activities.activityWithMixedRoutes.id}', '${mockData.crags.publishedCrag.sectors.publishedSector.routes.publishedRoute.id}', '${mockData.users.basicUser1.id}', 1000, 1000)`,
+      VALUES ('${mockData.activities.activityWithMixedRoutes.activityRoutes.privateActivityRoute.id}', '${AscentType.repeat}', 'private', '${mockData.activities.activityWithMixedRoutes.id}', '${mockData.crags.publishedCrag.sectors.publishedSector.routes.publishedRoute.id}', '${mockData.users.basicUser1.id}', 1000, 1000)`,
     );
 
     // add activity in a draft crag
@@ -178,7 +181,7 @@ describe('Activity', () => {
     );
     await queryRunner.query(
       `INSERT INTO activity_route (id, ascent_type, publish, activity_id, route_id, user_id, order_score, ranking_score)
-      VALUES ('${mockData.activities.activityInDraftCrag.activityRoutes.activityRoute1.id}', '${AscentType.REPEAT}', 'public', '${mockData.activities.activityInDraftCrag.id}', '${mockData.crags.draftCrag.sectors.draftSector.routes.draftRoute.id}', '${mockData.users.basicUser1.id}', 1000, 1000)`,
+      VALUES ('${mockData.activities.activityInDraftCrag.activityRoutes.activityRoute1.id}', '${AscentType.repeat}', 'public', '${mockData.activities.activityInDraftCrag.id}', '${mockData.crags.draftCrag.sectors.draftSector.routes.draftRoute.id}', '${mockData.users.basicUser1.id}', 1000, 1000)`,
     );
 
     // add activity in an in_review crag
@@ -188,7 +191,7 @@ describe('Activity', () => {
     );
     await queryRunner.query(
       `INSERT INTO activity_route (id, ascent_type, publish, activity_id, route_id, user_id, order_score, ranking_score)
-      VALUES ('${mockData.activities.activityInInReviewCrag.activityRoutes.activityRoute1.id}', '${AscentType.REPEAT}', 'public', '${mockData.activities.activityInInReviewCrag.id}', '${mockData.crags.inReviewCrag.sectors.inReviewSector.routes.inReviewRoute.id}', '${mockData.users.basicUser1.id}', 1000, 1000)`,
+      VALUES ('${mockData.activities.activityInInReviewCrag.activityRoutes.activityRoute1.id}', '${AscentType.repeat}', 'public', '${mockData.activities.activityInInReviewCrag.id}', '${mockData.crags.inReviewCrag.sectors.inReviewSector.routes.inReviewRoute.id}', '${mockData.users.basicUser1.id}', 1000, 1000)`,
     );
 
     // add activity in a published crag and draft sector
@@ -198,7 +201,7 @@ describe('Activity', () => {
     );
     await queryRunner.query(
       `INSERT INTO activity_route (id, ascent_type, publish, activity_id, route_id, user_id, order_score, ranking_score)
-      VALUES ('${mockData.activities.activityInPublishedCragDraftSector.activityRoutes.activityRoute1.id}', '${AscentType.REPEAT}', 'public', '${mockData.activities.activityInPublishedCragDraftSector.id}', '${mockData.crags.publishedCrag.sectors.draftSector.routes.draftRoute.id}', '${mockData.users.basicUser1.id}', 1000, 1000)`,
+      VALUES ('${mockData.activities.activityInPublishedCragDraftSector.activityRoutes.activityRoute1.id}', '${AscentType.repeat}', 'public', '${mockData.activities.activityInPublishedCragDraftSector.id}', '${mockData.crags.publishedCrag.sectors.draftSector.routes.draftRoute.id}', '${mockData.users.basicUser1.id}', 1000, 1000)`,
     );
   });
 
@@ -276,7 +279,7 @@ describe('Activity', () => {
     expect(activitiesIds).not.toContain(mockData.activities.nonCragActivity.id);
   });
 
-  it('should get only public (or log) activity routes and only activities containing at least one public (or log) activity route when fetching as a guest', async () => {
+  it('should get only public activity routes and only activities containing at least one public activity route when fetching as a guest', async () => {
     const response = await request(app.getHttpServer())
       .post('/graphql')
       .send({
@@ -304,14 +307,18 @@ describe('Activity', () => {
     const numOfNonPublicActivityRoutes =
       response.body.data.activities.items.filter(
         (a) =>
-          a.routes.filter((ar) => !['log', 'public'].includes(ar.publish))
-            .length > 0,
+          a.routes.filter(
+            (ar) => ![PublishType.public].includes(ar.publish.toLowerCase()),
+          ).length > 0,
       ).length;
     expect(numOfNonPublicActivityRoutes).toEqual(0);
 
     const numOfActivitiesWithNoPublicActivityRoutes =
       response.body.data.activities.items.filter(
-        (a) => !a.routes.some((ar) => ['log', 'public'].includes(ar.publish)),
+        (a) =>
+          !a.routes.some((ar) =>
+            [PublishType.public].includes(ar.publish.toLowerCase()),
+          ),
       ).length;
     expect(numOfActivitiesWithNoPublicActivityRoutes).toEqual(0);
 
@@ -320,7 +327,7 @@ describe('Activity', () => {
     const returnedActivitiesIds = response.body.data.activities.items.map(
       (a) => a.id,
     );
-    expect(returnedActivitiesIds).toContain(
+    expect(returnedActivitiesIds).not.toContain(
       mockData.activities.activityWithLogRoutes.id,
     );
     expect(returnedActivitiesIds).toContain(
@@ -340,7 +347,7 @@ describe('Activity', () => {
       mockData.activities.activityWithPublicRoutes.activityRoutes
         .publicActivityRoute.id,
     );
-    expect(returnedActivityRoutesIds).toContain(
+    expect(returnedActivityRoutesIds).not.toContain(
       mockData.activities.activityWithLogRoutes.activityRoutes.logActivityRoute
         .id,
     );
@@ -348,7 +355,7 @@ describe('Activity', () => {
       mockData.activities.activityWithMixedRoutes.activityRoutes
         .publicActivityRoute.id,
     );
-    expect(returnedActivityRoutesIds).toContain(
+    expect(returnedActivityRoutesIds).not.toContain(
       mockData.activities.activityWithMixedRoutes.activityRoutes
         .logActivityRoute.id,
     );

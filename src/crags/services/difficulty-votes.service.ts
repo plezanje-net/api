@@ -7,6 +7,7 @@ import { setBuilderCache } from '../../core/utils/entity-cache/entity-cache-help
 import { LatestDifficultyVotesInputServiceInput } from '../dtos/latest-difficulty-votes-service.input';
 import { DifficultyVote } from '../entities/difficulty-vote.entity';
 import { PaginatedDifficultyVotes } from '../utils/paginated-difficulty-votes';
+import { FindDifficultyVotesInput } from '../dtos/find-difficulty-votes.input';
 
 @Injectable()
 export class DifficultyVotesService {
@@ -15,9 +16,17 @@ export class DifficultyVotesService {
     private difficultyVoteRepository: Repository<DifficultyVote>,
   ) {}
 
-  async findByRouteId(routeId: string): Promise<DifficultyVote[]> {
+  async findByRouteId(
+    routeId: string,
+    input: FindDifficultyVotesInput = {},
+  ): Promise<DifficultyVote[]> {
+    const where = {
+      ...(input.userId && { userId: input.userId }),
+      ...{ routeId },
+    };
+
     const grades = this.difficultyVoteRepository.find({
-      where: { routeId: routeId },
+      where,
       order: { difficulty: 'ASC' },
     });
 

@@ -49,7 +49,7 @@ async function convertFirstTickAfterToRepeat(
     );
 
     // Convert it to repeat
-    futureTick.ascentType = AscentType.REPEAT;
+    futureTick.ascentType = AscentType.repeat;
     await queryRunner.manager.save(futureTick);
     sideEffects.push({ before: futureTickBeforeChange, after: futureTick });
   }
@@ -86,7 +86,7 @@ async function convertFirstTrTickAfterToTrRepeat(
     );
 
     // Convert it to toprope repeat
-    futureTrTick.ascentType = AscentType.T_REPEAT;
+    futureTrTick.ascentType = AscentType.t_repeat;
     await queryRunner.manager.save(futureTrTick);
     sideEffects.push({
       before: futureTrTickBeforeChange,
@@ -110,7 +110,7 @@ async function convertFirstSightOrFlashAfterToRedpoint(
     .where('ar.route_id = :routeId', { routeId: routeId })
     .andWhere('ar.user_id = :userId', { userId: userId })
     .andWhere('ar.ascent_type IN (:...aTypes)', {
-      aTypes: [AscentType.ONSIGHT, AscentType.FLASH],
+      aTypes: [AscentType.onsight, AscentType.flash],
     })
     .andWhere('ar.date > :arDate', { arDate: date })
     .getOne(); // If data is valid there can only be one such ascent logged (or none)
@@ -126,7 +126,7 @@ async function convertFirstSightOrFlashAfterToRedpoint(
     );
 
     // Convert it to redpoint
-    futureSightOrFlash.ascentType = AscentType.REDPOINT;
+    futureSightOrFlash.ascentType = AscentType.redpoint;
     await queryRunner.manager.save(futureSightOrFlash);
     sideEffects.push({
       before: futureSightOrFlashBeforeChange,
@@ -150,7 +150,7 @@ async function convertFirstTrSightOrFlashAfterToTrRedpoint(
     .where('ar.route_id = :routeId', { routeId: routeId })
     .andWhere('ar.user_id = :userId', { userId: userId })
     .andWhere('ar.ascent_type IN (:...aTypes)', {
-      aTypes: [AscentType.T_ONSIGHT, AscentType.T_FLASH],
+      aTypes: [AscentType.t_onsight, AscentType.t_flash],
     })
     .andWhere('ar.date > :arDate', { arDate: date })
     .getOne(); // If data is valid there can only be one such ascent logged (or none)
@@ -166,7 +166,7 @@ async function convertFirstTrSightOrFlashAfterToTrRedpoint(
     );
 
     // Convert it to toprope redpoint
-    futureTrSightOrFlash.ascentType = AscentType.T_REDPOINT;
+    futureTrSightOrFlash.ascentType = AscentType.t_redpoint;
     await queryRunner.manager.save(futureTrSightOrFlash);
     sideEffects.push({
       before: futureTrSightOrFlashBeforeChange,
