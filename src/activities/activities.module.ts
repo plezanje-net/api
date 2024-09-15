@@ -20,6 +20,7 @@ import { Sector } from '../crags/entities/sector.entity';
 import { Country } from '../crags/entities/country.entity';
 import { BullModule } from '@nestjs/bull';
 import { CragsModule } from '../crags/crags.module';
+import { env } from 'process';
 
 @Module({
   imports: [
@@ -40,6 +41,7 @@ import { CragsModule } from '../crags/crags.module';
     forwardRef(() => UsersModule),
     BullModule.registerQueue({
       name: 'summary',
+      prefix: `bull:${env.ENVIRONMENT}`,
     }),
     CragsModule,
   ],

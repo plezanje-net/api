@@ -75,6 +75,7 @@ import { ActivityRoutesService } from '../activities/services/activity-routes.se
 import { ActivitiesModule } from '../activities/activities.module';
 import { ClubMember } from '../users/entities/club-member.entity';
 import { Club } from '../users/entities/club.entity';
+import { env } from 'process';
 
 @Module({
   imports: [
@@ -109,6 +110,7 @@ import { Club } from '../users/entities/club.entity';
     forwardRef(() => AuditModule),
     BullModule.registerQueue({
       name: 'summary',
+      prefix: `bull:${env.ENVIRONMENT}`,
     }),
   ],
   providers: [
