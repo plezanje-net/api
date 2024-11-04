@@ -1,9 +1,11 @@
-name: deploy
+name: autodeploy
 on:
-  workflow_dispatch:
+  push:
+    branches:
+      - hetzner
 jobs:
-  deploy:
-    runs-on: master
+  autodeploy:
+    runs-on: hetzner
     steps:
       - name: Check out repository code
         uses: actions/checkout@v2
