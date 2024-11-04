@@ -9,10 +9,10 @@ jobs:
     steps:
       - name: Check out repository code
         uses: actions/checkout@v2
-      - name: Use Node 16.x
-        uses: actions/setup-node@v1
+      - name: Use Node 18.x
+        uses: actions/setup-node@v3
         with:
-          node-version: '16.x'
+          node-version: '18.x'
       - name: List files in the repository
         run: |
           ls ${{ github.workspace }}
@@ -21,12 +21,12 @@ jobs:
           npm install
           npm run build
           sudo supervisorctl stop api
-          rm -rf /var/www/plezanjenet/api/*
-          cp -r ./ /var/www/plezanjenet/api/
-          cp /var/www/plezanjenet/.env /var/www/plezanjenet/api/.env
+          rm -rf ${{ secrets.WWW_ROOT }}/api/*
+          cp -r ./ ${{ secrets.WWW_ROOT }}/api/
+          cp ${{ secrets.WWW_ROOT }}/.env.api ${{ secrets.WWW_ROOT }}/api/.env
       - name: Run database migrations
         run: |
-          cd /var/www/plezanjenet/api && npm run migration:run
+          cd ${{ secrets.WWW_ROOT }}/api && npm run migration:run
       - name: Start server
         run: |
           sudo supervisorctl start api
