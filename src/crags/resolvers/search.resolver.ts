@@ -8,6 +8,10 @@ import { DataLoaderInterceptor } from '../../core/interceptors/data-loader.inter
 import { User } from '../../users/entities/user.entity';
 import { SearchService } from '../services/search.service';
 import { SearchResults } from '../utils/search-results.class';
+import { SearchCragsInput } from '../dtos/search-crags.input';
+import { PaginatedCrags } from '../utils/paginated-crags';
+import { PaginatedRoutes } from '../utils/paginated-routes';
+import { SearchRoutesInput } from '../dtos/search-routes';
 
 @Resolver(() => SearchResults)
 @UseInterceptors(DataLoaderInterceptor)
@@ -23,5 +27,25 @@ export class SearchResolver {
     @Args('input', { nullable: true }) input?: string,
   ): Promise<SearchResults> {
     return this.searchService.find(input, user, gqlInfo);
+  }
+
+  @Query(() => PaginatedCrags)
+  @AllowAny()
+  @UseGuards(UserAuthGuard)
+  searchCrags(
+    @CurrentUser() user: User,
+    @Args('input') input?: SearchCragsInput,
+  ): Promise<PaginatedCrags> {
+    return this.searchService.paginatedCrags(input, user);
+  }
+
+  @Query(() => PaginatedRoutes)
+  @AllowAny()
+  @UseGuards(UserAuthGuard)
+  searchRoutes(
+    @CurrentUser() user: User,
+    @Args('input') input?: SearchRoutesInput,
+  ): Promise<PaginatedRoutes> {
+    return this.searchService.paginatedRoutes(input, user);
   }
 }
