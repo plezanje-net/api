@@ -194,6 +194,30 @@ export class RoutesResolver {
     return this.routesService.delete(id);
   }
 
+  @Mutation(() => [Boolean])
+  @UseGuards(UserAuthGuard)
+  @UseInterceptors(AuditInterceptor)
+  @UseFilters(NotFoundFilter, ForeignKeyConstraintFilter)
+  async deleteRoutes(
+    @Args('ids', { type: () => [String] }) ids: string[],
+    @CurrentUser() user: User,
+  ): Promise<boolean[]> {
+    return Promise.all(
+      ids.map(async (id) => {
+        const route = await this.routesService.findOne({
+          id: id,
+          user,
+        });
+
+        if (!user.isAdmin() && route.publishStatus != 'draft') {
+          throw new ForbiddenException();
+        }
+
+        return this.routesService.delete(id);
+      }),
+    );
+  }
+
   @Mutation(() => Boolean)
   @UseGuards(UserAuthGuard)
   @UseFilters(NotFoundFilter)
