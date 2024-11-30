@@ -388,6 +388,23 @@ export class RoutesService {
     return true;
   }
 
+  /**
+   * @param sourceRoute the route that will be deleted after all related entities (votes, comments, ...) are transfered to the targetRoute
+   * @param targetRoute the main route that will be kept and on to which all related entities will be transfered
+   */
+  async merge(sourceRoute: Route, targetRoute: Route): Promise<boolean> {
+    const transaction = new Transaction(this.dataSource);
+    await transaction.start();
+    try {
+      await mergeRoutes(sourceRoute, targetRoute, 'target', transaction);
+    } catch (e) {
+      await transaction.rollback();
+      throw e;
+    }
+    transaction.commit();
+    return true;
+  }
+
   private async generateRouteSlug(
     routeName: string,
     cragId: string,

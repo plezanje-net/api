@@ -56,6 +56,7 @@ import { StarRatingVotesService } from '../services/star-rating-votes.service';
 import { StarRatingVote } from '../entities/star-rating-vote.entity';
 import { FindDifficultyVotesInput } from '../dtos/find-difficulty-votes.input';
 import { FindStarRatingVotesInput } from '../dtos/find-star-rating-votes.input';
+import { MergeRoutesInput } from '../dtos/merge-routes.input';
 
 @Resolver(() => Route)
 @UseInterceptors(DataLoaderInterceptor)
@@ -269,6 +270,46 @@ export class RoutesResolver {
       );
     }
     return this.routesService.moveToSector(route, sector);
+  }
+
+  @Mutation(() => Boolean)
+  @UseGuards(UserAuthGuard)
+  @UseFilters(NotFoundFilter)
+  @UseInterceptors(AuditInterceptor)
+  async mergeRoutes(
+    @Args('input', { type: () => MergeRoutesInput })
+    input: MergeRoutesInput,
+    @CurrentUser() user: User,
+  ): Promise<boolean> {
+    if (!user.isAdmin()) {
+      throw new ForbiddenException();
+    }
+
+    const sourceRoute = await this.routesService.findOne({
+      id: input.sourceRouteId,
+      user,
+    });
+
+    const targetRoute = await this.routesService.findOne({
+      id: input.targetRouteId,
+      user,
+    });
+
+    if (
+      sourceRoute.publishStatus != 'published' ||
+      targetRoute.publishStatus != 'published'
+    ) {
+      throw new BadRequestException('cannot_merge_unpublished_routes');
+    }
+
+    if (
+      (await sourceRoute.pitches).length ||
+      (await targetRoute.pitches).length
+    ) {
+      throw new BadRequestException('cannot_merge_multipitch_routes');
+    }
+
+    return this.routesService.merge(sourceRoute, targetRoute);
   }
 
   /* FIELDS */
