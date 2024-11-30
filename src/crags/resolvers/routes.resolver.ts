@@ -168,7 +168,10 @@ export class RoutesResolver {
     @Args('input', { type: () => [UpdateRouteInput] })
     input: UpdateRouteInput[],
   ): Promise<Route[]> {
-    return Promise.all(input.map((input) => this.routesService.update(input)));
+    // Process all routes updates sequentially. e.g. changing routes positions would be unpredictable otherwise
+    const result = [];
+    for (const routeInput of input) {
+      result.push(await this.routesService.update(input)));
   }
 
   @Mutation(() => Boolean)
