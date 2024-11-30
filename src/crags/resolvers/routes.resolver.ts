@@ -171,7 +171,10 @@ export class RoutesResolver {
     // Process all routes updates sequentially. e.g. changing routes positions would be unpredictable otherwise
     const result = [];
     for (const routeInput of input) {
-      result.push(await this.routesService.update(input)));
+      result.push(await this.routesService.update(routeInput));
+    }
+
+    return Promise.resolve(result);
   }
 
   @Mutation(() => Boolean)
