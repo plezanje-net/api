@@ -194,6 +194,66 @@ export class CragsService {
     return Promise.resolve(true);
   }
 
+  async mergeAllSectors(id: string): Promise<boolean> {
+    const crag = await this.cragsRepository.findOneOrFail({
+      where: { id: id },
+      relations: {
+        sectors: {
+          routes: true,
+        },
+      },
+      order: {
+        sectors: {
+          position: 'ASC',
+          routes: {
+            position: 'ASC',
+          },
+        },
+      },
+    });
+
+    const sectors = await crag.sectors;
+    const keptSector = sectors[0]; // keep first sector as the dummy sector for all routes
+    const keptSectorRoutes = await keptSector.routes;
+
+    let lastPosition =
+      keptSectorRoutes[keptSectorRoutes.length - 1]?.position || 0;
+
+    const transaction = new Transaction(this.dataSource);
+    await transaction.start();
+
+    try {
+      // move all routes into the dummy sector, adjusting route positions
+      for (let i = 1; i < sectors.length; i++) {
+        const otherSector = sectors[i];
+        const routesToMove = await otherSector.routes;
+
+        for (let routeToMove of routesToMove) {
+          routeToMove.sectorId = keptSector.id;
+          routeToMove.position = lastPosition + 1;
+          lastPosition++;
+          await transaction.save(routeToMove);
+        }
+
+        // delete all sectors (but first one)
+        await transaction.delete(otherSector);
+      }
+
+      // remove name and label of first sector (update them to empty string)
+      await transaction.queryRunner.manager.update(Sector, keptSector.id, {
+        label: '',
+        name: '',
+      });
+    } catch (e) {
+      await transaction.rollback();
+      throw e;
+    }
+
+    await transaction.commit();
+
+    return Promise.resolve(true);
+  }
+
   private async buildQuery(
     params: FindCragsServiceInput = {},
   ): Promise<SelectQueryBuilder<Crag>> {
