@@ -388,6 +388,32 @@ export class RoutesService {
     return true;
   }
 
+  async moveManyToSector(routeIds: string[], sector: Sector): Promise<boolean> {
+    const transaction = new Transaction(this.dataSource);
+    await transaction.start();
+    try {
+      // when route is moved to another sector put it at the end of the list
+      const targetSectorRoutes = await sector.routes;
+      let lastPosition =
+        targetSectorRoutes.length > 0
+          ? Math.max(...targetSectorRoutes.map((route) => route.position))
+          : 0;
+
+      for (const routeId of routeIds) {
+        const route = await this.findOne({ id: routeId });
+        route.sectorId = sector.id;
+        route.position = lastPosition + 1;
+        await transaction.save(route);
+        lastPosition++;
+      }
+    } catch (e) {
+      await transaction.rollback();
+      throw e;
+    }
+    transaction.commit();
+    return true;
+  }
+
   /**
    * @param sourceRoute the route that will be deleted after all related entities (votes, comments, ...) are transfered to the targetRoute
    * @param targetRoute the main route that will be kept and on to which all related entities will be transfered

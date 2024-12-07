@@ -57,6 +57,7 @@ import { StarRatingVote } from '../entities/star-rating-vote.entity';
 import { FindDifficultyVotesInput } from '../dtos/find-difficulty-votes.input';
 import { FindStarRatingVotesInput } from '../dtos/find-star-rating-votes.input';
 import { MergeRoutesInput } from '../dtos/merge-routes.input';
+import { MoveRoutesToSectorInput } from '../dtos/move-routes-to-sector.input';
 
 @Resolver(() => Route)
 @UseInterceptors(DataLoaderInterceptor)
@@ -270,6 +271,27 @@ export class RoutesResolver {
       );
     }
     return this.routesService.moveToSector(route, sector);
+  }
+
+  @Mutation(() => Boolean)
+  @UseGuards(UserAuthGuard)
+  @UseFilters(NotFoundFilter)
+  @UseInterceptors(AuditInterceptor)
+  async moveRoutesToSector(
+    @Args('input', { type: () => MoveRoutesToSectorInput })
+    input: MoveRoutesToSectorInput,
+    @CurrentUser() user: User,
+  ): Promise<boolean> {
+    if (!user.isAdmin()) {
+      throw new ForbiddenException();
+    }
+
+    const sector = await this.sectorsService.findOne({
+      id: input.sectorId,
+      user,
+    });
+
+    return this.routesService.moveManyToSector(input.ids, sector);
   }
 
   @Mutation(() => Boolean)
