@@ -134,7 +134,7 @@ export class RoutesResolver {
       user,
     });
 
-    if (!user.isAdmin() && route.publishStatus != 'draft') {
+    if (!(await user.isAdmin()) && route.publishStatus != 'draft') {
       throw new ForbiddenException();
     }
 
