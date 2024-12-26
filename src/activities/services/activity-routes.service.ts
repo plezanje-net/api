@@ -618,6 +618,12 @@ export class ActivityRoutesService {
       });
     }
 
+    if (params.routeTypes != null) {
+      builder.andWhere('r.route_type_id IN(:...routeTypes)', {
+        routeTypes: params.routeTypes,
+      });
+    }
+
     if (params.publish != null) {
       builder.andWhere('ar."publish" IN (:...publish)', {
         publish: params.publish,
