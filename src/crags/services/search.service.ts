@@ -147,6 +147,10 @@ export class SearchService {
       }
     }
 
+    if (params.cragId) {
+      query.andWhere('r.crag_id = :cragId', { cragId: params.cragId });
+    }
+
     query
       .skip(pagination.pageSize * (pagination.pageNumber - 1))
       .take(pagination.pageSize);

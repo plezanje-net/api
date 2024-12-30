@@ -9,6 +9,10 @@ export class SearchRoutesInput {
 
   @Field({ nullable: true })
   @IsOptional()
+  cragId?: string;
+
+  @Field({ nullable: true })
+  @IsOptional()
   orderBy?: OrderByInput;
 
   @Field(() => Int, { nullable: true })
