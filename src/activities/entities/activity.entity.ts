@@ -1,4 +1,4 @@
-import {
+  import {
   Entity,
   PrimaryGeneratedColumn,
   Column,
@@ -52,6 +52,10 @@ export class Activity extends BaseEntity {
   })
   @Field()
   type: ActivityType;
+
+  @Column({ nullable: true })
+  @Field({ nullable: true })
+  customType: string;
 
   @Column({ nullable: true })
   @Field()
