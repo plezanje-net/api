@@ -13,6 +13,10 @@ export class CreateActivityInput {
   @Field()
   type: ActivityType;
 
+  @Field( { nullable: true })
+  @IsOptional()
+  customType?: string;
+
   @Field(() => Int, { nullable: true })
   @IsOptional()
   duration?: number;
