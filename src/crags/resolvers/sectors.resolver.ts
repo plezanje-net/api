@@ -87,11 +87,11 @@ export class SectorsResolver {
       user,
     });
 
-    if (!user.isAdmin() && sector.publishStatus != 'draft') {
+    if (!(await user.isAdmin()) && sector.publishStatus != 'draft') {
       throw new ForbiddenException();
     }
 
-    if (!user.isAdmin() && input.publishStatus == 'published') {
+    if (!(await user.isAdmin()) && input.publishStatus == 'published') {
       throw new BadRequestException('publish_status_unavailable_to_user');
     }
 
