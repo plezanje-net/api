@@ -87,53 +87,22 @@ export class CragsService {
     });
   }
 
-  // async create(data: CreateCragInput, user: User): Promise<Crag> {
-  //   const crag = new Crag();
-
-  //   this.cragsRepository.merge(crag, data);
-
-  //   crag.user = Promise.resolve(user);
-
-  //   crag.country = Promise.resolve(
-  //     await this.countryRepository.findOneByOrFail({ id: data.countryId }),
-  //   );
-
-  //   crag.slug = await this.generateCragSlug(data.name);
-
-  //   await this.save(crag, user);
-
-  //   return Promise.resolve(crag);
-  // }
-
   async create(data: CreateCragInput, user: User): Promise<Crag> {
-    const transaction = new Transaction(this.dataSource);
-    await transaction.start();
+    const crag = new Crag();
 
-    try {
-      const crag = new Crag();
-      this.cragsRepository.merge(crag, data);
-      crag.user = Promise.resolve(user);
-      crag.country = Promise.resolve(
-        await this.countryRepository.findOneByOrFail({ id: data.countryId }),
-      );
-      crag.slug = await this.generateCragSlug(data.name);
-      await transaction.save(crag);
+    this.cragsRepository.merge(crag, data);
 
-      const dummySector = new Sector();
-      dummySector.name = '';
-      dummySector.label = '';
-      dummySector.position = 0;
-      dummySector.crag = Promise.resolve(crag);
-      await transaction.save(dummySector);
+    crag.user = Promise.resolve(user);
 
-      await updateUserContributionsFlag(crag.publishStatus, user, transaction);
+    crag.country = Promise.resolve(
+      await this.countryRepository.findOneByOrFail({ id: data.countryId }),
+    );
 
-      await transaction.commit();
-      return Promise.resolve(crag);
-    } catch (e) {
-      await transaction.rollback();
-      throw e;
-    }
+    crag.slug = await this.generateCragSlug(data.name);
+
+    await this.save(crag, user);
+
+    return Promise.resolve(crag);
   }
 
   async update(data: UpdateCragInput): Promise<Crag> {
