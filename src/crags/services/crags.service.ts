@@ -22,6 +22,7 @@ import {
 import { setBuilderCache } from '../../core/utils/entity-cache/entity-cache-helpers';
 import { Queue } from 'bull';
 import { InjectQueue } from '@nestjs/bull';
+import { Image } from '../entities/image.entity';
 
 @Injectable()
 export class CragsService {
@@ -32,6 +33,8 @@ export class CragsService {
     protected cragsRepository: Repository<Crag>,
     @InjectRepository(Country)
     private countryRepository: Repository<Country>,
+    @InjectRepository(Image)
+    protected imagesRepository: Repository<Image>,
     @InjectQueue('summary') private summaryQueue: Queue,
     private dataSource: DataSource,
   ) {}
@@ -112,6 +115,13 @@ export class CragsService {
     this.cragsRepository.merge(crag, data);
 
     crag.slug = await this.generateCragSlug(crag.name, crag.id);
+
+    if (data.coverImageId) {
+      const coverImage = this.imagesRepository.findOneBy({
+        id: data.coverImageId,
+      });
+      crag.coverImage = coverImage;
+    }
 
     await this.save(
       crag,
