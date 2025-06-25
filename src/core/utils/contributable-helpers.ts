@@ -117,7 +117,7 @@ async function getUserContributions(
     [queryRunner.connection.getRepository(Sector), 'sector'],
     [queryRunner.connection.getRepository(Route), 'route'],
   ];
-
+  const isAdmin = await user.isAdmin();
   const union = queries
     .map(([repository, alias]: [Repository<any>, string]) =>
       repository
@@ -131,7 +131,7 @@ async function getUserContributions(
           'publish_status::text as "publishStatus"',
         ])
         .where(
-          user.isAdmin()
+          isAdmin
             ? `publish_status = 'in_review' OR (publish_status = 'draft' AND user_id = '${user.id}')`
             : `(publish_status = 'in_review' OR publish_status = 'draft') AND user_id = '${user.id}'`,
         )
