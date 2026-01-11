@@ -56,6 +56,8 @@ import { StarRatingVotesService } from '../services/star-rating-votes.service';
 import { StarRatingVote } from '../entities/star-rating-vote.entity';
 import { FindDifficultyVotesInput } from '../dtos/find-difficulty-votes.input';
 import { FindStarRatingVotesInput } from '../dtos/find-star-rating-votes.input';
+import { MergeRoutesInput } from '../dtos/merge-routes.input';
+import { MoveRoutesToSectorInput } from '../dtos/move-routes-to-sector.input';
 
 @Resolver(() => Route)
 @UseInterceptors(DataLoaderInterceptor)
@@ -132,7 +134,7 @@ export class RoutesResolver {
       user,
     });
 
-    if (!user.isAdmin() && route.publishStatus != 'draft') {
+    if (!(await user.isAdmin()) && route.publishStatus != 'draft') {
       throw new ForbiddenException();
     }
 
@@ -168,7 +170,13 @@ export class RoutesResolver {
     @Args('input', { type: () => [UpdateRouteInput] })
     input: UpdateRouteInput[],
   ): Promise<Route[]> {
-    return Promise.all(input.map((input) => this.routesService.update(input)));
+    // Process all routes updates sequentially. e.g. changing routes positions would be unpredictable otherwise
+    const result = [];
+    for (const routeInput of input) {
+      result.push(await this.routesService.update(routeInput));
+    }
+
+    return Promise.resolve(result);
   }
 
   @Mutation(() => Boolean)
@@ -189,6 +197,30 @@ export class RoutesResolver {
     }
 
     return this.routesService.delete(id);
+  }
+
+  @Mutation(() => [Boolean])
+  @UseGuards(UserAuthGuard)
+  @UseInterceptors(AuditInterceptor)
+  @UseFilters(NotFoundFilter, ForeignKeyConstraintFilter)
+  async deleteRoutes(
+    @Args('ids', { type: () => [String] }) ids: string[],
+    @CurrentUser() user: User,
+  ): Promise<boolean[]> {
+    return Promise.all(
+      ids.map(async (id) => {
+        const route = await this.routesService.findOne({
+          id: id,
+          user,
+        });
+
+        if (!user.isAdmin() && route.publishStatus != 'draft') {
+          throw new ForbiddenException();
+        }
+
+        return this.routesService.delete(id);
+      }),
+    );
   }
 
   @Mutation(() => Boolean)
@@ -239,6 +271,67 @@ export class RoutesResolver {
       );
     }
     return this.routesService.moveToSector(route, sector);
+  }
+
+  @Mutation(() => Boolean)
+  @UseGuards(UserAuthGuard)
+  @UseFilters(NotFoundFilter)
+  @UseInterceptors(AuditInterceptor)
+  async moveRoutesToSector(
+    @Args('input', { type: () => MoveRoutesToSectorInput })
+    input: MoveRoutesToSectorInput,
+    @CurrentUser() user: User,
+  ): Promise<boolean> {
+    if (!user.isAdmin()) {
+      throw new ForbiddenException();
+    }
+
+    const sector = await this.sectorsService.findOne({
+      id: input.sectorId,
+      user,
+    });
+
+    return this.routesService.moveManyToSector(input.ids, sector);
+  }
+
+  @Mutation(() => Boolean)
+  @UseGuards(UserAuthGuard)
+  @UseFilters(NotFoundFilter)
+  @UseInterceptors(AuditInterceptor)
+  async mergeRoutes(
+    @Args('input', { type: () => MergeRoutesInput })
+    input: MergeRoutesInput,
+    @CurrentUser() user: User,
+  ): Promise<boolean> {
+    if (!user.isAdmin()) {
+      throw new ForbiddenException();
+    }
+
+    const sourceRoute = await this.routesService.findOne({
+      id: input.sourceRouteId,
+      user,
+    });
+
+    const targetRoute = await this.routesService.findOne({
+      id: input.targetRouteId,
+      user,
+    });
+
+    if (
+      sourceRoute.publishStatus != 'published' ||
+      targetRoute.publishStatus != 'published'
+    ) {
+      throw new BadRequestException('cannot_merge_unpublished_routes');
+    }
+
+    if (
+      (await sourceRoute.pitches).length ||
+      (await targetRoute.pitches).length
+    ) {
+      throw new BadRequestException('cannot_merge_multipitch_routes');
+    }
+
+    return this.routesService.merge(sourceRoute, targetRoute);
   }
 
   /* FIELDS */

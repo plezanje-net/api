@@ -168,6 +168,29 @@ export class CragsResolver {
     return this.cragsService.delete(id);
   }
 
+  /*
+   Merges all routes into one sector with no name, which yields a 'sectorless' crag
+   */
+  @Mutation(() => Boolean)
+  @UseGuards(UserAuthGuard)
+  @UseInterceptors(AuditInterceptor)
+  @UseFilters(NotFoundFilter)
+  async mergeAllSectors(
+    @Args('cragId') cragId: string,
+    @CurrentUser() user: User,
+  ): Promise<boolean> {
+    const crag = await this.cragsService.findOne({
+      id: cragId,
+      user,
+    });
+
+    if (!user.isAdmin() && crag.publishStatus != 'draft') {
+      throw new ForbiddenException();
+    }
+
+    return this.cragsService.mergeAllSectors(cragId);
+  }
+
   /* FIELDS */
 
   @ResolveField('nrRoutes', () => Int)

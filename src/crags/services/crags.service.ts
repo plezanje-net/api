@@ -22,6 +22,7 @@ import {
 import { setBuilderCache } from '../../core/utils/entity-cache/entity-cache-helpers';
 import { Queue } from 'bull';
 import { InjectQueue } from '@nestjs/bull';
+import { Image } from '../entities/image.entity';
 
 @Injectable()
 export class CragsService {
@@ -32,6 +33,8 @@ export class CragsService {
     protected cragsRepository: Repository<Crag>,
     @InjectRepository(Country)
     private countryRepository: Repository<Country>,
+    @InjectRepository(Image)
+    protected imagesRepository: Repository<Image>,
     @InjectQueue('summary') private summaryQueue: Queue,
     private dataSource: DataSource,
   ) {}
@@ -113,6 +116,13 @@ export class CragsService {
 
     crag.slug = await this.generateCragSlug(crag.name, crag.id);
 
+    if (data.coverImageId) {
+      const coverImage = this.imagesRepository.findOneBy({
+        id: data.coverImageId,
+      });
+      crag.coverImage = coverImage;
+    }
+
     await this.save(
       crag,
       await crag.user,
@@ -184,6 +194,66 @@ export class CragsService {
       const user = await crag.user;
       await transaction.delete(crag);
       await updateUserContributionsFlag(null, user, transaction);
+    } catch (e) {
+      await transaction.rollback();
+      throw e;
+    }
+
+    await transaction.commit();
+
+    return Promise.resolve(true);
+  }
+
+  async mergeAllSectors(id: string): Promise<boolean> {
+    const crag = await this.cragsRepository.findOneOrFail({
+      where: { id: id },
+      relations: {
+        sectors: {
+          routes: true,
+        },
+      },
+      order: {
+        sectors: {
+          position: 'ASC',
+          routes: {
+            position: 'ASC',
+          },
+        },
+      },
+    });
+
+    const sectors = await crag.sectors;
+    const keptSector = sectors[0]; // keep first sector as the dummy sector for all routes
+    const keptSectorRoutes = await keptSector.routes;
+
+    let lastPosition =
+      keptSectorRoutes[keptSectorRoutes.length - 1]?.position || 0;
+
+    const transaction = new Transaction(this.dataSource);
+    await transaction.start();
+
+    try {
+      // move all routes into the dummy sector, adjusting route positions
+      for (let i = 1; i < sectors.length; i++) {
+        const otherSector = sectors[i];
+        const routesToMove = await otherSector.routes;
+
+        for (let routeToMove of routesToMove) {
+          routeToMove.sectorId = keptSector.id;
+          routeToMove.position = lastPosition + 1;
+          lastPosition++;
+          await transaction.save(routeToMove);
+        }
+
+        // delete all sectors (but first one)
+        await transaction.delete(otherSector);
+      }
+
+      // remove name and label of first sector (update them to empty string)
+      await transaction.queryRunner.manager.update(Sector, keptSector.id, {
+        label: '',
+        name: '',
+      });
     } catch (e) {
       await transaction.rollback();
       throw e;
