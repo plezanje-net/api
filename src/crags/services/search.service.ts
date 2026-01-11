@@ -8,6 +8,11 @@ import { Comment } from '../entities/comment.entity';
 import { User } from '../../users/entities/user.entity';
 import { SearchResults } from '../utils/search-results.class';
 import { FieldNode, GraphQLResolveInfo } from 'graphql';
+import { SearchCragsInput } from '../dtos/search-crags.input';
+import { PaginatedCrags } from '../utils/paginated-crags';
+import { PaginationMeta } from '../../core/utils/pagination-meta.class';
+import { SearchRoutesInput } from '../dtos/search-routes';
+import { PaginatedRoutes } from '../utils/paginated-routes';
 
 @Injectable()
 export class SearchService {
@@ -65,7 +70,47 @@ export class SearchService {
     return result;
   }
 
+  async paginatedCrags(
+    params: SearchCragsInput,
+    currentUser: User,
+  ): Promise<PaginatedCrags> {
+    const query = this.buildFindCragsQuery(params.query, currentUser != null);
+    const itemCount = await query.getCount();
+
+    const pagination = new PaginationMeta(
+      itemCount,
+      params.pageNumber,
+      params.pageSize,
+    );
+
+    if (params.orderBy != null) {
+      if (params.orderBy.field == 'popularity') {
+        query
+          .addSelect('count(c.id)', 'nrvisits')
+          .leftJoin('activity', 'ac', 'ac.crag_id = c.id')
+          .groupBy('c.id')
+          .orderBy('nrvisits', 'DESC');
+      }
+    }
+
+    query
+      .skip(pagination.pageSize * (pagination.pageNumber - 1))
+      .take(pagination.pageSize);
+
+    return Promise.resolve({
+      items: await query.getMany(),
+      meta: pagination,
+    });
+  }
+
   findCrags(searchString: string, showHidden: boolean): Promise<Crag[]> {
+    return this.buildFindCragsQuery(searchString, showHidden).getMany();
+  }
+
+  buildFindCragsQuery(
+    searchString: string,
+    showHidden: boolean,
+  ): SelectQueryBuilder<Crag> {
     const builder = this.cragsRepository.createQueryBuilder('c');
 
     if (!showHidden) {
@@ -76,10 +121,54 @@ export class SearchService {
 
     this.tokenizeQueryToBuilder(builder, searchString, 'c');
 
-    return builder.getMany();
+    return builder;
+  }
+
+  async paginatedRoutes(
+    params: SearchRoutesInput,
+    currentUser: User,
+  ): Promise<PaginatedRoutes> {
+    const query = this.buildFindRoutesQuery(params.query, currentUser != null);
+    const itemCount = await query.getCount();
+
+    const pagination = new PaginationMeta(
+      itemCount,
+      params.pageNumber,
+      params.pageSize,
+    );
+
+    if (params.orderBy != null) {
+      if (params.orderBy.field == 'popularity') {
+        query
+          .addSelect('count(r.id)', 'nrtries')
+          .leftJoin('activity_route', 'ar', 'ar.route_id = r.id')
+          .groupBy('r.id')
+          .orderBy('nrtries', 'DESC');
+      }
+    }
+
+    if (params.cragId) {
+      query.andWhere('r.crag_id = :cragId', { cragId: params.cragId });
+    }
+
+    query
+      .skip(pagination.pageSize * (pagination.pageNumber - 1))
+      .take(pagination.pageSize);
+
+    return Promise.resolve({
+      items: await query.getMany(),
+      meta: pagination,
+    });
   }
 
   findRoutes(searchString: string, showHidden: boolean): Promise<Route[]> {
+    return this.buildFindRoutesQuery(searchString, showHidden).getMany();
+  }
+
+  buildFindRoutesQuery(
+    searchString: string,
+    showHidden: boolean,
+  ): SelectQueryBuilder<Route> {
     const builder = this.routesRepository.createQueryBuilder('r');
 
     builder.innerJoin('crag', 'c', 'c.id = r.crag_id');
@@ -92,7 +181,7 @@ export class SearchService {
 
     this.tokenizeQueryToBuilder(builder, searchString, 'r');
 
-    return builder.getMany();
+    return builder;
   }
 
   findSectors(searchString: string, showHidden: boolean): Promise<Sector[]> {
