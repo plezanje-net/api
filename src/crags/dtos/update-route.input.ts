@@ -54,4 +54,8 @@ export class UpdateRouteInput {
   @Field({ nullable: true })
   @IsOptional()
   rejectionMessage: string;
+
+  @Field({ nullable: true })
+  @IsOptional()
+  description: string;
 }

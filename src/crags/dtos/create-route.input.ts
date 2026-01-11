@@ -37,4 +37,8 @@ export class CreateRouteInput {
   @Field({ nullable: true })
   @IsOptional()
   baseDifficulty: number;
+
+  @Field({ nullable: true })
+  @IsOptional()
+  description: string;
 }
