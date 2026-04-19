@@ -638,6 +638,14 @@ export class ActivityRoutesService {
       builder.andWhere('ar.date <= :dateTo', { dateTo: params.dateTo });
     }
 
+    if (params.difficultyFrom != null) {
+      builder.andWhere('r.difficulty >= :difficultyFrom', { difficultyFrom: params.difficultyFrom });
+    }
+
+    if (params.difficultyTo != null) {
+      builder.andWhere('r.difficulty <= :difficultyTo', { difficultyTo: params.difficultyTo });
+    }
+
     if (params.routeId != null) {
       builder.andWhere('ar.route_id = :routeId', { routeId: params.routeId });
     }

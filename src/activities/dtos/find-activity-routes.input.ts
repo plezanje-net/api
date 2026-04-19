@@ -29,6 +29,14 @@ export class FindActivityRoutesInput {
   @IsOptional()
   dateTo?: Date;
 
+  @Field({ nullable: true })
+  @IsOptional()
+  difficultyFrom?: number;
+
+  @Field({ nullable: true })
+  @IsOptional()
+  difficultyTo?: number;
+
   @Field(() => [String], { nullable: true })
   @IsOptional()
   ascentType?: AscentType[];
