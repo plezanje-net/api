@@ -68,7 +68,12 @@ export class UsersResolver {
   ): Promise<boolean> {
     const user = await this.usersService.register(input);
 
-    if (!(await this.notificationService.accountConfirmation(user))) {
+    if (
+      !(await this.notificationService.accountConfirmation(
+        user,
+        input.returnTo,
+      ))
+    ) {
       this.usersService.delete(user.id);
       throw new InternalServerErrorException(500, 'email_error');
     }
@@ -94,10 +99,13 @@ export class UsersResolver {
 
   @Mutation(() => Boolean)
   @UseFilters(NotFoundFilter)
-  async recover(@Args('email') email: string): Promise<boolean> {
+  async recover(
+    @Args('email') email: string,
+    @Args('returnTo', { nullable: true }) returnTo?: string,
+  ): Promise<boolean> {
     const user = await this.usersService.recover(email);
 
-    if (!(await this.notificationService.passwordRecovery(user))) {
+    if (!(await this.notificationService.passwordRecovery(user, returnTo))) {
       throw new InternalServerErrorException(500, 'email_error');
     }
 
