@@ -14,7 +14,10 @@ export class NotificationService {
     private configService: ConfigService,
   ) {}
 
-  public async accountConfirmation(user: User): Promise<boolean> {
+  public async accountConfirmation(
+    user: User,
+    returnTo?: string,
+  ): Promise<boolean> {
     return this.mailService
       .send({
         to: user.email,
@@ -31,11 +34,12 @@ export class NotificationService {
             'aktivacija/' +
             user.id +
             '/' +
-            user.confirmationToken,
+            user.confirmationToken +
+            (returnTo ? `?returnTo=${returnTo}` : ''),
         },
       })
       .then(() => true)
-      .catch(e => {
+      .catch((e) => {
         console.log(e);
         return false;
       });
@@ -74,13 +78,16 @@ export class NotificationService {
         },
       })
       .then(() => true)
-      .catch(e => {
+      .catch((e) => {
         console.log(e);
         return false;
       });
   }
 
-  public async passwordRecovery(user: User): Promise<boolean> {
+  public async passwordRecovery(
+    user: User,
+    returnTo?: string,
+  ): Promise<boolean> {
     return this.mailService
       .send({
         to: user.email,
@@ -97,7 +104,8 @@ export class NotificationService {
             'menjava-gesla/' +
             user.id +
             '/' +
-            user.passwordToken,
+            user.passwordToken +
+            (returnTo ? `?returnTo=${returnTo}` : ''),
         },
       })
       .then(() => true)
