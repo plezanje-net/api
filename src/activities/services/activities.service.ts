@@ -248,8 +248,8 @@ export class ActivitiesService {
     return myStats;
   }
 
-  async find(params: FindActivitiesInput = {}): Promise<Activity[]> {
-    return (await this.buildQuery(params)).getMany();
+  async find(params: FindActivitiesInput = {}, currentUser: User): Promise<Activity[]> {
+    return (await this.buildQuery(params, currentUser)).getMany();
   }
 
   async findByIds(ids: string[], currentUser: User): Promise<Activity[]> {

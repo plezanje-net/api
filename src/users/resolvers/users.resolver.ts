@@ -35,6 +35,8 @@ import { ClubMembersService } from '../services/club-members.service';
 import { UserAuthGuard } from '../../auth/guards/user-auth.guard';
 import { UpdateUserInput } from '../dtos/update-user.input';
 import { AuditInterceptor } from '../../audit/interceptors/audit.interceptor';
+import { ActivitiesService } from '../../activities/services/activities.service';
+import { ActivityType } from '../../activities/entities/activity.entity';
 
 @Resolver(() => User)
 export class UsersResolver {
@@ -43,6 +45,7 @@ export class UsersResolver {
     private authService: AuthService,
     private notificationService: NotificationService,
     private clubMembersService: ClubMembersService,
+    private activitiesService: ActivitiesService,
   ) {}
 
   /* QUERIES */
@@ -174,5 +177,14 @@ export class UsersResolver {
       throw new HttpException('Forbidden', HttpStatus.FORBIDDEN);
     }
     return this.clubMembersService.findByUser(user.id);
+  }
+
+  @ResolveField('customActivityTypes', () => [String])
+  async getCustomActivityTypes(@Parent() user: User): Promise<string[]> {
+    const activities = await this.activitiesService.find({
+      orderBy: { field: 'date', direction: 'DESC' },
+      type: [ActivityType.OTHER],
+    }, user);
+    return [...new Set(activities.map((a) => a.customType))];
   }
 }
