@@ -19,4 +19,7 @@ export class RegisterInput {
 
   @Field({ nullable: true })
   gender?: string;
+
+  @Field({ nullable: true })
+  returnTo?: string;
 }
